@@ -12,6 +12,29 @@
 #include <sys/stat.h>
 #include <fstream>
 
+std::string findInHeader(std::string header, std::string s){
+    size_t pos;
+    std::string tmp;
+    if (!strcmp(s.c_str(), "File")){
+        header.erase(0, 4);
+        return header.substr(0, header.find(' '));
+    }
+    if (!strcmp(s.c_str(), "Version")){
+        header.erase(0, 4);
+        header.erase(0, header.find(' ') + 1);
+        return header.substr(0, header.find('\n'));
+    }
+    while ((pos = header.find("\n")) != std::string::npos){
+        tmp = header.substr(0,pos);
+        if (tmp.length() >= s.length() && !strncmp(s.c_str(), tmp.c_str(), s.length())){
+            tmp.erase(0, s.length()+2);
+            return tmp;
+        }
+        header.erase(0, pos + 1);
+    }
+    return "";
+}
+
 
 bool    readFile(std::string filename, std::string *fileContent) {
     std::string     s;
@@ -22,10 +45,6 @@ bool    readFile(std::string filename, std::string *fileContent) {
         *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         return (1);
     }
-    // if filename is a folder, set it to index.html ( detect by using is_directory() )
-    // if (is_directory(filename)) {
-    //     filename += "index.html";
-    // }
     getline(ifs, s);
     if (s == "") {
         std::cerr << "Empty file." << std::endl;
@@ -75,7 +94,7 @@ std::string getContentType(std::string client_data)
 std::string getFile(std::string client_data)
 {
   std::string file;
-  for (int i = 4; i < client_data.length(); i++)
+  for (size_t i = 4; i < client_data.length(); i++)
   {
     if (client_data[i] == ' ')
       break;
@@ -98,6 +117,7 @@ std::string getHeader(std::string client_data)
 
 std::string set_default_page(std::string filetosearch, std::string client_data)
 {
+    (void)client_data;          // ---> need to check if the file is a directory and then set the default page
     if(filetosearch[filetosearch.length() - 1] == '/')
     {
       filetosearch += "index.html";                                             // <-- replace here the default page in config file
@@ -112,7 +132,7 @@ std::string data_sender(std::string client_data)
   std::string response;
   std::string filecontent;
   response = getHeader(client_data);
-  std::string filetosearch = "root" + getFile(client_data);                       // <-- replace "root" here with config file
+  std::string filetosearch = "root" + findInHeader(client_data, "File");                       // <-- replace "root" here with config file
   filetosearch = set_default_page(filetosearch, client_data);
   std::cout << "filetosearch>>" << filetosearch << "<<" << std::endl;
   readFile(filetosearch.c_str(), &filecontent);
@@ -124,7 +144,8 @@ std::string data_sender(std::string client_data)
 
 int main(int argc, char const *argv[])
 {
-    int server_fd, new_socket; long valread;
+    int server_fd, new_socket;
+    long valread;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     if(argc != 2)
@@ -194,6 +215,7 @@ int main(int argc, char const *argv[])
         valread = read( new_socket , client_data, 30000);
         printf("RECEIVING:\n%s\n",client_data);
         std::string file;
+        (void)valread; // --> ???? 
 
         response = data_sender(client_data);
         std::cout << "\n\nOUR RESPONSE: " << std::endl << response << std::endl;
