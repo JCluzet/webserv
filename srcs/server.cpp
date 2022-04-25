@@ -12,6 +12,16 @@
 #include <sys/stat.h>
 #include <fstream>
 
+bool is_directory(std::string path)
+{
+    struct stat  file_stat; 
+
+    if (stat(path.c_str(),&file_stat) < 0) 
+        return(0);
+    else
+        return(1);
+}
+
 std::string findInHeader(std::string header, std::string s){
     size_t pos;
     std::string tmp;
@@ -117,6 +127,7 @@ std::string getHeader(std::string client_data)
 
 std::string set_default_page(std::string filetosearch, std::string client_data)
 {
+        std::cout << "present" << std::endl;
     (void)client_data;          // ---> need to check if the file is a directory and then set the default page
     if(filetosearch[filetosearch.length() - 1] == '/')
     {
@@ -133,6 +144,10 @@ std::string data_sender(std::string client_data)
   std::string filecontent;
   response = getHeader(client_data);
   std::string filetosearch = "root" + findInHeader(client_data, "File");                       // <-- replace "root" here with config file
+//   if (is_directory(filetosearch))
+//   {
+//     filetosearch += "/";
+//   }
   filetosearch = set_default_page(filetosearch, client_data);
   std::cout << "filetosearch>>" << filetosearch << "<<" << std::endl;
   readFile(filetosearch.c_str(), &filecontent);
