@@ -33,13 +33,13 @@ sockaddr_in SocketAssign(int port, int *server_fd)
     // open browser at launch
 
     std::string test;
-    printf("Want to open page on port %d ?\n (y/n)", port);
+    std::cout << MAGENTA << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
     while (1)
     {
         std::cin >> test;
         if (test == "y")
         {
-            std::cout << "Opening page on port " << port << std::endl;
+            // std::cout << "Opening page on port " << port << std::endl;
             if (MAC == 1)
                 system(("open http://localhost:" + std::to_string(port)).c_str()); // --> mac
             else
@@ -62,10 +62,11 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     // (void)argc;
     std::string tmp;
+    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n" << RESET;
     if (argc == 1)
     {
         tmp = "config/default.conf";
-        std::cout << "Using default config file: " << tmp << std::endl;
+        std::cout << MAGENTA << "[⊛] => " << YELLOW << "Using default config file: " << RESET << tmp << std::endl;
     }
     else
         tmp = argv[1];
@@ -75,6 +76,7 @@ int main(int argc, char const *argv[])
         std::cout << "Config file not found" << std::endl;
         exit(EXIT_FAILURE);
     }
+
     Config conf(tmp);
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -89,7 +91,7 @@ int main(int argc, char const *argv[])
     std::string filecontent;
     while (1)
     {
-        printf("\n+++++++ Waiting for new connection on %d port ++++++++\n\n", conf.serv[0].port );
+        // printf("\n+++++++ Waiting for new connection on %d port ++++++++\n\n", conf.serv[0].port );
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
         {
             perror("In accept");
@@ -98,15 +100,21 @@ int main(int argc, char const *argv[])
 
         char client_data[30000] = {0};
         valread = read(new_socket, client_data, 30000);
-        printf("RECEIVING:\n%s\n", client_data);
+        // printf("CLIENT:\n%s\n", client_data);
         std::string file;
         (void)valread; // --> ????
 
         response = response_sender(client_data, conf);
         write(new_socket, response.c_str(), response.length());
         close(new_socket);
-        std::cout << "\n\nOUR RESPONSE: " << std::endl
-                  << response << std::endl;
+        if (strncmp(response.c_str(), "HTTP/1.1 200 OK", 15) == 0)
+        {
+            //  << WHITE << findInHeader(client_data, "Referer") << findInHeader(client_data, "File") << RESET << std::endl;
+        }
+ 
+
+        // std::cout << "\n\nOUR RESPONSE: " << std::endl
+        //           << response << std::endl;
     }
     return 0;
 }

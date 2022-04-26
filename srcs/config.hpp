@@ -151,14 +151,14 @@ private:
 
         if (!ifs)
         {
-            std::cerr << "Not Found " << filename << "." << std::endl;
+            // std::cerr << "Not Found " << filename << "." << std::endl;
             *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
             return (1);
         }
         getline(ifs, s);
         if (s == "")
         {
-            std::cerr << "Empty file." << std::endl;
+            // std::cerr << "Empty file." << std::endl;
             ifs.close();
             *fileContent = "\n";
             *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>"; // --> pareil

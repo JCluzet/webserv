@@ -6,13 +6,21 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/26 20:54:45 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/27 00:02:17 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 // #include "utils.hpp"
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define  WHITE "\033[1;37m"
+#define YELLOW "\033[1;33m"
+#define BLUE "\033[1;34m"
+#define MAGENTA "\033[1;35m"
+#define CYAN "\033[1;36m"
+#define RESET "\033[0m"
 #include "config.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
