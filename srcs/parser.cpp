@@ -175,7 +175,9 @@ std::string response_sender(std::string client_data, Config conf)
     // std::cout << "present" << conf.serv[0].default_page << std::endl;
 
     // std::cout << "HERE CONF>>" << conf.serv[0].default_folder << std::endl;
-    std::string filetosearch = "root" + findInHeader(client_data, "File"); // <-- replace "root" here with config file
+    // std::string filetosearch = "root" + findInHeader(client_data, "File"); // <-- replace "root" here with config file
+    std::string filetosearch = conf.serv[0].default_folder + findInHeader(client_data, "File"); // <-- replace "root" here with config file
+
     
     filetosearch = set_default_page(filetosearch, client_data, conf.serv[0].default_page);
     
