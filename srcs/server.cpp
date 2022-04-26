@@ -229,6 +229,7 @@ int main(int argc, char const *argv[])
                 system(("open http://localhost:" + std::to_string(port)).c_str()); // --> mac
             else
                 system(("xdg-open http://localhost:" + std::to_string(port)).c_str());
+            break;
         }
         if (test == "n")
         {
