@@ -10,11 +10,11 @@ typedef struct s_server
 {
     std::string host;
     std::string server_name;
-    int port;
+    std::string port;
     std::string default_folder;
     std::string default_page;
     std::string page404;
-    unsigned long long max_body_size;
+    std::string max_body_size;
     bool valid;
 
 } t_server;
@@ -97,14 +97,16 @@ private:
     {
         s->host = findInServer(conf, "host");
         s->server_name = findInServer(conf, "server_name");
-        std::string tmp = findInServer(conf, "port");
-        s->port = tmp.size() ? std::stoi(tmp) : 0;
+        // std::string tmp = findInServer(conf, "port");
+        // s->port = tmp.size() ? std::stoi(tmp) : 0;
+        s->port = findInServer(conf, "port");
         s->default_folder = findInServer(conf, "default_folder");
         s->default_page = findInServer(conf, "default_page");
         s->page404 = findInServer(conf, "404_page");
-        tmp = findInServer(conf, "max_body_size");
-        s->max_body_size = tmp.size() ? std::stoull(tmp) : 0;
-        s->valid = (s->host.size() && s->server_name.size() && s->port && s->default_folder.size() && s->default_page.size() && s->page404.size() && s->max_body_size);
+        // tmp = findInServer(conf, "max_body_size");
+        // s->max_body_size = tmp.size() ? std::stoull(tmp) : 0;
+        s->max_body_size = findInServer(conf, "max_body_size");
+        s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length());
     }
 
     void parse_server(std::string data)
@@ -147,7 +149,9 @@ private:
     bool readinFile(std::string filename, std::string *fileContent)
     {
         std::string s;
-        std::ifstream ifs(filename);
+        // std::ifstream ifs(filename);
+        std::ifstream ifs;
+        ifs.open(filename.c_str());
 
         if (!ifs)
         {

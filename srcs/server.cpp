@@ -32,7 +32,7 @@ sockaddr_in SocketAssign(int port, int *server_fd)
 
     // open browser at launch
 
-    std::string test;
+    std::string test, o;
     std::cout << MAGENTA << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
     while (1)
     {
@@ -41,9 +41,11 @@ sockaddr_in SocketAssign(int port, int *server_fd)
         {
             // std::cout << "Opening page on port " << port << std::endl;
             if (MAC == 1)
-                system(("open http://localhost:" + std::to_string(port)).c_str()); // --> mac
+                o = "open http://localhost:"; // --> mac
             else
-                system(("xdg-open http://localhost:" + std::to_string(port)).c_str());
+                o = "xdg-open http://localhost:"; // --> linux
+            o += intToStr(port);
+            system(o.c_str());
             break;
         }
         if (test == "n")
@@ -85,7 +87,7 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    address = SocketAssign(conf.serv[0].port, &server_fd);
+    address = SocketAssign(atoi(conf.serv[0].port.c_str()), &server_fd);
     int addrlen = sizeof(address);
     std::string filename;
     std::string filecontent;

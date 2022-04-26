@@ -41,7 +41,8 @@ std::string findInHeader(std::string header, std::string s)
 int readFile(std::string filename, std::string *fileContent)
 {
     std::string s;
-    std::ifstream ifs(filename);
+    std::ifstream ifs;
+    ifs.open(filename.c_str());
 
     if (!ifs)
     {
@@ -145,7 +146,7 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
     response += getContentType(client_data);
     // std::cout << "Content-Type:" << getContentType(client_data) << std::endl;
     response += "\nContent-Length: ";
-    response += std::to_string(file_content.length());
+    response += sizetToStr(file_content.length());
     response += "\n\n";
 
     return (response);

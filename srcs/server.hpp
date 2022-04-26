@@ -56,3 +56,6 @@ std::string get_status(int ans);
 std::string getHeader(std::string client_data, std::string file_content, int ans);
 std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
+
+std::string sizetToStr(size_t n);
+std::string intToStr(int n);
