@@ -60,12 +60,22 @@ int main(int argc, char const *argv[])
     long valread;
     std::string response;
     struct sockaddr_in address;
-
-    if (argc != 2)
+    // (void)argc;
+    std::string tmp;
+    if (argc == 1)
     {
-        std::cout << "port number needed" << std::endl;
-        return (0);
+        tmp = "config/default.conf";
+        std::cout << "Using default config file: " << tmp << std::endl;
     }
+    else
+        tmp = argv[1];
+    // check if argv is a valid file
+    if (access(tmp.c_str(), F_OK) == -1)
+    {
+        std::cout << "Config file not found" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    Config conf(tmp);
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -73,13 +83,13 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    address = SocketAssign(atoi(argv[1]), &server_fd);
+    address = SocketAssign(conf.serv[0].port, &server_fd);
     int addrlen = sizeof(address);
     std::string filename;
     std::string filecontent;
     while (1)
     {
-        printf("\n+++++++ Waiting for new connection on %s port ++++++++\n\n", argv[1]);
+        printf("\n+++++++ Waiting for new connection on %d port ++++++++\n\n", conf.serv[0].port );
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
         {
             perror("In accept");
@@ -92,11 +102,11 @@ int main(int argc, char const *argv[])
         std::string file;
         (void)valread; // --> ????
 
-        response = data_sender(client_data);
-        std::cout << "\n\nOUR RESPONSE: " << std::endl
-                  << response << std::endl;
+        response = response_sender(client_data, conf);
         write(new_socket, response.c_str(), response.length());
         close(new_socket);
+        std::cout << "\n\nOUR RESPONSE: " << std::endl
+                  << response << std::endl;
     }
     return 0;
 }

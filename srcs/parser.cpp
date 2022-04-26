@@ -147,26 +147,27 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 
 #include <sys/types.h>
 
-std::string set_default_page(std::string filetosearch, std::string client_data)
+std::string set_default_page(std::string filetosearch, std::string client_data, Config conf)
 {
     std::cout << "present" << std::endl;
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
     if (filetosearch[filetosearch.length() - 1] == '/')
     {
-        filetosearch += "index.html"; // <-- replace here the default page in config file
+        filetosearch += conf.serv[0].default_page; // <-- replace here the default page in config file
         std::cout << "setting DEFAULT to index.html" << std::endl;
     }
     return (filetosearch);
 }
 
-std::string data_sender(std::string client_data)
+std::string response_sender(std::string client_data, Config conf)
 {
     std::string response;
     std::string filecontent;
     size_t ans;
+    std::cout << "HERE CONF>>" << conf.serv[0].default_folder << std::endl;
     std::string filetosearch = "root" + findInHeader(client_data, "File"); // <-- replace "root" here with config file
     
-    filetosearch = set_default_page(filetosearch, client_data);
+    filetosearch = set_default_page(filetosearch, client_data, conf);
     
     std::cout << "filetosearch>>" << filetosearch << "<<" << std::endl;
     ans = readFile(filetosearch.c_str(), &filecontent);

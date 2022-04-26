@@ -6,12 +6,14 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/26 17:19:33 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/26 20:54:45 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+// #include "utils.hpp"
+#include "config.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -34,9 +36,11 @@
 
 // PARSING
 
+bool readinFile(std::string filename, std::string *fileContent);
 bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 int readFile(std::string filename, std::string *fileContent);
+std::string response_sender(std::string client_data, Config conf);
 std::string cut_aftercomma(std::string s);
 std::string getContentType(std::string client_data);
 std::string getFile(std::string client_data);
