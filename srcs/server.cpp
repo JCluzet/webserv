@@ -65,7 +65,7 @@ bool readFile(std::string filename, std::string *fileContent)
     if (!ifs)
     {
         std::cerr << "Not Found " << filename << "." << std::endl;
-        *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+        *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
         return (1);
     }
     getline(ifs, s);
@@ -74,7 +74,7 @@ bool readFile(std::string filename, std::string *fileContent)
         std::cerr << "Empty file." << std::endl;
         ifs.close();
         *fileContent = "\n";
-        *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>";
+        *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>";      // --> pareil
         return (1);
     }
     *fileContent += s;
@@ -95,7 +95,7 @@ std::string cut_aftercomma(std::string s)
     return (s.substr(0, i));
 }
 
-std::string getContentType(std::string client_data)
+std::string getContentType(std::string client_data)              // --> refaire propremment cette fonction qui recupere le bon content-type
 {
     std::string content_type = "";
     for (unsigned int i = 0; i < client_data.length() - 7; i++)
@@ -148,7 +148,6 @@ std::string getHeader(std::string client_data)
     response += getContentType(client_data);
     std::cout << "Content-Type:" << getContentType(client_data) << std::endl;
 
-    // response += "text/html"; // -->> need to detect the content type
     response += "\nContent-Length: ";
     return (response);
 }
@@ -173,14 +172,10 @@ std::string data_sender(std::string client_data)
     std::string filecontent;
     response = getHeader(client_data);
     std::string filetosearch = "root" + findInHeader(client_data, "File"); // <-- replace "root" here with config file
-                                                                           //   if (is_directory(filetosearch))
-                                                                           //   {
-                                                                           //     filetosearch += "/";
-                                                                           //   }
     filetosearch = set_default_page(filetosearch, client_data);
     std::cout << "filetosearch>>" << filetosearch << "<<" << std::endl;
     readFile(filetosearch.c_str(), &filecontent);
-    response += std::to_string(filecontent.length()); // fill the content-lenght header part
+    response += std::to_string(filecontent.length());
     response += "\n\n";
     response += filecontent;
     return (response);
