@@ -31,23 +31,41 @@ public:
         if (this->readinFile(filename, &data))
         {
             std::cerr << "Wrong config file." << std::endl;
-            serv = new t_server[1];
+            // serv = new t_server[1];
             return;
         }
         if (count_servers(data, &nb_servers))
         {
             std::cerr << "Wrong accolade in config file." << std::endl;
-            serv = new t_server[1];
+            // serv = new t_server[1];
             return;
         }
         serv = new t_server[nb_servers];
         parse_server(data);
     }
 
+        Config(Config const &src) : serv(NULL), nb_servers(0)
+        {
+            if (!src.nb_servers)
+                return;
+            serv = new t_server[src.nb_servers];
+            for (size_t i = 0; i < src.nb_servers; i++)
+                serv[i] = src.serv[i];
+        }
+
+        Config &operator=(const Config &src) {
+            if (this->nb_servers)
+                delete [] serv;
+            serv = new t_server[src.nb_servers];
+            for (size_t i = 0; i < src.nb_servers; i++)
+                serv[i] = src.serv[i];
+            return *this;
+        }
+
     ~Config()
     {
         // if (serv)
-            // delete serv;
+            delete[] serv;
     }
 
 private:
