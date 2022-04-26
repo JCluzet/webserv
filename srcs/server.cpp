@@ -33,7 +33,7 @@ sockaddr_in SocketAssign(int port, int *server_fd)
     // open browser at launch
 
     std::string test, o;
-    std::cout << MAGENTA << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
+    std::cout << BLUE << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
     while (1)
     {
         std::cin >> test;
@@ -53,6 +53,8 @@ sockaddr_in SocketAssign(int port, int *server_fd)
             break;
         }
     }
+    system("clear");
+    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n" << RESET;
     return(address);
 }
 
@@ -68,7 +70,7 @@ int main(int argc, char const *argv[])
     if (argc == 1)
     {
         tmp = "config/default.conf";
-        std::cout << MAGENTA << "[⊛] => " << YELLOW << "Using default config file: " << RESET << tmp << std::endl;
+        std::cout << BLUE << "[⊛] => " << YELLOW << "Using default config file: " << RESET << tmp << std::endl;
     }
     else
         tmp = argv[1];
