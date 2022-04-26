@@ -110,6 +110,11 @@ std::string getContentType(std::string client_data)
                 content_type = "image/svg+xml";
                 return (content_type);
             }
+            else if (tmp[tmp.length() - 1] == 'f' && tmp[tmp.length() - 2] == 'd' && tmp[tmp.length() - 3] == 'p')
+            {
+                content_type = "application/pdf";
+                return (content_type);
+            }
             else
             {
                 while (client_data[i] != ',')
@@ -121,7 +126,6 @@ std::string getContentType(std::string client_data)
             break;
         }
     }
-    std::cout << "Content-Type:" << content_type << std::endl;
     return (content_type);
 }
 
@@ -142,6 +146,8 @@ std::string getHeader(std::string client_data)
     std::string response = "HTTP/1.1 200 OK";
     response += "\nContent-Type: ";
     response += getContentType(client_data);
+    std::cout << "Content-Type:" << getContentType(client_data) << std::endl;
+
     // response += "text/html"; // -->> need to detect the content type
     response += "\nContent-Length: ";
     return (response);
@@ -238,6 +244,7 @@ int main(int argc, char const *argv[])
     }
 
     std::string filename;
+        // std::string tmp;
     std::string filecontent;
     while (1)
     {
@@ -255,8 +262,10 @@ int main(int argc, char const *argv[])
         (void)valread; // --> ????
 
         response = data_sender(client_data);
-        std::cout << "\n\nOUR RESPONSE: " << std::endl
-                  << response << std::endl;
+        // std::cout <<  "Click to see response\n";
+        // std::cin >> tmp;
+        // std::cout << "\n\nOUR RESPONSE: " << std::endl
+        //           << response << std::endl;
         write(new_socket, response.c_str(), response.length());
         close(new_socket);
     }
