@@ -41,9 +41,11 @@ OBJS        := ${SRCS:.cpp=.o}
 RM		    := rm -f
 
 ${NAME}:	${OBJS} 
-			@echo "\n$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
-			${CC} ${FLAGS} -o ${NAME} ${OBJS}
-			@echo "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]"
+			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+			@echo "$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
+			@${CC} ${FLAGS} -o ${NAME} ${OBJS}
+			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+			@printf "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]\n"
 
 			
 all:		${NAME}
@@ -52,11 +54,12 @@ bonus:		all
 
 clean:
 			@ ${RM} *.o */*.o */*/*.o
-			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)objs"
+			@ printf "$(RED)[⊛] => $(WHITE)Delete $(NAME).o $(CLR_RMV)objs"
 
 fclean:		clean
 			@ ${RM} ${NAME}
-			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)binary\n"
+			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+			@ echo "$(RED)[⊛] => $(WHITE)Delete $(NAME) $(CLR_RMV)binary"
 
 re:			fclean all
 

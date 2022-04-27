@@ -111,10 +111,6 @@ int main(int argc, char const *argv[])
         response = response_sender(client_data, conf);
         write(new_socket, response.c_str(), response.length());
         close(new_socket);
-        if (strncmp(response.c_str(), "HTTP/1.1 200 OK", 15) == 0)
-        {
-            //  << WHITE << findInHeader(client_data, "Referer") << findInHeader(client_data, "File") << RESET << std::endl;
-        }
  
 
         // std::cout << "\n\nOUR RESPONSE: " << std::endl

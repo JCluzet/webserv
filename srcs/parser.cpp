@@ -47,7 +47,7 @@ int readFile(std::string filename, std::string *fileContent)
     if (!ifs)
     {
         // std::cerr << "Not Found " << filename << "." << std::endl;
-        std::cout << RED << "[⊛ 404] => " << WHITE << "not found " << filename << std::endl;
+        // std::cout << RED << "[⊛ 404] => " << WHITE << "not found " << filename << std::endl;
         *fileContent = "\n";
         // *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
         return (404);
@@ -55,7 +55,7 @@ int readFile(std::string filename, std::string *fileContent)
     getline(ifs, s);
     if (s == "")
     {
-        std::cout << RED << "[⊛ 404] => "<< WHITE << "empty " << filename << std::endl;
+        // std::cout << RED << "[⊛ 404] => "<< WHITE << "empty " << filename << std::endl;
         // std::cerr << "Empty file."  << std::endl;
         ifs.close();
         *fileContent = "\n";
@@ -132,12 +132,12 @@ std::string get_status(int ans)
     if(ans == 0)
     {
         status += "200 OK"; 
-        std::cout << GREEN << "[⊛] => " << RESET;
+        // std::cout << GREEN << "[⊛] => " << RESET;
     }
     if(ans == 404)
     {
         status += "404";
-        std::cout << RED << "[ ⊛ 404 ] => " << RESET;
+        // std::cout << RED << "[ ⊛ 404 ] => " << RESET;
     }
     return (status);
 }
@@ -168,6 +168,21 @@ std::string set_default_page(std::string filetosearch, std::string client_data, 
         // std::cout << "setting DEFAULT to index.html" << std::endl;
     }
     return (filetosearch);
+}
+
+void output_log(int ans, std::string filetosearch, std::string client_data)
+{
+    (void)client_data;
+    // std::cout << "WHIU" << std::endl;
+    if (ans == 0)
+    {
+        std::cout << GREEN << "[⊛ 200] => " << WHITE << filetosearch << RESET << std::endl;
+    }
+    if (ans == 404)
+    {
+        std::cout << RED << "[⊛ 404] => " << WHITE << filetosearch << RESET << std::endl;
+    }
+
 }
 
 std::string response_sender(std::string client_data, Config conf)
@@ -204,8 +219,9 @@ std::string response_sender(std::string client_data, Config conf)
     {
         response += filecontent;
     }
+    output_log(ans, filetosearch, client_data);
+    // std::cout << WHITE << filetosearch << RESET << std::endl;
     response = getHeader(client_data, filecontent, ans);
-    std::cout << WHITE << filetosearch << RESET << std::endl;
     response += filecontent;
     return (response);
 }
