@@ -1,15 +1,5 @@
 #include "server.hpp"
 
-bool is_directory(std::string path)
-{
-    struct stat file_stat;
-
-    if (stat(path.c_str(), &file_stat) < 0)
-        return (0);
-    else
-        return (1);
-}
-
 std::string findInHeader(std::string header, std::string s)
 {
     size_t pos;
@@ -146,7 +136,7 @@ std::string get_status(int ans)
     if (ans == 0)
         status += "200 OK";
     if (ans == 404)
-        status += "404";
+        status += "404 Not Found";
     return (status);
 }
 
@@ -167,12 +157,21 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 std::string set_default_page(std::string filetosearch, std::string client_data, std::string conf)
 {
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
-    std::cout << "Referer catching: " << findInHeader(client_data, "ref_extension") << std::endl;
-    if (filetosearch[filetosearch.length() - 1] == '/') // -> if it's a directory
+    // std::cout << "Referer catching: " << findInHeader(client_data, "ref_extension") << std::endl;
+    std::cout << "is_directory=" << is_directory(filetosearch) << std::endl;
+    if (is_directory(filetosearch))
     {
-        std::string tmp = conf;
-        filetosearch += tmp; // <-- replace here the default page in config file
+        // if ()
+        if (filetosearch[filetosearch.length() - 1] == '/')
+            filetosearch += conf;
+        else
+            filetosearch += conf;
     }
+    // if (filetosearch[filetosearch.length() - 1] == '/') // -> if it's a directory
+    // {
+    //     std::string tmp = conf;
+    //     filetosearch += tmp; // <-- replace here the default page in config file
+    // }
     return (filetosearch);
 }
 

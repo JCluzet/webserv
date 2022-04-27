@@ -1,4 +1,6 @@
 #include "server.hpp"
+#include <sys/types.h> // For mkdir
+#include <dirent.h>
 
 std::string sizetToStr(size_t n){
     std::string s;
@@ -27,4 +29,15 @@ std::string intToStr(int n){
 		x /= 10;
 	}
     return s;
+}
+
+bool is_directory(std::string path)
+{
+  DIR* ptr;
+    if ((ptr = opendir(path.c_str())) == NULL)
+           return (0);
+    else{
+        closedir(ptr);
+        return (1);
+    }
 }
