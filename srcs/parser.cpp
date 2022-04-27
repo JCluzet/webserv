@@ -147,7 +147,7 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 std::string set_default_page(std::string filetosearch, std::string client_data, std::string conf)
 {
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
-    if (filetosearch[filetosearch.length() - 1] == '/') // ->   if it's a directory
+    if (filetosearch[filetosearch.length() - 1] == '/') // -> if it's a directory
     {
         std::string tmp = conf;
         filetosearch += tmp; // <-- replace here the default page in config file
