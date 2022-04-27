@@ -104,7 +104,7 @@ private:
         s->page404 = findInServer(conf, "404_page");
         s->max_body_size = findInServer(conf, "max_body_size");
         s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length());
-        s->autoindex = (findInServer(conf, "autoindex") == "on") ? true : false;
+        s->autoindex = (findInServer(conf, "autoindex") == (std::string)"on") ? true : false;
     }
 
     void parse_server(std::string data)

@@ -18,19 +18,6 @@ std::string sizetToStr(size_t n){
     return s;
 }
 
-bool    writeFile(std::string const str, std::string filename)
-{
-    std::ofstream ofs(filename.c_str());
-
-    if (!ofs) {
-        std::cerr << "Can't open " << filename << "." << std::endl;
-        return (1);
-    }
-    ofs << str;
-    ofs.close();
-    return (0);
-}
-
 bool	indexGenerator(std::string* codeHTML, std::string path = ".")
 {
     DIR *dir = opendir(path.c_str());
@@ -83,12 +70,6 @@ bool	indexGenerator(std::string* codeHTML, std::string path = ".")
 	*codeHTML += "</able>\n";
 	*codeHTML += "</body>\n";
 	*codeHTML += "</html>\n";
-    // return (0);
-	return (writeFile(*codeHTML, "index.html"));
+    closedir(dir);
+    return (0);
 }
-
-// int main(){
-//     std::string codeHTML;
-//     indexGenerator(&codeHTML, ".");
-//     return 0;
-// }
