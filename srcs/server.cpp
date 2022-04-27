@@ -18,11 +18,17 @@ sockaddr_in SocketAssign(int port, int *server_fd)
     memset(address.sin_zero, '\0', sizeof address.sin_zero);
 
     // bind of the socket to assign the port
+    std::string load = "\\-/|\\";
 
     if (bind(*server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        perror("In bind");
-        exit(EXIT_FAILURE);
+        while (bind(*server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+        {
+            std::cout << RED << "[⊛] => " << WHITE << "PORT " << port << " Already in use." << RESET << std::endl;
+            port++;
+            address.sin_port = htons(port);
+        }
+        std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
     }
     if (listen(*server_fd, 10) < 0)
     {
@@ -33,6 +39,7 @@ sockaddr_in SocketAssign(int port, int *server_fd)
     // open browser at launch
 
     std::string test, o;
+    std::cout << std::endl;
     std::cout << BLUE << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
     while (1)
     {
@@ -54,8 +61,9 @@ sockaddr_in SocketAssign(int port, int *server_fd)
         }
     }
     system("clear");
-    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n" << RESET;
-    return(address);
+    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n"
+              << RESET;
+    return (address);
 }
 
 int main(int argc, char const *argv[])
@@ -66,7 +74,8 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     // (void)argc;
     std::string tmp;
-    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n" << RESET;
+    std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n"
+              << RESET;
     if (argc == 1 || strcmp("--debug", argv[1]) == 0)
     {
         tmp = "config/default.conf";
@@ -77,7 +86,7 @@ int main(int argc, char const *argv[])
     // check if argv is a valid file
     if (access(tmp.c_str(), F_OK) == -1)
     {
-        std::cout << RED << "[⊛] => " << WHITE << "Config file "<< RESET << tmp << WHITE << " not found" << std::endl;
+        std::cout << RED << "[⊛] => " << WHITE << "Config file " << RESET << tmp << WHITE << " not found" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -86,7 +95,7 @@ int main(int argc, char const *argv[])
     {
         std::cout << RED << "[⊛] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
         exit(EXIT_FAILURE);
-    } 
+    }
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -100,7 +109,9 @@ int main(int argc, char const *argv[])
     std::string filecontent;
     while (1)
     {
-        printf("\n+++++++ Waiting for new request on %s port ++++++++\n\n", conf.serv[0].port.c_str() );
+        std::cout << BLUE;
+        printf("\n+++++++ Waiting for new request on %s port ++++++++\n\n", conf.serv[0].port.c_str());
+        std::cout << RESET;
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
         {
             perror("In accept");
@@ -111,19 +122,17 @@ int main(int argc, char const *argv[])
         valread = read(new_socket, client_data, 30000);
         // if ((argc > 1 && strcmp("--debug", argv[1]) == 0) || (argc > 2 && strcmp(argv[2], "--debug") == 0))
         // {
-            std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
+        std::cout << WHITE << "\nRequest: \n"
+                  << RESET << client_data << std::endl;
         // }
         std::string file;
         (void)valread; // --> ????
 
-        
-
         response = response_sender(client_data, conf);
         write(new_socket, response.c_str(), response.length());
         close(new_socket);
- 
 
-        std::cout << "\n\nOUR RESPONSE: " << std::endl
+        std::cout << WHITE << "\n\nOUR RESPONSE: " << RESET << std::endl
                   << response << std::endl;
     }
     return 0;
