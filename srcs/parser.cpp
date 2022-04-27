@@ -25,6 +25,26 @@ std::string findInHeader(std::string header, std::string s)
         header.erase(0, header.find(' ') + 1);
         return header.substr(0, header.find('\n'));
     }
+    if (!strcmp(s.c_str(), "Ref_extension"))
+    {
+        s = "Referer";
+        while ((pos = header.find("\n")) != std::string::npos)
+        {
+            tmp = header.substr(0, pos);
+            if (tmp.length() >= s.length() && !strncmp(s.c_str(), tmp.c_str(), s.length()))
+            {
+                tmp.erase(0, s.length() + 2);
+                for (int i = 0; i < 3; i++){
+                    if (tmp.find("/") == std::string::npos)
+                        return "";
+                    tmp.erase(0, tmp.find("/") + 1);
+                }
+                return tmp;
+            }
+            header.erase(0, pos + 1);
+        }
+        return "";
+    }
     while ((pos = header.find("\n")) != std::string::npos)
     {
         tmp = header.substr(0, pos);
