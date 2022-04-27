@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/27 17:57:52 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/27 18:22:26 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,8 @@ struct server_data {
 bool readinFile(std::string filename, std::string *fileContent);
 bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
+void response_sender(server_data *server, std::string client_data, Config conf);
 int readFile(std::string filename, std::string *fileContent);
-std::string response_sender(std::string client_data, Config conf);
 std::string cut_aftercomma(std::string s);
 std::string getContentType(std::string client_data);
 std::string getFile(std::string client_data);

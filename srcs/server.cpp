@@ -129,7 +129,7 @@ int main(int argc, char const *argv[])
         (void)valread; // --> ????
 
 
-        server.response = response_sender(client_data, conf);
+        response_sender(&server, client_data, conf);
         write(new_socket, server.response.c_str(), server.response.length());
         close(new_socket);
 
