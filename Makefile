@@ -10,50 +10,53 @@
 NAME        := webserv
 CC         := c++
 FLAGS    := -Wall -Wextra -Werror -std=c++98
+
+CLR_RMV		:= \033[0m
+RED		    := \033[1;31m
+GREEN		:= \033[1;32m
+WHITE		:= \033[1;37m
+YELLOW		:= \033[1;33m
+BLUE		:= \033[1;34m
+CYAN 		:= \033[1;36m
  
 ################################################################################
 #                                 PROGRAM'S SRCS                               #
 ################################################################################
 
-SRCS        :=      srcs/server.cpp \
-					srcs/parser.cpp \
-					srcs/utils.cpp \
+SRCS        :=      srcs/utils.cpp \
+                          srcs/parser.cpp \
+                          srcs/server.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 
 .cpp.o:
-	${CC} ${FLAGS} -c $< -o ${<:.cpp=.o}
+	@${CC} ${FLAGS} -c $< -o ${<:.cpp=.o} 
+	@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+	@printf "$(BLUE)[⊛] =>$(WHITE) $< [ $(GREEN)✔️$(WHITE) ]"
 
 ################################################################################
 #                                  Makefile  objs                              #
 ################################################################################
 
-
-CLR_RMV		:= \033[0m
-RED		    := \033[1;31m
-GREEN		:= \033[1;32m
-YELLOW		:= \033[1;33m
-BLUE		:= \033[1;34m
-CYAN 		:= \033[1;36m
 RM		    := rm -f
 
-${NAME}:	${OBJS}
-			@echo "$(RED)   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n\n"
-			@echo "$(GREEN)Compilation ${CLR_RMV}of ${YELLOW}$(NAME) ${CLR_RMV}..."
+${NAME}:	${OBJS} 
+			@echo "\n$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
 			${CC} ${FLAGS} -o ${NAME} ${OBJS}
-			@echo "$(GREEN)$(NAME) created[0m ✔️"
+			@echo "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]"
 
+			
 all:		${NAME}
 
 bonus:		all
 
 clean:
 			@ ${RM} *.o */*.o */*/*.o
-			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)objs ✔️"
+			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)objs"
 
 fclean:		clean
 			@ ${RM} ${NAME}
-			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)binary ✔️"
+			@ echo "$(RED)Deleting $(CYAN)$(NAME) $(CLR_RMV)binary\n"
 
 re:			fclean all
 
