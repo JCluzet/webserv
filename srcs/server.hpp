@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/27 00:02:17 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/27 17:57:52 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,21 @@
 #include <string>
 #include <sys/stat.h>
 #include <fstream>
+
+struct server_data {
+    std::string header;
+    // std::string filename;
+    std::string body; 
+    std::string response; // ✅
+    std::string host;
+    std::string server_name;
+    std::string port;
+    std::string default_folder;
+    std::string default_page;
+    std::string page404;
+    std::string max_body_size;
+    bool valid;
+};
 
 #ifdef __APPLE__ 
     #define MAC 1
