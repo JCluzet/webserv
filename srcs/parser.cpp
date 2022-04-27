@@ -25,7 +25,7 @@ std::string findInHeader(std::string header, std::string s)
         header.erase(0, header.find(' ') + 1);
         return header.substr(0, header.find('\n'));
     }
-    if (!strcmp(s.c_str(), "Ref_extension"))
+    if (!strcmp(s.c_str(), "ref_extension"))
     {
         s = "Referer";
         while ((pos = header.find("\n")) != std::string::npos)
@@ -167,6 +167,7 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 std::string set_default_page(std::string filetosearch, std::string client_data, std::string conf)
 {
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
+    std::cout << "Referer catching: " << findInHeader(client_data, "ref_extension") << std::endl;
     if (filetosearch[filetosearch.length() - 1] == '/') // -> if it's a directory
     {
         std::string tmp = conf;
