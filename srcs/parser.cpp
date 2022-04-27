@@ -95,14 +95,17 @@ std::string getContentType(std::string client_data) // --> refaire propremment c
     std::string content_type = "";
     for (unsigned int i = 0; i < client_data.length() - 7; i++)
     {
-        if (client_data[i] == 'A' && client_data[i + 1] == 'c' && client_data[i + 2] == 'c' && client_data[i + 3] == 'e' && client_data[i + 4] == 'p' && client_data[i + 5] == 't' && client_data[i + 6] == ':')
+        if (client_data.size() >= 7 && client_data.substr(i, 7) == "Accept:")
+        // if (client_data[i] == 'A' && client_data[i + 1] == 'c' && client_data[i + 2] == 'c' && client_data[i + 3] == 'e' && client_data[i + 4] == 'p' && client_data[i + 5] == 't' && client_data[i + 6] == ':')
         {
             i += 8;
             std::string tmp = findInHeader(client_data, "File");
             // std::cout << "tmp >> " << tmp << std::endl;
-            if (tmp[tmp.length() - 1] == 'g' && tmp[tmp.length() - 2] == 'v' && tmp[tmp.length() - 3] == 's') // --> if it's a svg file, use image/svg+xml content type
+            if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".svg")
+            // if (tmp[tmp.length() - 1] == 'g' && tmp[tmp.length() - 2] == 'v' && tmp[tmp.length() - 3] == 's') // --> if it's a svg file, use image/svg+xml content type
                 return ("image/svg+xml");
-            else if (tmp[tmp.length() - 1] == 'f' && tmp[tmp.length() - 2] == 'd' && tmp[tmp.length() - 3] == 'p')
+            else if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".pdf")
+            // else if (tmp[tmp.length() - 1] == 'f' && tmp[tmp.length() - 2] == 'd' && tmp[tmp.length() - 3] == 'p')
                 return ("application/pdf");
             else
             {
