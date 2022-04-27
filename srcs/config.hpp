@@ -15,6 +15,7 @@ typedef struct s_server
     std::string default_page;
     std::string page404;
     std::string max_body_size;
+    bool autoindex;
     bool valid;
 
 } t_server;
@@ -97,16 +98,13 @@ private:
     {
         s->host = findInServer(conf, "host");
         s->server_name = findInServer(conf, "server_name");
-        // std::string tmp = findInServer(conf, "port");
-        // s->port = tmp.size() ? std::stoi(tmp) : 0;
         s->port = findInServer(conf, "port");
         s->default_folder = findInServer(conf, "default_folder");
         s->default_page = findInServer(conf, "default_page");
         s->page404 = findInServer(conf, "404_page");
-        // tmp = findInServer(conf, "max_body_size");
-        // s->max_body_size = tmp.size() ? std::stoull(tmp) : 0;
         s->max_body_size = findInServer(conf, "max_body_size");
         s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length());
+        s->autoindex = (findInServer(conf, "autoindex") == "on") ? true : false;
     }
 
     void parse_server(std::string data)
