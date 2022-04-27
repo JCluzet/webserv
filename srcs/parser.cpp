@@ -91,15 +91,9 @@ std::string getContentType(std::string client_data) // --> refaire propremment c
             std::string tmp = findInHeader(client_data, "File");
             // std::cout << "tmp >> " << tmp << std::endl;
             if (tmp[tmp.length() - 1] == 'g' && tmp[tmp.length() - 2] == 'v' && tmp[tmp.length() - 3] == 's') // --> if it's a svg file, use image/svg+xml content type
-            {
-                content_type = "image/svg+xml";
-                return (content_type);
-            }
+                return ("image/svg+xml");
             else if (tmp[tmp.length() - 1] == 'f' && tmp[tmp.length() - 2] == 'd' && tmp[tmp.length() - 3] == 'p')
-            {
-                content_type = "application/pdf";
-                return (content_type);
-            }
+                return ("application/pdf");
             else
             {
                 while (client_data[i] != ',')
@@ -130,41 +124,33 @@ std::string get_status(int ans)
 {
     std::string status = "HTTP/1.1 ";
     if (ans == 0)
-    {
         status += "200 OK";
-        // std::cout << GREEN << "[⊛] => " << RESET;
-    }
     if (ans == 404)
-    {
         status += "404";
-        // std::cout << RED << "[ ⊛ 404 ] => " << RESET;
-    }
     return (status);
 }
 
 std::string getHeader(std::string client_data, std::string file_content, int ans)
 {
-    std::string response = get_status(ans);
-    response += "\nContent-Type: ";
-    response += getContentType(client_data);
-    response += "\nContent-Length: ";
-    response += sizetToStr(file_content.length());
-    response += "\n\n";
+    std::string header = get_status(ans);
+    header += "\nContent-Type: ";
+    header += getContentType(client_data);
+    header += "\nContent-Length: ";
+    header += sizetToStr(file_content.length());
+    header += "\n\n";
 
-    return (response);
+    return (header);
 }
 
 #include <sys/types.h>
 
 std::string set_default_page(std::string filetosearch, std::string client_data, std::string conf)
 {
-    // std::cout << "present" << conf.serv[0].default_page << std::endl;
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
-    if (filetosearch[filetosearch.length() - 1] == '/')
+    if (filetosearch[filetosearch.length() - 1] == '/') // ->   if it's a directory
     {
         std::string tmp = conf;
         filetosearch += tmp; // <-- replace here the default page in config file
-        // std::cout << "setting DEFAULT to index.html" << std::endl;
     }
     return (filetosearch);
 }
@@ -179,31 +165,28 @@ void output_log(int ans, std::string filetosearch)
 
 void response_sender(server_data *server, std::string client_data, Config conf)
 {
-    std::string response;
-    std::string filecontent;
-    size_t ans;
+    server->filetosearch = conf.serv[0].default_folder + findInHeader(client_data, "File"); 
 
-    std::string filetosearch = conf.serv[0].default_folder + findInHeader(client_data, "File"); // <-- replace "root" here with config file
+    server->filetosearch = set_default_page(server->filetosearch, client_data, conf.serv[0].default_page);
 
-    filetosearch = set_default_page(filetosearch, client_data, conf.serv[0].default_page);
-
-    ans = readFile(filetosearch.c_str(), &filecontent);
-    if (ans == 404)
+    server->filecontent = "";
+    server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);
+    if (server->status_code == 404)
     {
         if (conf.serv[0].page404 != "")
         {
             std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
 
-            filetosearch = conf.serv[0].default_folder + "/" + conf.serv[0].page404;
-            readFile(filetosearch.c_str(), &filecontent);
+            server->filetosearch = conf.serv[0].default_folder + "/" + conf.serv[0].page404;
+            readFile(server->filetosearch.c_str(), &server->filecontent);
         }
         else
         {
             std::cout << BLUE << "[⊛] => " << YELLOW << "Setting error default page" << std::endl;
-            filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+            server->filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
     }
-    output_log(ans, filetosearch);
-    server->response = getHeader(client_data, filecontent, ans);
-    server->response += filecontent;
+    output_log(server->status_code, server->filetosearch);
+    server->response = getHeader(client_data, server->filecontent, server->status_code);
+    server->response += server->filecontent;
 }

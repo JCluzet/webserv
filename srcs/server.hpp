@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/27 18:22:26 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/27 18:29:40 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,16 +37,18 @@
 
 struct server_data {
     std::string header;
-    // std::string filename;
+    int status_code;
+    std::string filetosearch;
+    std::string filecontent;
     std::string body; 
     std::string response; // ✅
     std::string host;
     std::string server_name;
     std::string port;
-    std::string default_folder;
-    std::string default_page;
-    std::string page404;
-    std::string max_body_size;
+    // std::string default_folder;
+    // std::string default_page;
+    // std::string page404;
+    // std::string max_body_size;
     bool valid;
 };
 
