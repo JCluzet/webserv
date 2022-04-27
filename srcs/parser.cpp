@@ -205,6 +205,8 @@ std::string response_sender(std::string client_data, Config conf)
     {
         if (conf.serv[0].page404 != "")
         {
+        std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
+
             filetosearch = conf.serv[0].default_folder + "/" + conf.serv[0].page404;
             ans = readFile(filetosearch.c_str(), &filecontent);
             response += filecontent;

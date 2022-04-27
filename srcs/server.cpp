@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
     // (void)argc;
     std::string tmp;
     std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n" << RESET;
-    if (argc == 1)
+    if (argc == 1 || strcmp("--debug", argv[1]) == 0)
     {
         tmp = "config/default.conf";
         std::cout << BLUE << "[⊛] => " << YELLOW << "Using default config file: " << RESET << tmp << std::endl;
@@ -104,7 +104,10 @@ int main(int argc, char const *argv[])
 
         char client_data[30000] = {0};
         valread = read(new_socket, client_data, 30000);
-        // printf("CLIENT:\n%s\n", client_data);
+        if ((argc > 1 && strcmp("--debug", argv[1]) == 0) || (argc > 2 && strcmp(argv[2], "--debug") == 0))
+        {
+            std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
+        }
         std::string file;
         (void)valread; // --> ????
 
