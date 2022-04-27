@@ -186,21 +186,26 @@ void output_log(int ans, std::string filetosearch)
         std::cout << RED << "[⊛ 404] => " << WHITE << filetosearch << RESET << std::endl;
 }
 
-void response_sender(server_data *server, std::string client_data, Config conf)
+void response_sender(server_data *server, std::string client_data, Config *conf)
 {
-    server->filetosearch = conf.serv[0].default_folder + findInHeader(client_data, "File"); 
+    server->filetosearch = conf->serv[0].default_folder + findInHeader(client_data, "File"); 
+    std::string tmp;
+    bool temp;
+    temp = indexGenerator(&tmp, server->filetosearch);
+    std::cout << "temp:" << temp << std::endl;
+    // std::cout << tmp << std::endl;
 
-    server->filetosearch = set_default_page(server->filetosearch, client_data, conf.serv[0].default_page);
+    server->filetosearch = set_default_page(server->filetosearch, client_data, conf->serv[0].default_page);
 
     server->filecontent = "";
     server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);
     if (server->status_code == 404)
     {
-        if (conf.serv[0].page404 != "")
+        if (conf->serv[0].page404 != "")
         {
             std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
 
-            server->filetosearch = conf.serv[0].default_folder + "/" + conf.serv[0].page404;
+            server->filetosearch = conf->serv[0].default_folder + "/" + conf->serv[0].page404;
             readFile(server->filetosearch.c_str(), &server->filecontent);
         }
         else
@@ -208,6 +213,13 @@ void response_sender(server_data *server, std::string client_data, Config conf)
             std::cout << BLUE << "[⊛] => " << YELLOW << "Setting error default page" << std::endl;
             server->filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
+    }
+    if(conf->serv[0].autoindex)
+        std::cout << "HELLOOOOFSODFODOFODSOFDSOFOS" << std::endl;
+    if (!temp && conf->serv[0].autoindex)
+    {
+        std::cout << BLUE << "[⊛] => " << YELLOW << "Setting autoindex" << std::endl;
+        server->filecontent = tmp;
     }
     output_log(server->status_code, server->filetosearch);
     server->response = getHeader(client_data, server->filecontent, server->status_code);

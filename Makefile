@@ -26,6 +26,7 @@ CYAN 		:= \033[1;36m
 SRCS        :=      srcs/utils.cpp \
                           srcs/parser.cpp \
                           srcs/server.cpp \
+						srcs/autoindex.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 

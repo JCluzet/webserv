@@ -2,19 +2,19 @@
 #include <sys/types.h> // For mkdir
 #include <dirent.h>
 
-std::string sizetToStr(size_t n){
-    std::string s;
-    size_t x = 1;
-    while (n / x > 9)
-		x *= 10;
-	while (x)
-	{
-		s += (n / x) + '0';
-		n %= x;
-		x /= 10;
-	}
-    return s;
-}
+// std::string sizetToStr(size_t n){
+//     std::string s;
+//     size_t x = 1;
+//     while (n / x > 9)
+// 		x *= 10;
+// 	while (x)
+// 	{
+// 		s += (n / x) + '0';
+// 		n %= x;
+// 		x /= 10;
+// 	}
+//     return s;
+// }
 
 std::string intToStr(int n){
     std::string s = (n < 0) ? "-" : "";
