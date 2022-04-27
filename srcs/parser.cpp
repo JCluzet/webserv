@@ -46,17 +46,20 @@ int readFile(std::string filename, std::string *fileContent)
 
     if (!ifs)
     {
-        std::cerr << "Not Found " << filename << "." << std::endl;
-        *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
+        // std::cerr << "Not Found " << filename << "." << std::endl;
+        std::cout << RED << "[⊛ 404] => " << WHITE << "not found " << filename << std::endl;
+        *fileContent = "\n";
+        // *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
         return (404);
     }
     getline(ifs, s);
     if (s == "")
     {
-        std::cerr << "Empty file." << std::endl;
+        std::cout << RED << "[⊛ 404] => "<< WHITE << "empty " << filename << std::endl;
+        // std::cerr << "Empty file."  << std::endl;
         ifs.close();
         *fileContent = "\n";
-        *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>";      // --> pareil
+        // *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>";      // --> pareil
         return (404);
     }
     *fileContent += s;
@@ -183,6 +186,24 @@ std::string response_sender(std::string client_data, Config conf)
     
     // std::cout << "filetosearch>>" << filetosearch << "<<" << std::endl;
     ans = readFile(filetosearch.c_str(), &filecontent);
+    if (ans == 404)
+    {
+        if (conf.serv[0].page404 != "")
+        {
+            filetosearch = conf.serv[0].default_folder + "/" + conf.serv[0].page404;
+            ans = readFile(filetosearch.c_str(), &filecontent);
+            response += filecontent;
+        }
+        else
+        {
+        std::cout << BLUE << "[⊛] => " << YELLOW << "Setting error default page" << std::endl;
+            filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; 
+        }
+    }
+    else
+    {
+        response += filecontent;
+    }
     response = getHeader(client_data, filecontent, ans);
     std::cout << WHITE << filetosearch << RESET << std::endl;
     response += filecontent;
