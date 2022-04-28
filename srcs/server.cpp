@@ -199,7 +199,7 @@ int main(int argc, char const *argv[])
 				perror("In accept");
 				exit(EXIT_FAILURE);
 			}
-	        std::cout << std::endl << GREEN << "[⊛ NEW USER] => " << WHITE << "PORT Used: " << RESET << conf.serv[0].port << WHITE << " socket fd: " << RESET << new_socket << std::endl << std::endl << RESET;
+	        std::cout << GREEN << "[⊛ NEW USER] => " << WHITE << "PORT Used: " << RESET << conf.serv[0].port << WHITE << " socket fd: " << RESET << new_socket << std::endl << RESET << std::endl;
 
 			// std::cout << std::endl << GREEN << "New connection , socket fd is : " << new_socket << ", ip is : " << inet_ntoa(address.sin_addr) << ", port is : " << ntohs(address.sin_port) << std::endl << std::endl << RESET;
 
