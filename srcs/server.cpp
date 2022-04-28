@@ -199,7 +199,7 @@ void*	run_webserv(void *conf)
 				perror("In accept");
 				exit(EXIT_FAILURE);
 			}
-	        std::cout << GREEN << "[⊛ NEW USER]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << serv.port << std::endl << RESET;
+	        std::cout << GREEN << "[⊛ CONNECT]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << serv.port << std::endl << RESET;
 
 
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
@@ -220,14 +220,11 @@ void*	run_webserv(void *conf)
 			if (FD_ISSET(client_socket, &read_fds))
 			{
 				char client_data[30001];
-				if ((valread = read(client_socket, client_data, 30000)) <= 0)
+				if ((valread = read(client_socket, client_data, 300000)) <= 0)
 				{
 					getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
-	        std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << serv.port << std::endl << RESET << std::endl;
+	                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << serv.port << std::endl << RESET;
 
-	            // std::cout << std::endl << RED << "[⊛ DISCONNECT] => " << WHITE << "User with address: " << RESET << inet_ntoa(address.sin_addr)<< WHITE << "and port: " << RESET <<
-					// ntohs(address.sin_port) << WHITE << " is now disconnected." << RESET  << std::endl;
-					
 					close(client_socket);
 					connection_list_sock[i] = -1;
 				}
@@ -236,7 +233,7 @@ void*	run_webserv(void *conf)
 					client_data[valread] = '\0';
 					response_sender(&server, client_data, &serv);
 					write(client_socket, server.response.c_str(), server.response.length());
-					// output(client_data, server.response);
+					output(client_data, server.response);
 				}
 			}
 		}
