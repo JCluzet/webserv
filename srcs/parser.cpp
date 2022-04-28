@@ -184,7 +184,7 @@ void output_log(int ans, std::string filetosearch)
     if (ans == 0)
         std::cout << GREEN << "[⊛ 200] => " << WHITE << filetosearch << RESET << std::endl;
     if (ans == 404)
-        std::cout << RED << "[⊛ 404] => " << WHITE << filetosearch << RESET << std::endl;
+        std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
 }
 
 void response_sender(server_data *server, std::string client_data, Config *conf)
@@ -202,7 +202,7 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
     {
         if (conf->serv[0].page404 != "")
         {
-            std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
+            // std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
 
             server->filetosearch = conf->serv[0].default_folder + "/" + conf->serv[0].page404;
             readFile(server->filetosearch.c_str(), &server->filecontent);

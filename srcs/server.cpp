@@ -17,7 +17,7 @@ void launch_browser(int port)
         {
             // std::cout << "Opening page on port " << port << std::endl;
             if (MAC == 1)
-                o = "open http://localhost:"; // --> mac
+                o = "open -a Firefox.app http://localhost:"; // --> mac
             else
                 o = "xdg-open http://localhost:"; // --> linux
             o += intToStr(port);
@@ -62,10 +62,10 @@ Config check_config(int argc, char const *argv[])
 void output(std::string client_data, std::string server_data)
 {
     (void)server_data;
-    // (void)client_data;
+    (void)client_data;
         std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
-        // std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
-                //   << server_data << std::endl;
+        std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
+                  << server_data << std::endl;
 }
 
 sockaddr_in SocketAssign(int port, int *server_fd)
@@ -199,9 +199,9 @@ int main(int argc, char const *argv[])
 				perror("In accept");
 				exit(EXIT_FAILURE);
 			}
-			std::cout << std::endl << GREEN << "New connection , socket fd is : " << new_socket <<
-				", ip is : " << inet_ntoa(address.sin_addr) << ", port is : " << ntohs(address.sin_port) <<
-				std::endl << std::endl << RESET;
+	        std::cout << std::endl << GREEN << "[⊛ NEW USER] => " << WHITE << "PORT Used : " << RESET << conf.serv[0].port << WHITE << " ,socket fd :" << RESET << new_socket << std::endl << std::endl << RESET;
+
+			// std::cout << std::endl << GREEN << "New connection , socket fd is : " << new_socket << ", ip is : " << inet_ntoa(address.sin_addr) << ", port is : " << ntohs(address.sin_port) << std::endl << std::endl << RESET;
 
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
 			for (int i = 0; i < 9; i++)
@@ -224,10 +224,12 @@ int main(int argc, char const *argv[])
 				if ((valread = read(client_socket, client_data, 30000)) <= 0)
 				{
 					getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
-					std::cout << std::endl << RED << "Somebody disconnected, ip : " <<
-						inet_ntoa(address.sin_addr) << ", port : " << ntohs(address.sin_port) <<
-							std::endl << std::endl << RESET;
-            // std::cout << "YOOOOO" << std::endl;
+	            std::cout << std::endl << RED << "[⊛ DISCONNECT] => " << WHITE << "User with port" << RESET << conf.serv[0].port << WHITE << "is now disconnected." << RESET  << std::endl;
+					
+                    
+                    // std::cout << std::endl << RED << "Somebody disconnected, ip : " <<
+						// inet_ntoa(address.sin_addr) << ", port : " << ntohs(address.sin_port) <<
+							// std::endl << std::endl << RESET;
 					close(client_socket);
 					connection_list_sock[i] = -1;
 				}
@@ -236,7 +238,7 @@ int main(int argc, char const *argv[])
 					client_data[valread] = '\0';
 					response_sender(&server, client_data, &conf);
 					write(client_socket, server.response.c_str(), server.response.length());
-					output(client_data, server.response);
+					//output(client_data, server.response);
 				}
 			}
 		}

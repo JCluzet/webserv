@@ -9,7 +9,7 @@
 
 NAME        := webserv
 CC         := c++
-FLAGS    := -Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address
+FLAGS    := -Wall -Wextra -Werror -std=c++98
 
 CLR_RMV		:= \033[0m
 RED		    := \033[1;31m
