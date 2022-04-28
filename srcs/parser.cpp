@@ -137,6 +137,16 @@ std::string get_status(int ans)
     return (status);
 }
 
+std::string getDate()
+{
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
+    return (buf);
+}
+
 std::string getHeader(std::string client_data, std::string file_content, int ans)
 {
     std::string header = get_status(ans);
@@ -144,6 +154,9 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
     header += getContentType(client_data);
     header += "\nContent-Length: ";
     header += sizetToStr(file_content.length());
+    header += "\nServer: WebServ v1.0";
+    header += "\nDate : ";
+    header += getDate();
     header += "\n\n";
 
     return (header);
