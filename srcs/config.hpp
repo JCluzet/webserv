@@ -69,6 +69,24 @@ public:
             delete[] serv;
     }
 
+    void    print() const
+    {
+        std::cout << "Config :" << std::endl;
+        for (size_t i = 0; i < nb_servers; i++)
+        {
+            std::cout << "Server :" << i << std::endl;
+            std::cout << "Host :" << serv[i].host << std::endl;
+            std::cout << "Server Name :" << serv[i].server_name << std::endl;
+            std::cout << "Port :" << serv[i].port << std::endl;
+            std::cout << "Default Folder :" << serv[i].default_folder << std::endl;
+            std::cout << "Default Page :" << serv[i].default_page << std::endl;
+            std::cout << "404 Page :" << serv[i].page404 << std::endl;
+            std::cout << "Max Body Size :" << serv[i].max_body_size << std::endl;
+            std::cout << "Autoindex :" << serv[i].autoindex << std::endl;
+            std::cout << "Valid :" << serv[i].valid << std::endl << std::endl;
+        }
+    }
+
 private:
     std::string findInServer(std::string header, std::string s)
     {
@@ -96,6 +114,8 @@ private:
 
     void parse_server2(std::string conf, t_server *s)
     {
+        FILE*   fp = NULL;
+        bool    v = 0;
         s->host = findInServer(conf, "host");
         s->server_name = findInServer(conf, "server_name");
         s->port = findInServer(conf, "port");
@@ -103,7 +123,19 @@ private:
         s->default_page = findInServer(conf, "default_page");
         s->page404 = findInServer(conf, "404_page");
         s->max_body_size = findInServer(conf, "max_body_size");
-        s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length());
+        fp = fopen(s->default_folder.c_str(), "rb");
+        if (fp){
+            fclose(fp);
+            v = 1;
+        }
+        if (v) {
+            fp = fopen(s->default_page.c_str(), "rb");
+            if (!fp)
+                v = 0;
+            else
+                fclose(fp);
+        }
+        s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length() && v);
         s->autoindex = strcmp(findInServer(conf, "autoindex").c_str(), "on") ? false : true;
     }
 

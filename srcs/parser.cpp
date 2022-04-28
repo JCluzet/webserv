@@ -193,6 +193,16 @@ void output_log(int ans, std::string filetosearch)
 
 void response_sender(server_data *server, std::string client_data, Config *conf)
 {
+    // std::cout << "client_data:" << client_data << "<<" << std::endl;
+    if (client_data == "")                 // --> Replace by BadRequest detector 
+    {
+        std::cout << "Bad request." << std::endl;
+        server->response = get_status(400);
+        server->response += "\nContent-Type: txt/html\n";
+        server->response += "\nContent-Length: 110\n\n";
+        server->response += "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad request.</p>\n</body>\n\n</html>";
+        return;
+    }
     server->filetosearch = conf->serv[0].default_folder + findInHeader(client_data, "File"); 
     std::string tmp;
     bool temp;
