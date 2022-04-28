@@ -38,7 +38,7 @@ public:
 
     ~ Request(){};
 //geter
-    std::string get_file() const {return _path;}
+    std::string get_path() const {return _path;}
     std::string get_method() const {return _method;}
     std::string get_version() const {return _version;}
     std::string get_header(std::string key) {return _m[key];}
@@ -172,13 +172,13 @@ private:
 
 
 };
-    // std::ostream&	operator<<(std::ostream & ostream, Request const & src) {
-    // 	ostream << src.get_method() << "\t" << src.get_file() << "\t" << src.get_version() << std::endl;
-    //     for (unsigned int i; i < NB_HEADERS; i++)
-    //     {
-    //         if(_m[_header[i]] != "")
-    //             ostream << _header[i] << ": " << _m[_header[i]] << std::endl;])
-    //     }
+// std::ostream&	operator<<(std::ostream & ostream, Request const & src) {
+// 	ostream << src.get_method() << "\t" << src.get_file() << "\t" << src.get_version() << std::endl;
+//     for (unsigned int i; i < NB_HEADERS; i++)
+//     {
+//         if(_m.get_header(_header[i]) != "")
+//             ostream << _header[i] << ": " << _m[_header[i]] << std::endl;])
+//     }
 
-    // 	return (ostream);
-    // }
+// 	return (ostream);
+// }

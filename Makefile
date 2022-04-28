@@ -11,10 +11,10 @@ NAME        := webserv
 CC         := c++
 
 ifeq ($(UNAME), Darwin)
-FLAGS    = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+FLAGS    = -Wall -Wextra -Werror -std=c++98#-fsanitize=address -g3
 endif
 ifeq ($(UNAME), Linux)
-FLAGS    = -Wall -Wextra -Werror -std=c++98 -lpthread #-fsanitize=address -g3
+FLAGS    = -Wall -Wextra -Werror -std=c++98#-fsanitize=address -g3
 endif
 
 CLR_RMV		:= \033[0m
@@ -50,8 +50,7 @@ RM		    := rm -f
 ${NAME}:	${OBJS} 
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@echo "$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
-			@${CC} ${FLAGS} -o ${NAME} ${OBJS} -lpthread
-			@${CC}  -o ${NAME} ${OBJS} ${FLAGS}
+			@${CC}  -o ${NAME} ${OBJS} ${FLAGS} -lpthread
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@printf "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]\n"
 
