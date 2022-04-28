@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/28 18:19:39 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/28 18:49:19 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include "Request.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>

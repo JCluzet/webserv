@@ -137,6 +137,16 @@ std::string get_status(int ans)
     return (status);
 }
 
+std::string getDate()
+{
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
+    return (buf);
+}
+
 std::string getHeader(std::string client_data, std::string file_content, int ans)
 {
     std::string header = get_status(ans);
@@ -144,6 +154,9 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
     header += getContentType(client_data);
     header += "\nContent-Length: ";
     header += sizetToStr(file_content.length());
+    header += "\nServer: WebServ v1.0";
+    header += "\nDate : ";
+    header += getDate();
     header += "\n\n";
 
     return (header);
@@ -196,37 +209,39 @@ void response_sender(server_data *server, std::string client_data, s_server *con
         server->response += "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad request.</p>\n</body>\n\n</html>";
         return;
     }
-    server->filetosearch = conf->default_folder + findInHeader(client_data, "File"); 
+
+    // ------------------------- OBTENTION DU FICHIER A ALLER CHERCHER -------------------------
+    std::string filetosearch = getFile(client_data);
+    server->filetosearch = conf->default_folder + findInHeader(client_data, "File");         // --> Creation du path a alleer chercher www + / + file
     std::string tmp;
     bool temp;
-    temp = indexGenerator(&tmp, server->filetosearch);
+    temp = indexGenerator(&tmp, server->filetosearch);                                       // --> si l'autoindex est activé, on tente de generer l'index
 
-    server->filetosearch = set_default_page(server->filetosearch, client_data, conf->default_page);
+    server->filetosearch = set_default_page(server->filetosearch, client_data, conf->default_page); // --> si c'est un dossier, rajouter le default page
     // std::cout << "file to search: " << server->filetosearch << std::endl;
+    // -----------------------------------------------------------------------------------------
 
     server->filecontent = "";
-    server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);
-    if (server->status_code == 404)
+    server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);       // --> tentative de l'ecture du fichier 
+    if (server->status_code == 404)                                                           // --> si le fichier n'existe pas, on redirige vers une erreur 404 (le status code devient 404)  (on doit aussi verifier les droits pour rediriger vers un bad permission ou autres)
     {
-        if (conf->page404 != "")
+        if (conf->page404 != "")                                                                           // --> si la page 404 default est dans le fichier de config, on rajoute un '/' + la 404 default page
         {
-            // std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
-
             server->filetosearch = conf->default_folder + "/" + conf->page404;
             readFile(server->filetosearch.c_str(), &server->filecontent);
         }
-        else
+        else                                                                                               // --> sinon on met le code html de base de error 404 dedans
         {
             std::cout << BLUE << "[⊛] => " << YELLOW << "Setting error default page" << std::endl;
             server->filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
     }
-    if (!temp && conf->autoindex)
+    if (!temp && conf->autoindex)                                                       // --> si l'autoindex est active et qu'on a reussi a le generer, on le met dans le filecontent
     {
         std::cout << BLUE << "[⊛] => " << YELLOW << "Setting autoindex" << std::endl;
         server->filecontent = tmp;
     }
     output_log(server->status_code, server->filetosearch);
-    server->response = getHeader(client_data, server->filecontent, server->status_code);
-    server->response += server->filecontent;
+    server->response = getHeader(client_data, server->filecontent, server->status_code);   // --> on met le header en envoyant le status code, le file_content(pour le content-lenght) et le client_data (pour le content-type) dans la reponse
+    server->response += server->filecontent;                                               // --> on ajoute le file_content a la fin de la reponse
 }

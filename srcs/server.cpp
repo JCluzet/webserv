@@ -64,8 +64,7 @@ void output(std::string client_data, std::string server_data)
     (void)server_data;
     (void)client_data;
         std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
-        std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
-                  << server_data << std::endl;
+        std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl << server_data << std::endl;
 }
 
 sockaddr_in SocketAssign(int port, int *server_fd)
@@ -139,7 +138,7 @@ void	build_fd_set(int listen_sock, int connection_list_sock[9], fd_set* read_fds
 void*	run_webserv(void *conf)
 {
     int listen_sock, new_socket;
-    long valread;
+    int valread;
     struct server_data server;
     struct sockaddr_in address;
     struct s_server* p_serv = reinterpret_cast<struct s_server*>(conf);
@@ -199,7 +198,7 @@ void*	run_webserv(void *conf)
 				perror("In accept");
 				exit(EXIT_FAILURE);
 			}
-	        std::cout << GREEN << "[⊛ NEW USER]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << serv.port << std::endl << RESET;
+	        std::cout << GREEN << "[⊛ CONNECT]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << serv.port << std::endl << RESET;
 
 
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
@@ -223,11 +222,8 @@ void*	run_webserv(void *conf)
 				if ((valread = read(client_socket, client_data, 30000)) <= 0)
 				{
 					getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
-	        std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << serv.port << std::endl << RESET << std::endl;
+	                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << serv.port << std::endl << RESET;
 
-	            // std::cout << std::endl << RED << "[⊛ DISCONNECT] => " << WHITE << "User with address: " << RESET << inet_ntoa(address.sin_addr)<< WHITE << "and port: " << RESET <<
-					// ntohs(address.sin_port) << WHITE << " is now disconnected." << RESET  << std::endl;
-					
 					close(client_socket);
 					connection_list_sock[i] = -1;
 				}

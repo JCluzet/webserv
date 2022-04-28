@@ -9,7 +9,13 @@
 
 NAME        := webserv
 CC         := c++
-FLAGS    := -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+
+ifeq ($(UNAME), Darwin)
+FLAGS    = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+endif
+ifeq ($(UNAME), Linux)
+FLAGS    = -Wall -Wextra -Werror -std=c++98 -lpthread #-fsanitize=address -g3
+endif
 
 CLR_RMV		:= \033[0m
 RED		    := \033[1;31m
@@ -45,6 +51,7 @@ ${NAME}:	${OBJS}
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@echo "$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
 			@${CC} ${FLAGS} -o ${NAME} ${OBJS} -lpthread
+			@${CC}  -o ${NAME} ${OBJS} ${FLAGS}
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@printf "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]\n"
 
