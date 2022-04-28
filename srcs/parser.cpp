@@ -56,8 +56,6 @@ int readFile(std::string filename, std::string *fileContent)
 
     if (!ifs)
     {
-        // std::cerr << "Not Found " << filename << "." << std::endl;
-        // std::cout << RED << "[⊛ 404] => " << WHITE << "not found " << filename << std::endl;
         *fileContent = "\n";
         // *fileContent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>"; // --> pouvoir mettre le fichier d'erreur par default ou celui inndique dans le fichier de config
         return (404);
@@ -65,8 +63,6 @@ int readFile(std::string filename, std::string *fileContent)
     getline(ifs, s);
     if (s == "")
     {
-        // std::cout << RED << "[⊛ 404] => "<< WHITE << "empty " << filename << std::endl;
-        // std::cerr << "Empty file."  << std::endl;
         ifs.close();
         *fileContent = "\n";
         // *fileContent = "<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>Empty file.</p>\n</body>\n\n</html>";      // --> pareil
@@ -96,13 +92,10 @@ std::string getContentType(std::string client_data) // --> refaire propremment c
     for (unsigned int i = 0; i < client_data.length() - 7; i++)
     {
         if (client_data.size() >= i + 7 && client_data.substr(i, 7) == "Accept:")
-        // if (client_data[i] == 'A' && client_data[i + 1] == 'c' && client_data[i + 2] == 'c' && client_data[i + 3] == 'e' && client_data[i + 4] == 'p' && client_data[i + 5] == 't' && client_data[i + 6] == ':')
         {
             i += 8;
             std::string tmp = findInHeader(client_data, "File");
-            // std::cout << "tmp >> " << tmp << std::endl;
             if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".svg")
-            // if (tmp[tmp.length() - 2] == 'g' && tmp[tmp.length() - 2] == 'v' && tmp[tmp.length() - 3] == 's') // --> if it's a svg file, use image/svg+xml content type
                 return ("image/svg+xml");
             else if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".pdf")
                 return ("application/pdf");
@@ -191,7 +184,7 @@ void output_log(int ans, std::string filetosearch)
         std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
 }
 
-void response_sender(server_data *server, std::string client_data, Config *conf)
+void response_sender(server_data *server, std::string client_data, s_server *conf)
 {
     // std::cout << "client_data:" << client_data << "<<" << std::endl;
     if (client_data == "")                 // --> Replace by BadRequest detector 
@@ -203,23 +196,23 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
         server->response += "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad request.</p>\n</body>\n\n</html>";
         return;
     }
-    server->filetosearch = conf->serv[0].default_folder + findInHeader(client_data, "File"); 
+    server->filetosearch = conf->default_folder + findInHeader(client_data, "File"); 
     std::string tmp;
     bool temp;
     temp = indexGenerator(&tmp, server->filetosearch);
 
-    server->filetosearch = set_default_page(server->filetosearch, client_data, conf->serv[0].default_page);
+    server->filetosearch = set_default_page(server->filetosearch, client_data, conf->default_page);
     // std::cout << "file to search: " << server->filetosearch << std::endl;
 
     server->filecontent = "";
     server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);
     if (server->status_code == 404)
     {
-        if (conf->serv[0].page404 != "")
+        if (conf->page404 != "")
         {
             // std::cout << RED << "[⊛ 404] => " << YELLOW << "Redirect to 404 page " << RESET << std::endl;
 
-            server->filetosearch = conf->serv[0].default_folder + "/" + conf->serv[0].page404;
+            server->filetosearch = conf->default_folder + "/" + conf->page404;
             readFile(server->filetosearch.c_str(), &server->filecontent);
         }
         else
@@ -228,7 +221,7 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
             server->filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
     }
-    if (!temp && conf->serv[0].autoindex)
+    if (!temp && conf->autoindex)
     {
         std::cout << BLUE << "[⊛] => " << YELLOW << "Setting autoindex" << std::endl;
         server->filecontent = tmp;
