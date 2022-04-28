@@ -199,7 +199,7 @@ int main(int argc, char const *argv[])
 				perror("In accept");
 				exit(EXIT_FAILURE);
 			}
-	        std::cout << std::endl << GREEN << "[⊛ NEW USER] => " << WHITE << "PORT Used : " << RESET << conf.serv[0].port << WHITE << " ,socket fd :" << RESET << new_socket << std::endl << std::endl << RESET;
+	        std::cout << std::endl << GREEN << "[⊛ NEW USER] => " << WHITE << "PORT Used: " << RESET << conf.serv[0].port << WHITE << " socket fd: " << RESET << new_socket << std::endl << std::endl << RESET;
 
 			// std::cout << std::endl << GREEN << "New connection , socket fd is : " << new_socket << ", ip is : " << inet_ntoa(address.sin_addr) << ", port is : " << ntohs(address.sin_port) << std::endl << std::endl << RESET;
 
@@ -224,7 +224,7 @@ int main(int argc, char const *argv[])
 				if ((valread = read(client_socket, client_data, 30000)) <= 0)
 				{
 					getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
-	            std::cout << std::endl << RED << "[⊛ DISCONNECT] => " << WHITE << "User with port" << RESET << conf.serv[0].port << WHITE << "is now disconnected." << RESET  << std::endl;
+	            std::cout << std::endl << RED << "[⊛ DISCONNECT] => " << WHITE << "User with port " << RESET << conf.serv[0].port << WHITE << " is now disconnected." << RESET  << std::endl;
 					
                     
                     // std::cout << std::endl << RED << "Somebody disconnected, ip : " <<
