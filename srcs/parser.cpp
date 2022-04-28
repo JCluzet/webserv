@@ -169,7 +169,11 @@ std::string set_default_page(std::string filetosearch, std::string client_data, 
         if (filetosearch[filetosearch.length() - 1] == '/')
             filetosearch += conf;
         else
-            filetosearch += conf;
+        {
+            // filetosearch += "/";                         // --> if there is no slash at the end of the path, how to do it ?? 
+            // filetosearch += conf;
+        }
+            // filetosearch += conf;
     }
     // if (filetosearch[filetosearch.length() - 1] == '/') // -> if it's a directory
     // {
@@ -195,6 +199,7 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
     temp = indexGenerator(&tmp, server->filetosearch);
 
     server->filetosearch = set_default_page(server->filetosearch, client_data, conf->serv[0].default_page);
+    // std::cout << "file to search: " << server->filetosearch << std::endl;
 
     server->filecontent = "";
     server->status_code = readFile(server->filetosearch.c_str(), &server->filecontent);

@@ -17,7 +17,7 @@ void launch_browser(int port)
         {
             // std::cout << "Opening page on port " << port << std::endl;
             if (MAC == 1)
-                o = "open -a Firefox.app http://localhost:"; // --> mac
+                o = "open http://localhost:"; // --> mac
             else
                 o = "xdg-open http://localhost:"; // --> linux
             o += intToStr(port);
@@ -171,7 +171,7 @@ int main(int argc, char const *argv[])
 		connection_list_sock[i] = -1;
 
 	std::cout << std::endl << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[0].port << RESET  << "..." << std::endl << RESET;
-    launch_browser(std::stoi(conf.serv[0].port));
+    launch_browser(atoi(conf.serv[0].port.c_str()));
 	while (1)
 	{
 		build_fd_set(listen_sock, connection_list_sock, &read_fds, &write_fds, &except_fds);
@@ -238,7 +238,7 @@ int main(int argc, char const *argv[])
 					client_data[valread] = '\0';
 					response_sender(&server, client_data, &conf);
 					write(client_socket, server.response.c_str(), server.response.length());
-					//output(client_data, server.response);
+					// output(client_data, server.response);
 				}
 			}
 		}
