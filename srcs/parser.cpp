@@ -162,7 +162,7 @@ std::string set_default_page(std::string filetosearch, std::string client_data, 
 {
     (void)client_data; // ---> need to check if the file is a directory and then set the default page
     // std::cout << "Referer catching: " << findInHeader(client_data, "ref_extension") << std::endl;
-    std::cout << "is_directory=" << is_directory(filetosearch) << std::endl;
+    // std::cout << "is_directory=" << is_directory(filetosearch) << std::endl;
     if (is_directory(filetosearch))
     {
         // if ()
@@ -193,8 +193,6 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
     std::string tmp;
     bool temp;
     temp = indexGenerator(&tmp, server->filetosearch);
-    std::cout << "temp:" << temp << std::endl;
-    // std::cout << tmp << std::endl;
 
     server->filetosearch = set_default_page(server->filetosearch, client_data, conf->serv[0].default_page);
 
@@ -215,8 +213,6 @@ void response_sender(server_data *server, std::string client_data, Config *conf)
             server->filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
     }
-    if(conf->serv[0].autoindex)
-        std::cout << "HELLOOOOFSODFODOFODSOFDSOFOS" << std::endl;
     if (!temp && conf->serv[0].autoindex)
     {
         std::cout << BLUE << "[⊛] => " << YELLOW << "Setting autoindex" << std::endl;

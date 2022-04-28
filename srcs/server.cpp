@@ -1,5 +1,9 @@
 // Server side C program to demonstrate HTTP Server programming
 #include "server.hpp"
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 void launch_browser(int port)
 {
@@ -57,9 +61,11 @@ Config check_config(int argc, char const *argv[])
 
 void output(std::string client_data, std::string server_data)
 {
+    (void)server_data;
+    // (void)client_data;
         std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
-        std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
-                  << server_data << std::endl;
+        // std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
+                //   << server_data << std::endl;
 }
 
 sockaddr_in SocketAssign(int port, int *server_fd)
@@ -93,47 +99,147 @@ sockaddr_in SocketAssign(int port, int *server_fd)
     }
 
     // open browser at launch
-    launch_browser(port);
     return (address);
 }
 
+void	build_fd_set(int listen_sock, int connection_list_sock[9], fd_set* read_fds, fd_set* write_fds, fd_set* except_fds)
+{
+	int	i;
+	FD_ZERO(read_fds);
+	FD_SET(listen_sock, read_fds);
+	for (i = 0; i < 9; ++i)
+	{
+		if (connection_list_sock[i] != -1)
+			FD_SET(connection_list_sock[i], read_fds);
+	}
+
+	FD_ZERO(write_fds);
+	for (i = 0; i < 9; ++i)
+	{
+		if (connection_list_sock[i] != -1)
+			FD_SET(connection_list_sock[i], write_fds);
+	}
+
+	FD_ZERO(except_fds);
+	FD_SET(listen_sock, except_fds);
+	for (i = 0; i < 9; ++i)
+	{
+		if (connection_list_sock[i] != -1)
+			FD_SET(connection_list_sock[i], except_fds);
+	}
+
+	return ;
+}
+
+// include atoi lib
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 int main(int argc, char const *argv[])
 {
-    int server_fd, new_socket;
+    int listen_sock, new_socket;
     long valread;
     struct server_data server;
     struct sockaddr_in address;
     
     Config conf(check_config(argc, argv)); // --> get config from config file
 
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("In socket");
         exit(EXIT_FAILURE);
     }
+	fcntl(listen_sock, F_SETFL, O_NONBLOCK);
 
-    address = SocketAssign(atoi(conf.serv[0].port.c_str()), &server_fd);
+	int reuse = 1;
+	if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
+	{
+		perror("setsockopt");
+		return -1;
+	}
+
+    address = SocketAssign(atoi(conf.serv[0].port.c_str()), &listen_sock);
     int addrlen = sizeof(address);
 
-    while (1)
-    {
-        std::cout << std::endl << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[0].port << RESET  << "..." << std::endl << RESET;
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-        {
-            perror("In accept");
-            exit(EXIT_FAILURE);
-        }
+	int	high_sock;
+	fd_set	read_fds;
+	fd_set	write_fds;
+	fd_set	except_fds;
+	int	connection_list_sock[9];
+	for (int i = 0; i < 9; i++)
+		connection_list_sock[i] = -1;
 
-        char client_data[30000] = {0};
-        valread = read(new_socket, client_data, 30000);
-        (void)valread; // --> ????
+	std::cout << std::endl << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[0].port << RESET  << "..." << std::endl << RESET;
+    launch_browser(std::stoi(conf.serv[0].port));
+	while (1)
+	{
+		build_fd_set(listen_sock, connection_list_sock, &read_fds, &write_fds, &except_fds);
 
+		high_sock = listen_sock;
+		for (int i = 0; i < 9; ++i)
+		{
+			if (connection_list_sock[i] > high_sock)
+				high_sock = connection_list_sock[i];
+		}
 
-        response_sender(&server, client_data, &conf);
-        write(new_socket, server.response.c_str(), server.response.length());
-        close(new_socket);
+		int	activity = select(high_sock + 1, &read_fds, NULL, NULL, NULL);
+	//	int	activity = select(high_sock + 1, &read_fds, &write_fds, &except_fds, NULL);
 
-        output(client_data, server.response);
-    }
-    return 0;
+		if (activity < 0)
+		{
+			perror("select error");
+			exit(EXIT_FAILURE);
+		}
+
+		if (FD_ISSET(listen_sock, &read_fds))
+		{
+			if ((new_socket = accept(listen_sock, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
+			{
+				perror("In accept");
+				exit(EXIT_FAILURE);
+			}
+			std::cout << std::endl << GREEN << "New connection , socket fd is : " << new_socket <<
+				", ip is : " << inet_ntoa(address.sin_addr) << ", port is : " << ntohs(address.sin_port) <<
+				std::endl << std::endl << RESET;
+
+			fcntl(new_socket, F_SETFL, O_NONBLOCK);
+			for (int i = 0; i < 9; i++)
+			{
+				if (connection_list_sock[i] == -1)
+				{
+					connection_list_sock[i] = new_socket;
+					break ;
+				}
+			}
+		}
+
+		int	client_socket;
+		for (int i = 0; i < 9; i++)
+		{
+			client_socket = connection_list_sock[i];
+			if (FD_ISSET(client_socket, &read_fds))
+			{
+				char client_data[30001];
+				if ((valread = read(client_socket, client_data, 30000)) <= 0)
+				{
+					getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
+					std::cout << std::endl << RED << "Somebody disconnected, ip : " <<
+						inet_ntoa(address.sin_addr) << ", port : " << ntohs(address.sin_port) <<
+							std::endl << std::endl << RESET;
+            // std::cout << "YOOOOO" << std::endl;
+					close(client_socket);
+					connection_list_sock[i] = -1;
+				}
+				else
+				{
+					client_data[valread] = '\0';
+					response_sender(&server, client_data, &conf);
+					write(client_socket, server.response.c_str(), server.response.length());
+					output(client_data, server.response);
+				}
+			}
+		}
+	}
+	return 0;
 }
