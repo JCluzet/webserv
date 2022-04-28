@@ -44,7 +44,7 @@ RM		    := rm -f
 ${NAME}:	${OBJS} 
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@echo "$(BLUE)[⊛] => $(WHITE)Compilation of ${YELLOW}$(NAME) ${CLR_RMV}..."
-			@${CC} ${FLAGS} -o ${NAME} ${OBJS}
+			@${CC} ${FLAGS} -o ${NAME} ${OBJS} -lpthread
 			@printf "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 			@printf "$(GREEN)[⊛] => $(WHITE)$(NAME) created [ $(GREEN)✔️$(WHITE) ]\n"
 

@@ -21,7 +21,8 @@
 #define MAGENTA "\033[1;35m"
 #define CYAN "\033[1;36m"
 #define RESET "\033[0m"
-#include "config.hpp"
+#include "Config.hpp"
+#include "Request.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
