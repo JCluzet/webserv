@@ -105,8 +105,9 @@ std::string getContentType(std::string client_data) // --> refaire propremment c
             // if (tmp[tmp.length() - 2] == 'g' && tmp[tmp.length() - 2] == 'v' && tmp[tmp.length() - 3] == 's') // --> if it's a svg file, use image/svg+xml content type
                 return ("image/svg+xml");
             else if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".pdf")
-            // else if (tmp[tmp.length() - 1] == 'f' && tmp[tmp.length() - 2] == 'd' && tmp[tmp.length() - 3] == 'p')
                 return ("application/pdf");
+            else if (tmp.length() >= 4 && tmp.substr(tmp.length() - 4, tmp.length() - 1) == (std::string)".png")
+                return("image/apng");
             else
             {
                 while (client_data[i] != ',')
