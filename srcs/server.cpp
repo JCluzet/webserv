@@ -92,7 +92,7 @@ sockaddr_in SocketAssign(int port, int *server_fd)
         }
         std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
     }
-    if (listen(*server_fd, 10) < 0)
+    if (listen(*server_fd, 9) < 0)
     {
         perror("In listen");
         exit(EXIT_FAILURE);
