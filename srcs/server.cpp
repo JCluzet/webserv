@@ -144,7 +144,6 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     
     Config conf(check_config(argc, argv)); // --> get config from config file
-
     if ((listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("In socket");

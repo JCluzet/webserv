@@ -100,9 +100,9 @@ private:
             {
                 tmp.erase(0, s.length());
                 tmp.erase(0, tmp.find_first_not_of(" "));
-                if (tmp[0] != '=' && tmp[0] != ':')
-                    return ("");
-                tmp.erase(0, tmp.find_first_not_of(" ", 1));
+                // if (tmp[0] != '=' && tmp[0] != ':')
+                    // return ("");
+                // tmp.erase(0, tmp.find_first_not_of(" ", 1));
                 if (tmp.find("#") != std::string::npos)
                     tmp.erase(tmp.find("#"), tmp.length());
                 return tmp.substr(0, tmp.find_first_of(" "));
@@ -118,11 +118,12 @@ private:
         bool    v = 0;
         s->host = findInServer(conf, "host");
         s->server_name = findInServer(conf, "server_name");
-        s->port = findInServer(conf, "port");
+        s->port = findInServer(conf, "listen");
         s->default_folder = findInServer(conf, "default_folder");
         s->default_page = findInServer(conf, "default_page");
         s->page404 = findInServer(conf, "404_page");
         s->max_body_size = findInServer(conf, "max_body_size");
+        s->autoindex = strcmp(findInServer(conf, "autoindex").c_str(), "on") ? false : true;
         fp = fopen(s->default_folder.c_str(), "rb");
         if (fp){
             fclose(fp);
@@ -136,7 +137,6 @@ private:
                 fclose(fp);
         }
         s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length() && v);
-        s->autoindex = strcmp(findInServer(conf, "autoindex").c_str(), "on") ? false : true;
     }
 
     void parse_server(std::string data)
