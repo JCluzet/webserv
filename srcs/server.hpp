@@ -62,7 +62,7 @@ struct server_data {
 // PARSING
 
 bool readinFile(std::string filename, std::string *fileContent);
-bool	indexGenerator(std::string* codeHTML, std::string path = ".");
+bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
 bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 void response_sender(server_data *server, std::string client_data, Config *conf);

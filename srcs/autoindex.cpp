@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <cstring>
 
 std::string sizetToStr(size_t n){
     std::string s;
@@ -18,7 +19,7 @@ std::string sizetToStr(size_t n){
     return s;
 }
 
-bool	indexGenerator(std::string* codeHTML, std::string path)
+bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www")
 {
     DIR *dir = opendir(path.c_str());
     if (!dir){
@@ -31,7 +32,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path)
 	*codeHTML += "<head><title>autoindex</title></head>\n";
 	*codeHTML += "<body>\n";
 	*codeHTML += "<h1>Index of /";
-	*codeHTML += (path != "www/") ? path : ""; //actual_file
+	*codeHTML += (path != defaultFolder + "/") ? path.substr(4, path.length() - 4) : ""; //actual_file
 	*codeHTML += "</h1><hr/>\n";
 	*codeHTML += "<table width=\"100%\" border=\"0\">\n";
 	*codeHTML += "<tr>\n";
@@ -41,7 +42,9 @@ bool	indexGenerator(std::string* codeHTML, std::string path)
 	*codeHTML += "</tr>\n"; //10
 //LISTING
     while ((ent = readdir(dir))){
-        // if (ent->d_name[0] != '.'){
+        // if (!strcmp(ent->d_name, ".")){
+        if (!(ent->d_name[0] == '.' && ent->d_name[1] == '\0')){
+            // std::cout << "*******************" << ent->d_name << std::endl;
             std::string filepath = path + "/" + ent->d_name;
             struct stat s;
             stat(filepath.c_str(), &s);
@@ -65,7 +68,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path)
             *codeHTML += S_ISDIR(s.st_mode) ? "_" : size;
             *codeHTML += "</td>\n";
             *codeHTML += "</tr>\n";
-        // }
+        }
 	}
 //END
 	*codeHTML += "</able>\n";
