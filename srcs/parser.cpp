@@ -27,7 +27,7 @@ std::string findInHeader(std::string header, std::string s)
                 for (int i = 0; i < 3; i++){
                     if (tmp.find("/") == std::string::npos)
                         return "";
-                    tmp.erase(0, tmp.find("/") + (i == 2 ? 0 : 1));
+                    tmp.erase(0, tmp.find("/") + 1);
                 }
                 return tmp;
             }

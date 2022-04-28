@@ -104,7 +104,7 @@ private:
         s->page404 = findInServer(conf, "404_page");
         s->max_body_size = findInServer(conf, "max_body_size");
         s->valid = (s->host.length() && s->server_name.length() && s->port.length() && s->default_folder.length() && s->default_page.length() && s->page404.length() && s->max_body_size.length());
-        s->autoindex = (findInServer(conf, "autoindex") == (std::string)"on") ? true : false;
+        s->autoindex = strcmp(findInServer(conf, "autoindex").c_str(), "on") ? false : true;
     }
 
     void parse_server(std::string data)
@@ -113,7 +113,7 @@ private:
         for (size_t i = 0; i < nb_servers; i++)
         {
             data.erase(0, data.find("{") + (data[data.find("{") + 1] == '\n' ? 2 : 1));
-            conf = data.substr(0, data.find("}") - (data[data.find("}") - 1] == '\n' ? 2 : 1));
+            conf = data.substr(0, data.find("}") - 1);
             conf += "\n";
             parse_server2(conf, &serv[i]);
         }

@@ -18,7 +18,7 @@ std::string sizetToStr(size_t n){
     return s;
 }
 
-bool	indexGenerator(std::string* codeHTML, std::string path = ".")
+bool	indexGenerator(std::string* codeHTML, std::string path)
 {
     DIR *dir = opendir(path.c_str());
     if (!dir){
@@ -31,7 +31,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path = ".")
 	*codeHTML += "<head><title>autoindex</title></head>\n";
 	*codeHTML += "<body>\n";
 	*codeHTML += "<h1>Index of /";
-	*codeHTML += (path != ".") ? path : ""; //actual_file
+	*codeHTML += (path != "www/") ? path : ""; //actual_file
 	*codeHTML += "</h1><hr/>\n";
 	*codeHTML += "<table width=\"100%\" border=\"0\">\n";
 	*codeHTML += "<tr>\n";
@@ -41,7 +41,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path = ".")
 	*codeHTML += "</tr>\n"; //10
 //LISTING
     while ((ent = readdir(dir))){
-        if (ent->d_name[0] != '.'){
+        // if (ent->d_name[0] != '.'){
             std::string filepath = path + "/" + ent->d_name;
             struct stat s;
             stat(filepath.c_str(), &s);
@@ -50,9 +50,10 @@ bool	indexGenerator(std::string* codeHTML, std::string path = ".")
             date.erase(date.size() - 1);
             *codeHTML += "<tr>\n";
             *codeHTML += "<td><a href=\"";
-            *codeHTML += (path != ".") ? path : ""; //actual_file
-            *codeHTML += "/";
+            // *codeHTML += path.substr(4, path.size() - 4);
+            // *codeHTML += "/";
             *codeHTML += ent->d_name;
+            *codeHTML += S_ISDIR(s.st_mode) ? "/" : "";
             *codeHTML += "\">";
             *codeHTML += ent->d_name;
             *codeHTML += S_ISDIR(s.st_mode) ? "/" : "";
@@ -64,12 +65,13 @@ bool	indexGenerator(std::string* codeHTML, std::string path = ".")
             *codeHTML += S_ISDIR(s.st_mode) ? "_" : size;
             *codeHTML += "</td>\n";
             *codeHTML += "</tr>\n";
-        }
+        // }
 	}
 //END
 	*codeHTML += "</able>\n";
 	*codeHTML += "</body>\n";
 	*codeHTML += "</html>\n";
+    std::cout << *codeHTML << std::endl;
     closedir(dir);
     return (0);
 }
