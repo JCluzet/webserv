@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 23:39:39 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 23:48:04 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,10 +53,12 @@ int Response::get_content_type()
     _content_type = "text/html";
     if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
         _content_type = "image/svg+xml";
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
+    else if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
         _content_type = "application/pdf";
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
+    else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
         _content_type = "image/apng";
+    else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
+        _content_type = "text/css";
     return (0);
 }
 
