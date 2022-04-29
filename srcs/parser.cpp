@@ -213,8 +213,8 @@ void response_sender(server_data *server, std::string client_data, s_server *con
         return;
     }
 
-    // Response rep(client_data, conf);
-    // std::cout << "REP :" << rep.get_response() << std::endl;
+    Response rep(client_data, conf);
+    std::cout << "REP :" << rep.get_response() << std::endl;
 
     // ------------------------- OBTENTION DU FICHIER A ALLER CHERCHER -------------------------
     std::string filetosearch = getFile(client_data);

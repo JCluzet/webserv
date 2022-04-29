@@ -7,6 +7,7 @@ class Response
 public:
     Response(std::string client_data, s_server *conf) : _conf(conf), _client_data(client_data),  _request(client_data), _status("400 Bad Request"), _header(""), _filecontent(""), _filepath("")
     {
+        
         _response = get_response();
     }
 

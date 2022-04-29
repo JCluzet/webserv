@@ -24,6 +24,7 @@ public:
         std::string r = _request;
         if (!get_request_first_line(r))
         {
+            std::cout << "REQUEST::" << _request << ":" << std::endl;
             std::cout << "bad request. (first line)" << std::endl;
             return;
         }
