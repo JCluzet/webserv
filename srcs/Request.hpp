@@ -104,30 +104,31 @@ private:
             _request = r;
             if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
             {
-                std::cout << "error bad request\n";
+                std::cout << "error bad request 1\n";
                 return false;
             }
             nl = r.find(NL);
             if (nl == std::string::npos)
             {
-                std::cout << "error bad request\n";
+                std::cout << "error bad request 2\n";
                 return false;
             }
             r.erase(0, nl + NLSIZE);
         }
         else
+        {
             _request += r;
+        }
         nl = r.find(NL);
         if (nl == std::string::npos)
         {
-            std::cout << "error bad request\n";
-            return false;
+            return true;
         }
         while (nl != std::string::npos)
         {
-            if (!get_request_line(r.substr(0, nl))) /////////////////////////
+            if (!get_request_line(r.substr(0, nl + NLSIZE))) /////////////////////////
             {
-                std::cout << "error bad request\n";
+                std::cout << "error bad request 4\n";
                 return false;
             }
             r.erase(0, nl + NLSIZE);
@@ -193,23 +194,39 @@ private:
         std::string request = r;
         // _request = request;
         // Check & get method
+        // std::cout << "HELLO" << std::endl;
         if ((next_space = request.find(" ")) == n)
+        {
+            std::cout << "error bad request 1.0\n";
             return (false);
+        }
         if ((next_nl = request.find(NL)) == n)
+        {
+            std::cout << "error bad request 1.1\n";
             return (false);
+        }
         if (next_nl < request.length())
             request = request.substr(0, next_nl);
         request += "   ";
         if (request.substr(0, next_space) != "GET" && request.substr(0, next_space) != "POST" && request.substr(0, next_space) != "DELETE")
+        {
+            std::cout << "error bad request 1.2\n";
             return (false);
+        }
         _method = request.substr(0, next_space);
         request.erase(0, next_space);
         // Check & get path
         if ((next_space = request.find_first_not_of(" ")) == n)
+        {
+            std::cout << "error bad request 1.3\n";
             return (false);
+        }
         request.erase(0, next_space);
         if ((next_space = request.find(" ")) == n)
+        {
+            std::cout << "error bad request 1.4\n";
             return (false);
+        }
         // if (!file_exist((request.substr(0, next_space)).c_str())) //secu
         // return false;
         _path = request.substr(0, next_space); // secu
@@ -218,9 +235,15 @@ private:
         request.erase(0, request.find_first_not_of(" "));
         next_space = request.find(" ");
         if (next_space == n)
+        {
+            std::cout << "error bad request 1.5\n";
             return (false);
+        }
         if (request.substr(0, next_space) != "HTTP/1.1" && request.substr(0, next_space) != "HTTP/1.0")
+        {
+            std::cout << "error bad request 1.6\n";
             return (false);
+        }
         _version = request.substr(0, next_space);
         return true;
     }
