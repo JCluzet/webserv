@@ -6,11 +6,13 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 20:07:46 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 23:37:41 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+
+#define LOG 0
 
 // #include "utils.hpp"
 #define RED "\033[1;31m"

@@ -301,7 +301,8 @@ int main(int argc, char const *argv[])
 							}
 							request[j][i].clear();
 						}
-						output(client_data, response.get_response(), request[j][i].get_request());
+						if (LOG == 1)
+							output(client_data, response.get_response(), request[j][i].get_request());
 					}
 				}
 			}

@@ -48,7 +48,8 @@ Response response_sender(std::string client, Request *request, s_server *conf)
     if (request->ready()) //Si elle est prete a etre envoyer
     {
         Response response(request, conf);
-    std::cout << "response ready to send" << std::endl;
+    
+    // std::cout << "response ready to send" << std::endl;
         output_log(response.getstat(), response.get_pathfile());
         return(response);
     }
