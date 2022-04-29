@@ -11,7 +11,7 @@ void launch_browser(int port)
 {
     std::string test, o;
     std::cout << std::endl;
-    std::cout << BLUE << "[⊛] => " << WHITE << "Want to open page on browser ? (y/n)";
+    std::cout << BLUE << "[⊛] => " << WHITE << "Want to open page on browser on first port? (y/n)";
     while (1)
     {
         std::cin >> test;
@@ -19,7 +19,7 @@ void launch_browser(int port)
         {
             // std::cout << "Opening page on port " << port << std::endl;
             if (MAC == 1)
-                o = "open -a Firefox.app http://localhost:"; // --> mac
+                o = "open http://localhost:"; // --> mac
             else
                 o = "xdg-open http://localhost:"; // --> linux
             o += intToStr(port);
@@ -199,9 +199,9 @@ int main(int argc, char const *argv[])
 			request[j][i] = Request();
 	}
 
-	// launch_browser(atoi(serv.port.c_str()));
 	for (size_t i = 0; i < conf.nb_servers; i++)
 		std::cout << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[i].port << RESET  << "..." << std::endl << RESET;
+	launch_browser(atoi(conf.serv[0].port.c_str()));
 	while (1)
 	{
 		build_fd_set(&listen_sock[0], conf.nb_servers, connection_list_sock, &read_fds, &write_fds, &except_fds);
