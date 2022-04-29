@@ -12,7 +12,7 @@
 
 #pragma once
 
-#define LOG 0
+#define LOG 1
 
 // #include "utils.hpp"
 #define RED "\033[1;31m"

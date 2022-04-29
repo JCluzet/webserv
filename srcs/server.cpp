@@ -299,10 +299,10 @@ int main(int argc, char const *argv[])
 
 								connection_list_sock[j][i] = -1;
 							}
+							if (LOG == 1)
+								output(client_data, response.get_response(), request[j][i].get_request());
 							request[j][i].clear();
 						}
-						if (LOG == 1)
-							output(client_data, response.get_response(), request[j][i].get_request());
 					}
 				}
 			}
