@@ -158,7 +158,7 @@ private:
             if (_m[_header[i]].length())
                 std::cout << _header[i] << " :" << _m[_header[i]] << std::endl;
         }
-        std::cout << "end :" << _end << std::endl;
+        std::cout << "end :" << _end << std::endl << std::endl;
     }
 
     bool    get_request_line(std::string r) // Check request line conformitys
@@ -189,7 +189,7 @@ private:
         std::string::size_type next_nl = std::string::npos;
         std::string::size_type n = std::string::npos;
         std::string request = r;
-        _request = request;
+        // _request = request;
     // Check & get method
         if ((next_space = request.find(" ")) == n)
             return (false);

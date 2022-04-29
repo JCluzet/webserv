@@ -21,8 +21,8 @@ int main()
     Request data(test);
     // data.print();
     // std::cout << "----------------------------------------" << std::endl;
-    data.add("Accept-Language: PROUT\r\n\r\nRetry-After: LOL\r\n");
-    // data.print();
-    // std::cout << data.get_request() << std::endl;
+    data.add("Date: PROUT\r\nRetry-After: LOL\r\n");
+    data.print();
+    std::cout << data.get_request() << std::endl;
     return(0);
 }
