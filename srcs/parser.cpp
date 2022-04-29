@@ -1,4 +1,7 @@
+// #include "Response.hpp"
 #include "server.hpp"
+
+class Response;
 
 std::string findInHeader(std::string header, std::string s)
 {
@@ -209,6 +212,9 @@ void response_sender(server_data *server, std::string client_data, s_server *con
         server->response += "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad request.</p>\n</body>\n\n</html>";
         return;
     }
+
+    // Response rep(client_data, conf);
+    // std::cout << "REP :" << rep.get_response() << std::endl;
 
     // ------------------------- OBTENTION DU FICHIER A ALLER CHERCHER -------------------------
     std::string filetosearch = getFile(client_data);

@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/28 18:49:19 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 15:53:15 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #define RESET "\033[0m"
 #include "Config.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <pthread.h>
@@ -62,6 +63,7 @@ struct server_data {
 #endif
 
 // PARSING
+
 
 bool readinFile(std::string filename, std::string *fileContent);
 bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");

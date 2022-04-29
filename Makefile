@@ -33,6 +33,7 @@ SRCS        :=      srcs/utils.cpp \
                           srcs/parser.cpp \
                           srcs/server.cpp \
 						srcs/autoindex.cpp \
+						srcs/Response.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 
