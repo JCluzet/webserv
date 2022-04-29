@@ -279,6 +279,7 @@ int main(int argc, char const *argv[])
 					char client_data[30001];
 					if ((valread = read(client_socket, client_data, 30000)) <= 0)
 					{
+						std::cout << "valread: " << valread << std::endl;
 						getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
 		                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.serv[j].port  << RESET << std::endl;
 

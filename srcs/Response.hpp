@@ -9,7 +9,7 @@ public:
         set_redirection();
         get_status();
         get_content_type();
-        _response = getHeader() + _filecontent;
+        _response = getHeader() + _filecontent + "\r\n\r\n";
     }
     Response()
     {
