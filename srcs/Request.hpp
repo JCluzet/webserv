@@ -13,8 +13,8 @@ class Request
 {
 public:
 // constructors
-    Request(std::string request) : _request(request), _end(false), _valid(false), _method("")
-    , _path(""), _version("")
+    Request(std::string request) : _request(request), _path(""), _method("")
+    , _version("") , _end(false), _valid(false)
     {
         if (_request.find("\r\n\r\n") != std::string::npos)
         {

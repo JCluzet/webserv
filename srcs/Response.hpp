@@ -5,9 +5,8 @@
 class Response
 {
 public:
-    Response(std::string client_data, s_server *conf) : _conf(conf), _client_data(client_data),  _request(client_data), _status("400 Bad Request"), _header(""), _filecontent(""), _filepath("")
+    Response(std::string client_data, s_server *conf) : _conf(conf),  _request(client_data), _stat_rd(400),_header(""),  _client_data(client_data), _content_type("text/html") , _filecontent(""), _filepath("")
     {
-        
         _response = get_response();
     }
 
@@ -40,7 +39,6 @@ public:
     ~Response(void) {};
 
 private:
-    std::string _defaultfolder;
     s_server *_conf;
     Request _request;
     std::string _status;
