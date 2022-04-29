@@ -61,11 +61,13 @@ Config check_config(int argc, char const *argv[])
     return conf;
 }
 
-void output(std::string client_data, std::string server_data)
+void output(std::string client_data, std::string server_data, std::string request_cast)
 {
     (void)server_data;
     (void)client_data;
         std::cout << WHITE << "\nRequest: \n" << RESET << client_data << std::endl;
+        std::cout << WHITE << "\nRequest CAST: \n" << RESET << request_cast << std::endl;
+		
         std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl << server_data << std::endl;
 }
 
@@ -299,7 +301,7 @@ int main(int argc, char const *argv[])
 							}
 							request[j][i].clear();
 						}
-						output(client_data, response.get_response());
+						output(client_data, response.get_response(), request[j][i].get_request());
 					}
 				}
 			}
