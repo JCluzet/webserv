@@ -210,8 +210,8 @@ private:
         request.erase(0, next_space);
         if ((next_space = request.find(" ")) == n)
             return (false);
-        if (!file_exist((request.substr(0, next_space)).c_str())) //secu
-            return false;
+        // if (!file_exist((request.substr(0, next_space)).c_str())) //secu
+            // return false;
         _path = request.substr(0, next_space);// secu
         request.erase(0, next_space);//secu
     // Check version
