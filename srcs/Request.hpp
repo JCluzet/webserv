@@ -1,89 +1,153 @@
 #pragma once
 
-#include "server.hpp"
+// #include "server.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <map>
-// #include <pair>
 
 #define NB_HEADERS 20
+#define NL "\r\n"
+#define NLSIZE 2
 
 
 class Request 
 {
 public:
 // constructors
-    Request(std::string request) : _request(request), _path(""), _method("")
+    Request() : _request(""), _path(""), _method("")
     , _version("") , _end(false), _valid(false)
     {
-        if (_request.find("\r\n\r\n") != std::string::npos)
+        init_header_map();
+    }
+
+    Request(std::string new_request) : _request(""), _path(""), _method("")
+    , _version("") , _end(false), _valid(false)
+    {
+        init_header_map();
+        addp(new_request);
+    }
+
+    Request(const Request &src): _request(""), _path(""), _method("")
+    , _version("") , _end(false), _valid(false)
+    {
+        init_header_map();
+        addp(src._request);
+    }
+
+    Request& operator=(const Request &src)
+    {
+        if (this != &src)
         {
-            _request.erase(_request.begin() + _request.find("\r\n\r\n"), _request.end() - 1);
-            _end = true;
+            init_header_map();
+            _request = src._request;
+            _path = src._path;
+            _method = src._method;
+            _version = src._version;
+            _end = src._end;
+            _valid = src._valid;
         }
-        std::string r = _request;
-        if (!get_request_first_line(r))
-        {
-            std::cout << "REQUEST::" << _request << ":" << std::endl;
-            std::cout << "bad request. (first line)" << std::endl;
-            return;
-        }
-        _valid = true;
-        r.erase(0, r.find("\r\n") + 2);
-        init_header();
-        while (r.find("\r\n") != std::string::npos)
-        {
-            if (!get_request_line(r.substr(0, r.find("\r\n"))))
-            {
-                std::cout << "bad request. (" << r.substr(0, r.find("\r\n")) << ")" << std::endl;
-                _valid = false;
-                return;
-            }
-            r.erase(0, r.find("\r\n") + 2);
-        }
+        return *this;
     }
 
     ~ Request(){};
-//geter
+
+//getter
     std::string get_path() const {return _path;}
+
     std::string get_method() const {return _method;}
+
     std::string get_version() const {return _version;}
+
     std::string get_header(std::string key) {return _m[key];}
+
     std::string get_request() const {return _request;}
-    void        print() {pprint();}
-//modifier
-    bool    add(std::string r)
-    {
-        if (_end)
-            return (false);
-        if (r.find("\r\n\r\n") != std::string::npos)
-        {
-            r.erase(r.begin() + r.find("\r\n\r\n"), r.end() - 1);
+
+    bool        ready() const {return _end;}
+
+    void        add(std::string new_request) {
+        if (!(_valid = addp(new_request))) {
+            clear();
             _end = true;
         }
-        std::string tmp = r;
-        while (r.find("\r\n") != std::string::npos)
-        {
-            if (!get_request_line(r.substr(0, r.find("\r\n"))))
-            {
-                std::cout << "bad request." << std::endl;
-                return false;
-            }
-            r.erase(0, r.find("\r\n") + 2);
-        }
-        _request += tmp;
-        return(true);
     }
 
+    void        print() {pprint();}
+
+    void        clear() {
+        _request = "";
+        _path = "";
+        _method = "";
+        _version = "";
+        _end = false;
+        _valid = false;
+        init_header_map();
+    }   
+//modifier
 private:
-    std::string         _request;
-    std::string         _path;
-    std::string         _method;
-    std::string         _version;
-    std::string         _header[NB_HEADERS];
-    std::map<std::string, std::string> _m;
-    bool                _end;
-    bool                _valid;
+    std::map<const std::string, std::string>    _m;
+    std::string                                 _request;
+    std::string                                 _path;
+    std::string                                 _method;
+    std::string                                 _version;
+    std::string                                 _header[NB_HEADERS];
+    bool                                        _end;
+    bool                                        _valid;
+
+    bool    addp(std::string r)
+    {
+        std::string::size_type nl;
+        cut_end(&r);
+        if (_request.empty())
+        {
+            nl = r.find(NL);
+            if (nl == std::string::npos)
+                return false;
+            _request = r;
+            if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
+            {
+                std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!error request1\n";
+                return false;
+            }
+            nl = r.find(NL);
+            if (nl == std::string::npos)
+            {
+                std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!error request2\n";
+                return false;
+            }
+            r.erase(0, nl + NLSIZE);
+        }
+        else
+            _request += r;
+        nl = r.find(NL);
+        if (nl == std::string::npos)
+        {
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!error request9\n";
+            return false;
+        }
+        while (nl != std::string::npos)
+        {
+            if (!get_request_line(r.substr(0, nl)))/////////////////////////
+            {
+                std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!error request3\n";
+                return false;
+            }
+            r.erase(0, nl + NLSIZE);
+            nl = r.find(NL);
+        }
+        return true;
+    }
+
+    void    cut_end(std::string *r)
+    {
+        std::string             end = NL;
+        std::string::size_type x;
+        end += NL;
+        if ((x = r->find(end)) != std::string::npos)
+        {
+            *r = r->substr(0, x + NLSIZE);
+            _end = true;
+        }
+    }
 
     void    pprint(){
         std::cout << "method :" << _method << std::endl;
@@ -100,53 +164,78 @@ private:
     bool    get_request_line(std::string r) // Check request line conformitys
     {   
         std::string ctn;
+        std::string::size_type pos;
 
-        if (!is_header(r))
+        if ((pos = r.find(": ")) == std::string::npos){
+            return (false);
+        }
+        ctn = r.substr(0, pos); //secu
+        if (ctn.find(" ") != std::string::npos)
+        {
+            return (false);
+        }
+        if (!is_header(r.substr(0, pos)))
         {
             return(true);
         }
-        ctn = r.substr(0, r.find(":"));
-        r.erase(0, r.find_first_of(" "));
-        r.erase(0, r.find_first_not_of(" "));
-        _m[ctn] = r;    
+        r.erase(0, pos + 2);
+        _m[ctn] = r; 
         return true;
     }
 
-    bool    get_request_first_line(std::string request) // Check request first line conformitys
+    bool    get_request_first_line(std::string r) // Check request first line conformitys
     {
+        std::string::size_type next_space = std::string::npos;
+        std::string::size_type next_nl = std::string::npos;
+        std::string::size_type n = std::string::npos;
+        std::string request = r;
+        _request = request;
     // Check & get method
-        if (request.substr(0,3) == "GET"
-            && request.substr(0, 4) == "POST"
-            && request.substr(0, 6) == "DELETE")
-            return false;
-        _method = request.substr(0, request.find(" "));
-        request.erase(0, request.find_first_of(" "));
-        request.erase(0, request.find_first_not_of(" "));
+        if ((next_space = request.find(" ")) == n)
+            return (false);
+        if ((next_nl = request.find(NL)) == n)
+            return (false);
+        if (next_nl < request.length())
+            request = request.substr(0, next_nl);
+        request += "   ";
+        if (request.substr(0, next_space) != "GET"
+        && request.substr(0, next_space) != "POST"
+        && request.substr(0, next_space) != "DELETE")
+            return (false);
+        _method = request.substr(0, next_space);
+        request.erase(0, next_space);
     // Check & get path
-        if (!file_exist((request.substr(0, request.find_first_of(" "))).c_str()))
+        if ((next_space = request.find_first_not_of(" ")) == n)
+            return (false);
+        request.erase(0, next_space);
+        if ((next_space = request.find(" ")) == n)
+            return (false);
+        if (!file_exist((request.substr(0, next_space)).c_str())) //secu
             return false;
-        _path = request.substr(0, request.find(" "));
-        request.erase(0, request.find_first_of(" "));
-        request.erase(0, request.find_first_not_of(" "));
+        _path = request.substr(0, next_space);// secu
+        request.erase(0, next_space);//secu
     // Check version
-        if (request.substr(0, request.find('\n')) == "HTTP/1.1"
-            && request.substr(0, request.find('\n')) ==  "HTTP/1.0")
-            return false;
-        _version = request.substr(0, request.find("\r\n"));
+        request.erase(0, request.find_first_not_of(" "));
+        next_space = request.find(" ");
+        if (next_space == n)
+            return (false);
+        if (request.substr(0,next_space) != "HTTP/1.1" && request.substr(0,next_space) != "HTTP/1.0")
+            return (false);
+        _version = request.substr(0, next_space);
         return true;
     }
 
     bool    is_header(std::string s) const //verifie si s fait partie des headers
     {
-        if (s.find(":") == std::string::npos)
-                return false;
         for (int i = 0; i < NB_HEADERS; i++)
-            if (_header[i] == s.substr(0, s.find(":")))
+        {
+            if (_header[i] == s)
                 return (true);
+        }
         return (false);
     }
 
-    void    init_header()
+    void    init_header_map()
     {
         _header[0] = "Accept-Charsets";
 	    _header[1] = "Accept-Language";

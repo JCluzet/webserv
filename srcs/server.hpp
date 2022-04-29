@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 15:53:15 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 20:07:46 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,8 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
-void response_sender(server_data *server, std::string client_data, s_server *conf);
+// void response_sender(server_data *server, std::string client_data, s_server *conf);
+Response response_sender(std::string client, Request *request, s_server *conf);
 
 int readFile(std::string filename, std::string *fileContent);
 std::string cut_aftercomma(std::string s);

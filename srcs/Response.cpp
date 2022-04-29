@@ -1,14 +1,25 @@
-#include "server.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
+/*   Updated: 2022/04/29 20:14:47 by jcluzet          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
+#include "server.hpp"
 
 std::string Response::getHeader()
 {
     std::string head = "";
     head += "HTTP/1.1 " + _status;
-    head += "\nContent-Type: " + _content_type;
-    head += "\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\nServer: WebServ v1.0";
     head += "\nDate : " + getDate();
+    head += "\nContent-Type: " + _content_type;
+    head += "\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\n\n";
     return (head);
 }
@@ -21,6 +32,44 @@ std::string Response::getDate()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
     return (buf);
+}
+
+int Response::set_redirection()
+{
+    if (_filepath == "")
+    {
+        _stat_rd = 400;
+        return(1);
+    }
+    if (_conf->autoindex && is_directory(_filepath))
+        indexGenerator(&_filecontent, _filepath);
+    else
+        _stat_rd = readFile(_filepath.c_str(), &_filecontent);
+    return (0);
+}
+
+int Response::get_content_type()
+{
+    _content_type = "text/html";
+    if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
+        _content_type = "image/svg+xml";
+    if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
+        _content_type = "application/pdf";
+    if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
+        _content_type = "image/apng";
+    return (0);
+}
+
+void Response::get_filepath()
+{
+    if (_request->get_path() != "")
+    {
+        _filepath = _conf->default_folder + _request->get_path();
+        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
+            _filepath += "/";
+        if (is_directory(_filepath))
+            _filepath += _conf->default_page;
+    }
 }
 
 int Response::get_status()
@@ -42,52 +91,6 @@ int Response::get_status()
         _status = "400 Bad Request";
     }
     else if (_stat_rd == 0)
-    {
         _status = "200 OK";
-    }
     return (0);
-}
-
-int Response::reading_file()
-{
-    _stat_rd = readFile(_filepath.c_str(), &_filecontent);
-    return (0);
-}
-
-int Response::set_redirection()
-{
-    if (_filepath == "")
-        _stat_rd = 400;
-    else
-    {
-        if (_conf->autoindex && is_directory(_filepath))
-            indexGenerator(&_filecontent, _filepath);
-        else
-            reading_file();
-    }
-    return (0);
-}
-
-int Response::get_content_type()
-{
-    _content_type = "text/html";
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
-        _content_type = "image/svg+xml";
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
-        _content_type = "application/pdf";
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
-        _content_type = "image/apng";
-    return (0);
-}
-
-void Response::get_filepath()
-{
-    if (_request.get_path() != "")
-    {
-        _filepath = _conf->default_folder + _request.get_path();
-        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
-            _filepath += "/";
-        if (is_directory(_filepath))
-            _filepath += _conf->default_page;
-    }
 }

@@ -153,7 +153,6 @@ int main(int argc, char const *argv[])
 {
     int new_socket;
     int valread;
-    struct server_data server;
     struct sockaddr_in address;
 	Config conf(check_config(argc, argv));
 	int	listen_sock[conf.nb_servers];
@@ -184,12 +183,20 @@ int main(int argc, char const *argv[])
 	int	**connection_list_sock = new int*[conf.nb_servers];
 	for(size_t i = 0; i < conf.nb_servers; ++i)
   	  connection_list_sock[i] = new int[CO_MAX];
-
 	for (size_t j = 0; j < conf.nb_servers; j++)
 	{
 		for (size_t i = 0; i < CO_MAX; i++)
 			connection_list_sock[j][i] = -1;
 	}
+	Request	**request = new Request*[conf.nb_servers];
+	for(size_t i = 0; i < conf.nb_servers; ++i)
+  	  request[i] = new Request[CO_MAX];
+	for (size_t j = 0; j < conf.nb_servers; j++)
+	{
+		for (size_t i = 0; i < CO_MAX; i++)
+			request[j][i] = Request();
+	}
+
 	// launch_browser(atoi(serv.port.c_str()));
 	for (size_t i = 0; i < conf.nb_servers; i++)
 		std::cout << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[i].port << RESET  << "..." << std::endl << RESET;
@@ -220,6 +227,9 @@ int main(int argc, char const *argv[])
 			for(size_t k = 0; k < conf.nb_servers; ++k)
   				delete [] connection_list_sock[k];
 			delete [] connection_list_sock;
+			for(size_t k = 0; k < conf.nb_servers; ++k)
+				delete [] request[k];
+			delete [] request;
 			exit(EXIT_FAILURE);
 		}
 		for (size_t j = 0; j < conf.nb_servers; j++)
@@ -232,9 +242,12 @@ int main(int argc, char const *argv[])
 					for(size_t k = 0; k < conf.nb_servers; ++k)
   						delete [] connection_list_sock[k];
 					delete [] connection_list_sock;
+					for(size_t k = 0; k < conf.nb_servers; ++k)
+  						delete [] request[k];
+					delete [] request;
 					exit(EXIT_FAILURE);
 				}
-		        std::cout << GREEN << "[⊛ CONNECT]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.serv[j].port << std::endl << RESET;
+		        std::cout << GREEN << "[⊛ CONNECT]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.serv[j].port << RESET << std::endl;
 
 				fcntl(new_socket, F_SETFL, O_NONBLOCK);
 				for (size_t i = 0; i < CO_MAX; i++)
@@ -244,13 +257,17 @@ int main(int argc, char const *argv[])
 						connection_list_sock[j][i] = new_socket;
 						break ;
 					}
+					if (i == CO_MAX - 1)
+						close(new_socket);
 				}
 			}
 		}
 
 		int	client_socket;
+		Response	response;
 		for (size_t j = 0; j < conf.nb_servers; j++)
 		{
+			response = Response();
 			for (int i = 0; i < CO_MAX; i++)
 			{
 				client_socket = connection_list_sock[j][i];
@@ -260,7 +277,7 @@ int main(int argc, char const *argv[])
 					if ((valread = read(client_socket, client_data, 30000)) <= 0)
 					{
 						getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
-		                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.serv[j].port << std::endl << RESET;
+		                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.serv[j].port  << RESET << std::endl;
 
 						close(client_socket);
 						connection_list_sock[j][i] = -1;
@@ -268,9 +285,21 @@ int main(int argc, char const *argv[])
 					else
 					{
 						client_data[valread] = '\0';
-						response_sender(&server, client_data, &conf.serv[j]);
-						write(client_socket, server.response.c_str(), server.response.length());
-						// output(client_data, server.response);
+						response = response_sender(client_data, &request[j][i], &conf.serv[j]);
+						if (request[j][i].ready() == true)
+						{
+							write(client_socket, response.get_response().c_str(), response.get_response().length());
+							if (response.getstat() == 400)
+							{
+								getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
+								close(client_socket);
+				                std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE  << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.serv[j].port << RESET << std::endl;
+
+								connection_list_sock[j][i] = -1;
+							}
+							request[j][i].clear();
+						}
+						output(client_data, response.get_response());
 					}
 				}
 			}
