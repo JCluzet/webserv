@@ -47,6 +47,7 @@ public:
     std::string getDate();
     std::string getHeader();
     std::string get_pathfile() { return (_filepath); }
+    int readFile(std::string filename, std::string *fileContent);
     std::string get_response() { return (_response); }
     std::string getBody() { return (_filecontent); }
     int get_status();
