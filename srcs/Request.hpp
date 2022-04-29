@@ -96,6 +96,15 @@ private:
     {
         std::string::size_type nl;
         cut_end(&r);
+        if (_request.empty() == true && (r.empty() == true || r == NL))
+        {
+            return true;
+        }
+        if (_request.empty() == false && r == NL)
+        {
+            _end = true;
+            return true;
+        }
         if (_request.empty())
         {
             nl = r.find(NL);

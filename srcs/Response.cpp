@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 00:54:30 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 01:10:35 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ std::string Response::getHeader()
     head += "\nDate : " + getDate();
     head += "\nContent-Type: " + _content_type;
     head += "\nContent-Length: " + sizetToStr(_filecontent.length());
-    head += "\n\n";
+    head += "\r\n\r\n";
     return (head);
 }
 
