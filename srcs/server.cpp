@@ -150,6 +150,7 @@ void	build_fd_set(int *listen_sock, int nb_servers, int **connection_list_sock, 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 int main(int argc, char const *argv[])
 {
@@ -290,7 +291,19 @@ int main(int argc, char const *argv[])
 						response = response_sender(client_data, &request[j][i], &conf.serv[j]);
 						if (request[j][i].ready() == true)
 						{
-							write(client_socket, response.get_response().c_str(), response.get_response().length());
+							 size_t tmp = write(client_socket, response.get_response().c_str(), response.get_response().length());
+							// show errno error
+							// sleep (1);
+							std::cout << "TMP:" << tmp << std::endl;
+							// output the 5 last charactere of the response
+							// read by the client_socket to know if the response is complete
+							if (tmp < response.get_response().length())
+							{
+								std::cout << "ERROR: " << errno << std::endl;
+								std::cout << "ERROR: " << strerror(errno) << std::endl;
+							}
+							// std::cout << "RESPONSE: " << response.get_response().substr(response.get_response().length() - 5) << std::endl;
+							
 							if (response.getstat() == 400)
 							{
 								getpeername(client_socket, (struct sockaddr*)&address , (socklen_t*)&addrlen);
