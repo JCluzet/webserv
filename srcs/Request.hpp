@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <map>
 
-#define NB_HEADERS 20
+#define NB_HEADERS 21
 #define NL "\r\n"
 #define NLSIZE 2
 
@@ -257,6 +257,7 @@ private:
 	    _header[17] = "User-Agent";
 	    _header[18] = "Www-Authenticate";
 	    _header[19] = "Connection";
+	    _header[20] = "Accept";
         _m["Accept-Charsets"] = "";
         _m["Accept-Language"] = "";
         _m["Allow"] = "";
@@ -277,6 +278,7 @@ private:
         _m["User-Agent"] = "";
         _m["Www-Authenticate"] = "";
         _m["Connection"] = "";        
+        _m["Accept"] = "";        
     }
 
 
