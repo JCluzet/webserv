@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 23:48:04 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 00:54:30 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,8 @@ int Response::get_status()
         {
             _filepath = _conf->default_folder + "/" + _conf->page404;
             readFile(_filepath.c_str(), &_filecontent);
+            if (_stat_rd == 404)
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
         _status = "404 Not Found";
     }
@@ -92,7 +94,7 @@ int Response::get_status()
         _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad Request.</p>\n</body>\n\n</html>";
         _status = "400 Bad Request";
     }
-    else if (_stat_rd == 0)
+    else if (_stat_rd == 200)
         _status = "200 OK";
     return (0);
 }

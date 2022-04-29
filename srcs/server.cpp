@@ -292,17 +292,11 @@ int main(int argc, char const *argv[])
 						if (request[j][i].ready() == true)
 						{
 							 size_t tmp = write(client_socket, response.get_response().c_str(), response.get_response().length());
-							// show errno error
-							// sleep (1);
-							std::cout << "TMP:" << tmp << std::endl;
-							// output the 5 last charactere of the response
-							// read by the client_socket to know if the response is complete
 							if (tmp < response.get_response().length())
 							{
 								std::cout << "ERROR: " << errno << std::endl;
 								std::cout << "ERROR: " << strerror(errno) << std::endl;
 							}
-							// std::cout << "RESPONSE: " << response.get_response().substr(response.get_response().length() - 5) << std::endl;
 							
 							if (response.getstat() == 400)
 							{

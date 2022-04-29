@@ -58,8 +58,6 @@ public:
     bool is_waiting() { return (_is_waiting); }
     void get_filepath();
 
-    // Response(Response const &src);
-    // Response &operator=(Response const &src);
     ~Response(void){};
 
 private:
@@ -68,7 +66,6 @@ private:
     std::string _status;
     int _is_waiting;
     std::string _header;
-    // std::string _client_data;
     std::string _content_type;
     std::string _response;
     std::string _filecontent;
