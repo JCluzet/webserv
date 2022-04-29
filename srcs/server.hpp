@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 23:37:41 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 23:39:21 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
 Response response_sender(std::string client, Request *request, s_server *conf);
 
-int readFile(std::string filename, std::string *fileContent);
+// int readFile(std::string filename, std::string *fileContent);
 std::string cut_aftercomma(std::string s);
 std::string getContentType(std::string client_data);
 std::string getFile(std::string client_data);

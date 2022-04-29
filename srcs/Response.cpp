@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/29 20:14:47 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/29 23:39:39 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,4 +93,28 @@ int Response::get_status()
     else if (_stat_rd == 0)
         _status = "200 OK";
     return (0);
+}
+
+int Response::readFile(std::string filename, std::string *fileContent)
+{
+    std::string s;
+    std::ifstream ifs;
+    ifs.open(filename.c_str());
+
+    if (!ifs)
+        return (404);
+    getline(ifs, s);
+    if (s == "")
+    {
+        ifs.close();
+        return (404);
+    }
+    *fileContent += s;
+    while (getline(ifs, s))
+    {
+        *fileContent += "\n";
+        *fileContent += s;
+    }
+    ifs.close();
+    return (200);
 }
