@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 01:31:49 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 01:49:39 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,10 @@ int Response::set_redirection()
         return(1);
     }
     if (_conf->autoindex && is_directory(_filepath))
+    {
         indexGenerator(&_filecontent, _filepath);
+        _stat_rd = 200; 
+    }
     else
         _stat_rd = readFile(_filepath.c_str(), &_filecontent);
     return (0);
@@ -70,9 +73,9 @@ void Response::get_filepath()
     if (_request->get_path() != "")
     {
         _filepath = _conf->default_folder + _request->get_path();
-        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
+        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
             _filepath += "/";
-        if (is_directory(_filepath))
+        if (is_directory(_filepath) && !_conf->autoindex)
             _filepath += _conf->default_page;
     }
 }

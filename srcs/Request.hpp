@@ -138,7 +138,7 @@ private:
             if (!get_request_line(r.substr(0, nl + NLSIZE))) /////////////////////////
             {
                 // std::cout << "error bad request 4\n";
-                return false;
+                return true;
             }
             r.erase(0, nl + NLSIZE);
             nl = r.find(NL);
