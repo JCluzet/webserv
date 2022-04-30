@@ -105,6 +105,10 @@ private:
             _end = true;
             return true;
         }
+        if (r == "" || r.substr(0, 1) == " ")
+        {
+            return false;
+        }
         if (_request.empty())
         {
             nl = r.find(NL);

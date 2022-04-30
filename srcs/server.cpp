@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define CO_MAX 2
+#define CO_MAX 20
 
 void launch_browser(int port)
 {
@@ -254,7 +254,7 @@ int main(int argc, char const *argv[])
 					delete[] request;
 					exit(EXIT_FAILURE);
 				}
-				std::cout << GREEN << "[⊛ CONNECT]   => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.serv[j].port << RESET << std::endl;
+				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.serv[j].port << RESET << std::endl;
 
 				fcntl(new_socket, F_SETFL, O_NONBLOCK);
 				for (size_t i = 0; i < CO_MAX; i++)

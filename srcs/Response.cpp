@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 01:49:39 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 02:24:33 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ int Response::get_status()
         {
             _filepath = _conf->default_folder + "/" + _conf->page404;
             readFile(_filepath.c_str(), &_filecontent);
-            if (_stat_rd == 404)
+            if (_stat_rd == 404 && _conf->page404 == "")
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
         _status = "404 Not Found";
