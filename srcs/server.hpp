@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 01:37:33 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 02:47:55 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ struct server_data {
 // PARSING
 
 
+void	quit_sig(int sig);
 bool readinFile(std::string filename, std::string *fileContent);
 bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
 bool is_directory(std::string path);

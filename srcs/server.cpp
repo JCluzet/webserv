@@ -163,6 +163,7 @@ int main(int argc, char const *argv[])
 	Config conf(check_config(argc, argv));
 	int listen_sock[conf.nb_servers];
 
+	signal(SIGINT, quit_sig);
 	for (size_t i = 0; i < conf.nb_servers; i++)
 	{
 		if ((listen_sock[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -324,4 +325,11 @@ int main(int argc, char const *argv[])
 		}
 	}
 	return 0;
+}
+
+void	quit_sig(int sig)
+{
+	std::cout << std::endl << RED << "[⊛ QUIT] => " << WHITE << "⊛ " << RESET << std::endl;
+	if (SIGINT == sig)
+		exit(EXIT_SUCCESS);
 }
