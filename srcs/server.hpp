@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 02:47:55 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/04/30 02:50:14 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #define RESET "\033[0m"
 #include "Config.hpp"
 #include "Request.hpp"
+#include <signal.h>
 #include "Response.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
