@@ -3,7 +3,7 @@
 class Response
 {
 public:
-    Response(Request *request, t_server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
+    Response(Request *request, Server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
     {
         _isaCGI = false;
         get_filepath();
@@ -65,7 +65,7 @@ public:
     ~Response(void){};
 
 private:
-    t_server *_conf;
+    Server *_conf;
     Request *_request;
     std::string _status;
     int _is_waiting;

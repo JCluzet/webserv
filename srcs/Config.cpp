@@ -1,6 +1,35 @@
 #include "Config.hpp"
 #include "server.hpp"
 
+Server::Server() : host(""), server_name(""), port(""), default_folder(""), default_page("")
+                    , page404(""), max_body_size(""), autoindex(false), valid(false) {}
+
+Server::Server(const Server &src) : host(src.host), server_name(src.server_name), port(src.port)
+                            , default_folder(src.default_folder), default_page(src.default_page)
+                            , page404(src.page404), max_body_size(src.max_body_size), autoindex(src.autoindex)
+                            , valid(src.valid) {}
+Server::~Server() {}
+
+Server& Server::operator=(const Server &src)
+{
+    host = src.host;
+    server_name = src.server_name;
+    port = src.port;
+    default_folder = src.default_folder;
+    default_page = src.default_page;
+    page404 = src.page404;
+    max_body_size = src.max_body_size;
+    autoindex = src.autoindex;
+    valid = src.valid;
+    return (*this);
+}
+
+bool	Server::operator==(const Server &c) const
+    { return (host == c.host && server_name == c.server_name && port == c.port && default_folder == c.default_folder
+        && default_page == c.default_page && page404 == c.page404 && max_body_size == c.max_body_size
+        && autoindex == c.autoindex && valid == c.valid ? 1 : 0); }
+
+
 Config::Config() : valid(0) {}
 
 Config::Config(const std::string filename) : valid(0) {init(filename);}
@@ -11,8 +40,8 @@ Config::~Config() {}
 
 Config& Config::operator=(const Config &src)
 {
-    // if (*this == src)
-    //     return *this;
+    if (*this == src)
+        return *this;
     if (servers.size())
         servers.clear();
     servers = src.servers;
@@ -20,7 +49,7 @@ Config& Config::operator=(const Config &src)
     return *this;
 }
 
-void    Config::init_server(t_server* s)
+void    Config::init_server(Server* s)
 {
     // if (!s->locations.empty())
         // s->locations.clear();    
@@ -83,7 +112,7 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 //     }
 // }
 
-bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, t_server *serv_tmp)
+bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 8;
@@ -161,7 +190,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 bool Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0;
-    t_server serv_tmp;
+    Server serv_tmp;
     if (s.empty())
         return error_msg("Error: Empty config file.") + 1;
     pass_blanck(s, &i, &line_i);
@@ -196,7 +225,8 @@ bool Config::get_conf(const std::string s)
     return 0;
 }
 
-// bool	Config::operator==(const Config& c) const { return (servers == c.servers && valid == c.valid); }
+bool	Config::operator==(const Config& c) const
+    { return (servers == c.servers && valid == c.valid); }
 
 std::ostream&	operator<<(std::ostream& ostream, const Config& src)
 {

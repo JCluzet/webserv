@@ -74,7 +74,7 @@ std::string getHour();
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
-Response response_sender(std::string client, Request *request, t_server *conf);
+Response response_sender(std::string client, Request *request, Server *conf);
 
 // int readFile(std::string filename, std::string *fileContent);
 std::string cut_aftercomma(std::string s);
