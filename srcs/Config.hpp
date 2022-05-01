@@ -61,7 +61,7 @@ class Config
   private:
 
     void    init_server(Server* s);
-    bool    error_config_message(const std::string s, const std::string::size_type i);
+    bool    error_config_message(const std::string s, const std::string::size_type i) const;
     // bool pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i); // PAS FINIT
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp);
     bool    get_conf(const std::string s);

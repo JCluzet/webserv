@@ -83,7 +83,7 @@ bool    Config::init(const std::string filename)
     return get_conf(data);
 }
 
-bool    Config::error_config_message(const std::string s, const std::string::size_type i)
+bool    Config::error_config_message(const std::string s, const std::string::size_type i) const
 {
     std::string::size_type p = s.find("\n", i);
     if (p == std::string::npos)

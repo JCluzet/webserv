@@ -35,6 +35,7 @@ SRCS        :=      srcs/utils.cpp \
 						srcs/autoindex.cpp \
 						srcs/Response.cpp \
 						srcs/Config.cpp \
+						srcs/Request.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 
