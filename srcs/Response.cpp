@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/01 04:05:49 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/01 23:39:22 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,18 @@ int Response::get_content_type()
     return (0);
 }
 
+// bool Response::is_aCGI(std::string path)
+// {
+    
+// }
+
 void Response::get_filepath()
 {
     if (_request->get_path() != "")
     {
         _filepath = _conf->default_folder + _request->get_path();
+        // if (is_a_cgi(_filepath))
+        //     _isaCGI = true;
         if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
             _filepath += "/";
         if (is_directory(_filepath) && !_conf->autoindex)

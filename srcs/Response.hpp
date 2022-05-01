@@ -5,6 +5,7 @@ class Response
 public:
     Response(Request *request, t_server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
     {
+        _isaCGI = false;
         get_filepath();
         set_redirection();
         get_status();
@@ -19,6 +20,7 @@ public:
         _filecontent = "";
         _filepath = "";
         _response = "";
+        _isaCGI = false;
     }
 
     Response(Response const &src)
@@ -31,6 +33,7 @@ public:
         _filepath = src._filepath;
         _stat_rd = src._stat_rd;
         _response = src._response;
+        _isaCGI = src._isaCGI;
     }
 
     Response operator=(const Response &src)
@@ -41,6 +44,7 @@ public:
         _filecontent = src._filecontent;
         _filepath = src._filepath;
         _response = src._response;
+        _isaCGI = src._isaCGI;
         return (*this);
     }
 
@@ -49,6 +53,7 @@ public:
     int readFile(std::string filename, std::string *fileContent);
     std::string get_response() { return (_response); }
     std::string getBody() { return (_filecontent); }
+    bool is_aCGI(std::string path); 
     int get_status();
     int set_redirection();
     int getstat() { return (_stat_rd); }
@@ -64,6 +69,7 @@ private:
     Request *_request;
     std::string _status;
     int _is_waiting;
+    bool _isaCGI;
     std::string _header;
     std::string _content_type;
     std::string _response;
