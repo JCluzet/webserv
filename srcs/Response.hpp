@@ -3,7 +3,7 @@
 class Response
 {
 public:
-    Response(Request *request, s_server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
+    Response(Request *request, t_server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
     {
         get_filepath();
         set_redirection();
@@ -60,7 +60,7 @@ public:
     ~Response(void){};
 
 private:
-    s_server *_conf;
+    t_server *_conf;
     Request *_request;
     std::string _status;
     int _is_waiting;

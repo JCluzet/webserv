@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/01 04:19:21 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/01 23:05:48 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
-Response response_sender(std::string client, Request *request, s_server *conf);
+Response response_sender(std::string client, Request *request, t_server *conf);
 
 // int readFile(std::string filename, std::string *fileContent);
 std::string cut_aftercomma(std::string s);

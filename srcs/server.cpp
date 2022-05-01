@@ -308,7 +308,8 @@ int main(int argc, char const *argv[])
 
 void	quit_sig(int sig)
 {
-	std::cout << std::endl << RED << "[⊛ QUIT] => " << WHITE << "⊛ " << RESET << std::endl;
+	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+	// std::cout << std::endl << RED << "[⊛ QUIT] => " << WHITE << "⊛ " << RESET << std::endl;
 	if (SIGINT == sig)
 		exit(EXIT_SUCCESS);
 }
