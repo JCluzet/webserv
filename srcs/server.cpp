@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <vector>
 #include <arpa/inet.h>
 
 #define CO_MAX 20
@@ -39,25 +40,26 @@ void launch_browser(int port)
 Config check_config(int argc, char const *argv[])
 {
 	std::string tmp;
-	std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n"
-			  << RESET;
+	// std::cout << "___       __    ______ ________                               \n__ |     / /_______  /___  ___/______________   ______________\n__ | /| / /_  _ \\_  __ \\____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n__ |/ |/ / /  __/  /_/ /___/ //  __/  /   __ |/ //  __/  /    \n____/|__/  \\___//_.___//____/ \\___//_/    _____/ \\___//_/     \n\n";	
+															 
+std::cout << WHITE << "___       __    ______ " << RED << "________                               \n" << WHITE << "__ |     / /_______  /" << RED << "___  ___/______________   ______________\n"  << WHITE << "__ | /| / /_  _ \\_  __ \\" << RED << "____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n" << WHITE << "__ |/ |/ / /  __/  /_/ /" << RED << "___/ //  __/  /   __ |/ //  __/  /    \n" << WHITE << "____/|__/  \\___//_.___/" << RED << "/____/ \\___//_/    _____/ \\___//_/     \n\n" << WHITE;
+std::cout << WHITE << "["<< getHour() << "] START Web" << RED << "Serv" << WHITE << "   ";
 	if (argc == 1 || strcmp("--debug", argv[1]) == 0)
 	{
 		tmp = "config/default.conf";
-		std::cout << BLUE << "[⊛] => " << YELLOW << "Using default config file: " << RESET << tmp << std::endl;
 	}
 	else
 		tmp = argv[1];
 	if (access(tmp.c_str(), F_OK) == -1)
 	{
-		std::cout << RED << "[⊛] => " << WHITE << "Config file " << RESET << tmp << WHITE << " not found" << std::endl;
+		std::cout << WHITE << "[" << BLUE << "⊛" << WHITE << "] => " << WHITE << "Config file " << RESET << tmp << WHITE << " not found" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	Config conf(tmp);
 	if (conf.nb_servers == 0)
 	{
-		std::cout << RED << "[⊛] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
+		std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	return conf;
@@ -109,7 +111,7 @@ sockaddr_in SocketAssign(int port, int *server_fd)
 	return (address);
 }
 
-void build_fd_set(int *listen_sock, int nb_servers, int **connection_list_sock, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
+void build_fd_set(int *listen_sock, int nb_servers, std::vector<std::vector<int> > connection_list_sock, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
 {
 	size_t i;
 	int j;
@@ -187,27 +189,16 @@ int main(int argc, char const *argv[])
 	fd_set read_fds;
 	fd_set write_fds;
 	fd_set except_fds;
-	int **connection_list_sock = new int *[conf.nb_servers];
-	for (size_t i = 0; i < conf.nb_servers; ++i)
-		connection_list_sock[i] = new int[CO_MAX];
-	for (size_t j = 0; j < conf.nb_servers; j++)
-	{
-		for (size_t i = 0; i < CO_MAX; i++)
-			connection_list_sock[j][i] = -1;
-	}
-	Request **request = new Request *[conf.nb_servers];
-	for (size_t i = 0; i < conf.nb_servers; ++i)
-		request[i] = new Request[CO_MAX];
-	for (size_t j = 0; j < conf.nb_servers; j++)
-	{
-		for (size_t i = 0; i < CO_MAX; i++)
-			request[j][i] = Request();
-	}
-
+	std::vector<std::vector<int> > connection_list_sock;
+	std::vector<std::vector<Request> > request;
+	std::cout << "                     ";
 	for (size_t i = 0; i < conf.nb_servers; i++)
-		std::cout << BLUE << "[⊛] => " << WHITE << "Waiting for connections on port " << GREEN << conf.serv[i].port << RESET << "..." << std::endl
-				  << RESET;
-	launch_browser(atoi(conf.serv[0].port.c_str()));
+	{
+		connection_list_sock.push_back(std::vector<int>(CO_MAX, -1));
+		request.push_back(std::vector<Request>(CO_MAX, Request()));
+		std::cout << RED << "⊛" << WHITE << conf.serv[i].port << "  ";
+	}
+	std::cout << RESET << std::endl << std::endl;
 	while (1)
 	{
 		build_fd_set(&listen_sock[0], conf.nb_servers, connection_list_sock, &read_fds, &write_fds, &except_fds);
@@ -232,12 +223,6 @@ int main(int argc, char const *argv[])
 		if (activity < 0)
 		{
 			perror("select error");
-			for (size_t k = 0; k < conf.nb_servers; ++k)
-				delete[] connection_list_sock[k];
-			delete[] connection_list_sock;
-			for (size_t k = 0; k < conf.nb_servers; ++k)
-				delete[] request[k];
-			delete[] request;
 			exit(EXIT_FAILURE);
 		}
 		for (size_t j = 0; j < conf.nb_servers; j++)
@@ -247,12 +232,6 @@ int main(int argc, char const *argv[])
 				if ((new_socket = accept(listen_sock[j], (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
 				{
 					perror("In accept");
-					for (size_t k = 0; k < conf.nb_servers; ++k)
-						delete[] connection_list_sock[k];
-					delete[] connection_list_sock;
-					for (size_t k = 0; k < conf.nb_servers; ++k)
-						delete[] request[k];
-					delete[] request;
 					exit(EXIT_FAILURE);
 				}
 				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.serv[j].port << RESET << std::endl;

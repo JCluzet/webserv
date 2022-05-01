@@ -32,13 +32,11 @@ public:
         if (this->readinFile(filename, &data))
         {
             std::cerr << "Wrong config file." << std::endl;
-            // serv = new t_server[1];
             return;
         }
         if (count_servers(data, &nb_servers))
         {
             std::cerr << "Wrong accolade in config file." << std::endl;
-            // serv = new t_server[1];
             return;
         }
         serv = new t_server[nb_servers];

@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 02:50:14 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/01 04:19:21 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ struct server_data {
 void	quit_sig(int sig);
 bool readinFile(std::string filename, std::string *fileContent);
 bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
+std::string getHour();
 bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
@@ -79,6 +80,7 @@ Response response_sender(std::string client, Request *request, s_server *conf);
 
 // int readFile(std::string filename, std::string *fileContent);
 std::string cut_aftercomma(std::string s);
+std::string getDate();
 std::string getContentType(std::string client_data);
 std::string getFile(std::string client_data);
 std::string get_status(int ans);

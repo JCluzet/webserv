@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/04/30 02:24:33 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/01 04:05:49 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,15 +24,15 @@ std::string Response::getHeader()
     return (head);
 }
 
-std::string Response::getDate()
-{
-    time_t now = time(0);
-    struct tm tstruct;
-    char buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
-    return (buf);
-}
+// std::string Response::getDate()
+// {
+//     time_t now = time(0);
+//     struct tm tstruct;
+//     char buf[80];
+//     tstruct = *localtime(&now);
+//     strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
+//     return (buf);
+// }
 
 int Response::set_redirection()
 {

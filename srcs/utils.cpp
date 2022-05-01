@@ -41,3 +41,23 @@ bool is_directory(std::string path)
         return (1);
     }
 }
+
+std::string getDate()
+{
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
+    return (buf);
+}
+
+std::string getHour()
+{
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%X", &tstruct);
+    return (buf);
+}

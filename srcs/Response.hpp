@@ -44,7 +44,6 @@ public:
         return (*this);
     }
 
-    std::string getDate();
     std::string getHeader();
     std::string get_pathfile() { return (_filepath); }
     int readFile(std::string filename, std::string *fileContent);
