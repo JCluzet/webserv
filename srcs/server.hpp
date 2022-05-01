@@ -69,10 +69,8 @@ struct server_data {
 
 
 void	quit_sig(int sig);
-bool readinFile(std::string filename, std::string *fileContent);
 bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
 std::string getHour();
-bool is_directory(std::string path);
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
@@ -88,5 +86,18 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
 
+
+//utils
+bool            readinFile(std::string filename, std::string *fileContent);
+bool            is_number(char c);
+bool            is_space(const char c);
+bool            is_blanck(const char c);
+std::string     intToStr(int n);
+void            pass_space(const std::string s, std::string::size_type *i);
+void            pass_blanck(const std::string s, std::string::size_type *i, std::string::size_type *line_i);
+void            pass_not_blanck(const std::string s, std::string::size_type *i);
+bool            s_a_have_b(const std::string a, const std::string::size_type i, const std::string b);
+bool            error_msg(std::string msg);
+bool            is_directory(std::string path);
 std::string sizetToStr(size_t n);
 std::string intToStr(int n);
