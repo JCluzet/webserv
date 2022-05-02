@@ -1,12 +1,12 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : host(""), server_name(""), port(""), default_folder(""), default_page("")
-                    , page404(""), max_body_size(""), autoindex(false), valid(false) {}
+Server::Server() : host(""), server_name(""), port(""), root(""), default_page("")
+                    , page404(""), client_body_buffer_size(""), autoindex(false), valid(false) {}
 
 Server::Server(const Server &src) : host(src.host), server_name(src.server_name), port(src.port)
-                            , default_folder(src.default_folder), default_page(src.default_page)
-                            , page404(src.page404), max_body_size(src.max_body_size), autoindex(src.autoindex)
+                            , root(src.root), default_page(src.default_page)
+                            , page404(src.page404), client_body_buffer_size(src.client_body_buffer_size), autoindex(src.autoindex)
                             , valid(src.valid) {}
 Server::~Server() {}
 
@@ -15,18 +15,18 @@ Server& Server::operator=(const Server &src)
     host = src.host;
     server_name = src.server_name;
     port = src.port;
-    default_folder = src.default_folder;
+    root = src.root;
     default_page = src.default_page;
     page404 = src.page404;
-    max_body_size = src.max_body_size;
+    client_body_buffer_size = src.client_body_buffer_size;
     autoindex = src.autoindex;
     valid = src.valid;
     return (*this);
 }
 
 bool	Server::operator==(const Server &c) const
-    { return (host == c.host && server_name == c.server_name && port == c.port && default_folder == c.default_folder
-        && default_page == c.default_page && page404 == c.page404 && max_body_size == c.max_body_size
+    { return (host == c.host && server_name == c.server_name && port == c.port && root == c.root
+        && default_page == c.default_page && page404 == c.page404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid ? 1 : 0); }
 
 
@@ -56,10 +56,10 @@ void    Config::init_server(Server* s)
     s->host = "";
     s->server_name = "";
     s->port = "";
-    s->default_folder = "";
+    s->root = "";
     s->default_page = "";
     s->page404 = "";
-    s->max_body_size = "";
+    s->client_body_buffer_size = "";
     s->autoindex = 0;
     s->valid = 0;
 }
@@ -116,8 +116,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 {
     std::string::size_type  p;
     const int               nb_serv_types = 8;
-    std::string             serv_type[nb_serv_types] = {"host", "server_name", "listen", "default_folder", "default_page"
-                                                        , "max_body_size", "404_page", "autoindex"};
+    std::string             serv_type[nb_serv_types] = {"host", "server_name", "listen", "root", "default_page"
+                                                        , "client_body_buffer_size", "404_page", "autoindex"};
     std::string tmp;
 
     pass_blanck(s, i, line_i);
@@ -161,13 +161,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->port = tmp;
                     break;
                 case (3):
-                    serv_tmp->default_folder = tmp;
+                    serv_tmp->root = tmp;
                     break;
                 case (4):
                     serv_tmp->default_page = tmp;
                     break;
                 case (5):
-                    serv_tmp->max_body_size = tmp;
+                    serv_tmp->client_body_buffer_size = tmp;
                     break;
                 case (6):
                     serv_tmp->page404 = tmp;
@@ -237,9 +237,9 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
         << "\t server name: " << WHITE << src.servers[i].server_name << RESET << std::endl
         << "\t listen: " << WHITE << src.servers[i].port << RESET << std::endl
         << "\t default page: " << WHITE << src.servers[i].default_page << RESET << std::endl
-        << "\t default folder: " << WHITE << src.servers[i].default_folder << RESET << std::endl
+        << "\t default folder: " << WHITE << src.servers[i].root << RESET << std::endl
         << "\t 404 page: " << WHITE << src.servers[i].page404 << RESET << std::endl
-        << "\t max body size: " << WHITE << src.servers[i].max_body_size << RESET << std::endl
+        << "\t max body size: " << WHITE << src.servers[i].client_body_buffer_size << RESET << std::endl
         << "\t autoindex: " << WHITE << (src.servers[i].autoindex ? "on" : "off") << RESET << std::endl
         << "\t status: " << WHITE << (src.servers[i].valid ? GREEN : RED) << (src.servers[i].valid ? "OK" : "KO") << RESET << std::endl;
     }

@@ -32,10 +32,10 @@ class Server
     std::string host;
     std::string server_name;
     std::string port;
-    std::string default_folder;
+    std::string root;
     std::string default_page;
     std::string page404;
-    std::string max_body_size;
+    std::string client_body_buffer_size;
     bool autoindex;
     bool valid;
 };
