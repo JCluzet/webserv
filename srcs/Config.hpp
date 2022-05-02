@@ -29,18 +29,18 @@ class Server
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
 
-    int         id;
-    std::string ip;
-    std::string name;
-    std::string port;
-    std::string root;
-    std::string index;
-    std::string error404;
-    std::string client_body_buffer_size;
-    std::string cgi;
-    bool        methods[3];
-    bool        autoindex;
-    bool        valid;
+    int                       id;
+    std::string               ip;
+    std::string               name;
+    std::string               port;
+    std::string               root;
+    std::string               index;
+    std::string               error404;
+    std::string               client_body_buffer_size;
+    std::vector<std::string>  cgi;
+    bool                      methods[3];
+    bool                      autoindex;
+    bool                      valid;
 };
 
 

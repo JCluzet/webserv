@@ -2,7 +2,7 @@
 #include "server.hpp"
 
 Server::Server() : id(0), ip(""), name(""), port(""), root(""), index("")
-                    , error404(""), client_body_buffer_size(""), cgi(""), autoindex(0), valid(0) 
+                    , error404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
 Server::Server(const Server &src) : id(src.id), ip(src.ip), name(src.name), port(src.port)
@@ -276,9 +276,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     }
                     break;
                 default:
-                    if (serv_tmp->cgi.length())
-                        return (error_config_message(s, *line_i) + 1);
-                    serv_tmp->cgi = tmp;
+                    serv_tmp->cgi.push_back(tmp);
                 }
                 pass_blanck(s, i, line_i);
                 return (0);
@@ -390,7 +388,8 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
             ostream << "\t autoindex: " << WHITE << (src.server[i].autoindex ? "on" : "off") << RESET << std::endl;
         // if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
             ostream << "\t allo methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
-        ostream << "\t cgi pass: " << WHITE << src.server[i].cgi << RESET << std::endl;
+        for (std::vector<std::string>::size_type j = 0; j < src.server[i].cgi.size(); j++)
+            ostream << "\t cgi pass: " << WHITE << src.server[i].cgi[j] << RESET << std::endl;
         ostream << "\t status: " << WHITE << (src.server[i].valid ? GREEN : RED) << (src.server[i].valid ? "OK" : "KO") << RESET << std::endl;;
     }
     return ostream;
