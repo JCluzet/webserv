@@ -42,9 +42,14 @@ void launch_browser(int port)
 Config check_config(int argc, char const *argv[])
 {
 	std::string tmp;
-	// std::cout << "___       __    ______ ________                               \n__ |     / /_______  /___  ___/______________   ______________\n__ | /| / /_  _ \\_  __ \\____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n__ |/ |/ / /  __/  /_/ /___/ //  __/  /   __ |/ //  __/  /    \n____/|__/  \\___//_.___//____/ \\___//_/    _____/ \\___//_/     \n\n";	
-															 
-std::cout << WHITE << "___       __    ______ " << RED << "________                               \n" << WHITE << "__ |     / /_______  /" << RED << "___  ___/______________   ______________\n"  << WHITE << "__ | /| / /_  _ \\_  __ \\" << RED << "____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n" << WHITE << "__ |/ |/ / /  __/  /_/ /" << RED << "___/ //  __/  /   __ |/ //  __/  /    \n" << WHITE << "____/|__/  \\___//_.___/" << RED << "/____/ \\___//_/    _____/ \\___//_/     \n\n" << WHITE;
+	// std::cout << "___       __    ______ ________                               \n__ |     / /_______  /___  ___/______________   ______________\n__ | /| / /_  _ \\_  __ \\____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n__ |/ |/ / /  __/  /_/ /___/ //  __/  /   __ |/ //  __/  /    \n____/|__/  \\___//_.___//____/ \\___//_/    _____/ \\___//_/     \n\n";
+
+	std::cout << WHITE << "___       __    ______ " << RED << "________                               \n"
+			  << WHITE << "__ |     / /_______  /" << RED << "___  ___/______________   ______________\n"
+			  << WHITE << "__ | /| / /_  _ \\_  __ \\" << RED << "____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n"
+			  << WHITE << "__ |/ |/ / /  __/  /_/ /" << RED << "___/ //  __/  /   __ |/ //  __/  /    \n"
+			  << WHITE << "____/|__/  \\___//_.___/" << RED << "/____/ \\___//_/    _____/ \\___//_/     \n\n"
+			  << WHITE;
 	if (argc == 1 || strcmp("--debug", argv[1]) == 0)
 	{
 		tmp = "config/default.conf";
@@ -61,11 +66,12 @@ std::cout << WHITE << "___       __    ______ " << RED << "________             
 	if (conf.servers.size() == 0)
 	{
 		// std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Configuration ERROR" <<std::endl;
+		std::cout << std::endl
+				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Configuration ERROR" << std::endl;
 
 		exit(EXIT_FAILURE);
 	}
-std::cout << WHITE << "["<< getHour() << "] START Web" << RED << "Serv" << WHITE << "   ";
+	std::cout << WHITE << "[" << getHour() << "] START Web" << RED << "Serv" << WHITE << "   ";
 	return conf;
 }
 
@@ -108,7 +114,8 @@ sockaddr_in SocketAssign(int port, int *server_fd)
 	if (listen(*server_fd, 3) < 0)
 	{
 		perror("In listen");
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+		std::cout << std::endl
+				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 
 		exit(EXIT_FAILURE);
 	}
@@ -177,7 +184,8 @@ int main(int argc, char const *argv[])
 		if ((listen_sock[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		{
 			perror("In socket");
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+			std::cout << std::endl
+					  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 
 			exit(EXIT_FAILURE);
 		}
@@ -206,8 +214,9 @@ int main(int argc, char const *argv[])
 		request.push_back(std::vector<Request>(CO_MAX, Request()));
 		std::cout << RED << "⊛" << WHITE << conf.servers[i].port << "  ";
 	}
-	std::cout << RESET << std::endl << std::endl;
-	
+	std::cout << RESET << std::endl
+			  << std::endl;
+
 	while (1)
 	{
 		build_fd_set(&listen_sock[0], conf.servers.size(), connection_list_sock, &read_fds, &write_fds, &except_fds);
@@ -228,15 +237,15 @@ int main(int argc, char const *argv[])
 		}
 
 		int activity = select(high_sock + 1, &read_fds, &write_fds, &except_fds, NULL);
-	if (exit_status == true)
-		return(0);
-	if (activity < 0)
-	{
-		perror("select error");
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+		if (exit_status == true)
+			return (0);
+		if (activity < 0)
+		{
+			perror("select error");
+			std::cout << std::endl
+					  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 
-		exit(EXIT_FAILURE);
-		
+			exit(EXIT_FAILURE);
 		}
 
 		for (size_t j = 0; j < conf.servers.size(); j++)
@@ -246,7 +255,8 @@ int main(int argc, char const *argv[])
 				if ((new_socket = accept(listen_sock[j], (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
 				{
 					perror("In accept");
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+					std::cout << std::endl
+							  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 					exit(EXIT_FAILURE);
 				}
 				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.servers[j].port << RESET << std::endl;
@@ -295,18 +305,15 @@ int main(int argc, char const *argv[])
 						response = response_sender(client_data, &request[j][i], &conf.servers[j]);
 						if (request[j][i].ready() == true)
 						{
-							size_t tmp = write(client_socket, response.get_response().c_str(), response.get_response().length());
-							if (tmp < response.get_response().length())
-							{
-								std::cout << "ERROR: " << errno << std::endl;
-								std::cout << "ERROR: " << strerror(errno) << std::endl;
-							}
+							size_t tmp = 0;
+							while (tmp < response.get_response().length())
+								tmp += write(client_socket, response.get_response().c_str() + tmp, response.get_response().length() - tmp);
 
 							if (response.getstat() == 400)
 							{
-						getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-						close(client_socket);
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.servers[j].port << RESET << std::endl;
+								getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+								close(client_socket);
+								std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.servers[j].port << RESET << std::endl;
 								connection_list_sock[j][i] = -1;
 							}
 							if (LOG == 1)
@@ -321,12 +328,10 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void	quit_sig(int sig)
+void quit_sig(int sig)
 {
-	// (void)sig;
 	if (SIGINT == sig)
 		exit_status = true;
-	std::cout << std::endl << WHITE << "["<< getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-	// std::cout << std::endl << RED << "[⊛ QUIT] => " << WHITE << "⊛ " << RESET << std::endl;
-		// exit(EXIT_SUCCESS);
+	std::cout << std::endl
+			  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 }
