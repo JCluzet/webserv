@@ -29,7 +29,7 @@ class Server
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
 
-    std::string ip_address;
+    std::string ip;
     std::string name;
     std::string port;
     std::string root;

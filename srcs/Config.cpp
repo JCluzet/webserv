@@ -1,11 +1,11 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : ip_address(""), name(""), port(""), root(""), index("")
+Server::Server() : ip(""), name(""), port(""), root(""), index("")
                     , page404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
-Server::Server(const Server &src) : ip_address(src.ip_address), name(src.name), port(src.port)
+Server::Server(const Server &src) : ip(src.ip), name(src.name), port(src.port)
                             , root(src.root), index(src.index)
                             , page404(src.page404), client_body_buffer_size(src.client_body_buffer_size), autoindex(src.autoindex)
                             , valid(src.valid) {
@@ -17,7 +17,7 @@ Server::~Server() {}
 
 Server& Server::operator=(const Server &src)
 {
-    ip_address = src.ip_address;
+    ip = src.ip;
     name = src.name;
     port = src.port;
     root = src.root;
@@ -33,7 +33,7 @@ Server& Server::operator=(const Server &src)
 }
 
 bool	Server::operator==(const Server &c) const
-    { return (ip_address == c.ip_address && name == c.name && port == c.port && root == c.root
+    { return (ip == c.ip && name == c.name && port == c.port && root == c.root
         && index == c.index && page404 == c.page404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
@@ -62,7 +62,7 @@ void    Config::init_server(Server* s)
 {
     // if (!s->locations.empty())
         // s->locations.clear();    
-    s->ip_address = "";
+    s->ip = "";
     s->name = "";
     s->port = "";
     s->root = "";
@@ -165,20 +165,20 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->name = tmp;
                     break;
                 case (1):
-                    if (serv_tmp->ip_address.length())
+                    if (serv_tmp->ip.length())
                         return (error_config_message(s, *line_i) + 1);
                     for (int j = 0; j < 4; j++)
                     {
                         while (p < s.length() && is_number(s[p]))
                         {
-                            serv_tmp->ip_address += s[p];
+                            serv_tmp->ip += s[p];
                             p++;
                         }
                         if (p >= s.length() || (j != 3 && s[p] != '.'))
                             return (error_config_message(s, *line_i) + 1);
                         if (j != 3)
                         {
-                            serv_tmp->ip_address += '.';
+                            serv_tmp->ip += '.';
                             p++;
                         }
                     }
@@ -292,7 +292,7 @@ bool Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i) + 1;
         i += 1;
-        if (serv_tmp.ip_address.size() && serv_tmp.port.size() &&
+        if (serv_tmp.ip.size() && serv_tmp.port.size() &&
         (serv_tmp.methods[0] || serv_tmp.methods[1] || serv_tmp.methods[2]))
            serv_tmp.valid = 1;
         server.push_back(serv_tmp);
@@ -316,8 +316,8 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
         ostream << std::endl << WHITE << "server " << i + 1 << ":" << RESET << std::endl;
         // if (src.server[i].name.length())
             ostream << "\t server name: " << WHITE << src.server[i].name << RESET << std::endl;
-        // if (src.server[i].ip_address.length())
-            ostream << "\t ip: " << WHITE << src.server[i].ip_address << RESET << std::endl;
+        // if (src.server[i].ip.length())
+            ostream << "\t ip: " << WHITE << src.server[i].ip << RESET << std::endl;
         // if (src.server[i].port.length())
             ostream << "\t port: " << WHITE << src.server[i].port << RESET << std::endl;
         // if (src.server[i].index.length())
