@@ -3,15 +3,15 @@
 
 Server::Server() : ip_address(""), server_name(""), port(""), root(""), index("")
                     , page404(""), client_body_buffer_size(""), autoindex(false), valid(false) 
-{ allowed_methods[0] = false; allowed_methods[1] = false; allowed_methods[2] = false;}
+{ methods[0] = false; methods[1] = false; methods[2] = false;}
 
 Server::Server(const Server &src) : ip_address(src.ip_address), server_name(src.server_name), port(src.port)
                             , root(src.root), index(src.index)
                             , page404(src.page404), client_body_buffer_size(src.client_body_buffer_size), autoindex(src.autoindex)
                             , valid(src.valid) {
-allowed_methods[0] = src.allowed_methods[0];
-allowed_methods[1] = src.allowed_methods[1];
-allowed_methods[2] = src.allowed_methods[2];}
+    methods[0] = src.methods[0];
+    methods[1] = src.methods[1];
+    methods[2] = src.methods[2];}
 
 Server::~Server() {}
 
@@ -26,22 +26,22 @@ Server& Server::operator=(const Server &src)
     client_body_buffer_size = src.client_body_buffer_size;
     autoindex = src.autoindex;
     valid = src.valid;
-    allowed_methods[0] = src.allowed_methods[0];
-    allowed_methods[1] = src.allowed_methods[1];
-    allowed_methods[2] = src.allowed_methods[2];
+    methods[0] = src.methods[0];
+    methods[1] = src.methods[1];
+    methods[2] = src.methods[2];
     return (*this);
 }
 
 bool	Server::operator==(const Server &c) const
     { return (ip_address == c.ip_address && server_name == c.server_name && port == c.port && root == c.root
         && index == c.index && page404 == c.page404 && client_body_buffer_size == c.client_body_buffer_size
-        && autoindex == c.autoindex && valid == c.valid && allowed_methods[0] == c.allowed_methods[0]
-        && allowed_methods[1] == c.allowed_methods[1] && allowed_methods[2] == c.allowed_methods[2]); }
+        && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
+        && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
 
 
 Config::Config() : valid(0) {}
 
-Config::Config(const std::string filename) : valid(0) {init(filename);}
+Config::Config(const std::string filename) : valid(0) { init(filename); }
 
 Config::Config(const Config& src) : servers(src.servers), valid(src.valid) {}
 
@@ -188,6 +188,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->port = s.substr (p, 4);
                     break;
                 case (2):
+                    if (!is_directory(tmp))
+                    {
+                        std::cerr << "Error: Config file line: " << *line_i << ": Wrong root directory path.";
+                        return 1;
+                    }
                     serv_tmp->root = tmp;
                     break;
                 case (3):
@@ -214,24 +219,24 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     {
                         if (s.length() > *i + 3 && s.substr(*i, 3) == "GET")
                         {
-                            if (serv_tmp->allowed_methods[0])
+                            if (serv_tmp->methods[0])
                                 return (error_config_message(s, *line_i) + 1);
                             else
-                                serv_tmp->allowed_methods[0] = 1;
+                                serv_tmp->methods[0] = 1;
                         }
                         else if (s.length() > *i + 4 && s.substr(*i, 4) == "POST")
                         {
-                            if (serv_tmp->allowed_methods[1])
+                            if (serv_tmp->methods[1])
                                 return (error_config_message(s, *line_i) + 1);
                             else
-                                serv_tmp->allowed_methods[1] = 1;
+                                serv_tmp->methods[1] = 1;
                         }
                         else if (s.length() > *i + 6 && s.substr(*i, 6) == "DELETE")
                         {
-                            if (serv_tmp->allowed_methods[2])
+                            if (serv_tmp->methods[2])
                                 return (error_config_message(s, *line_i) + 1);
                             else
-                                serv_tmp->allowed_methods[2] = 1;
+                                serv_tmp->methods[2] = 1;
                         }
                         pass_not_blanck(s, i);
                         pass_space(s, i);
@@ -273,6 +278,9 @@ bool Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i) + 1;
         i += 1;
+        if (serv_tmp.ip_address.size() && serv_tmp.port.size() &&
+        (serv_tmp.methods[0] || serv_tmp.methods[1] || serv_tmp.methods[2]))
+           serv_tmp.valid = 1;
         servers.push_back(serv_tmp);
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)
@@ -300,7 +308,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
         << "\t 404 page: " << WHITE << src.servers[i].page404 << RESET << std::endl
         << "\t max body size: " << WHITE << src.servers[i].client_body_buffer_size << RESET << std::endl
         << "\t autoindex: " << WHITE << (src.servers[i].autoindex ? "on" : "off") << RESET << std::endl
-        << "\t allowed methods: " << WHITE << (src.servers[i].allowed_methods[0] ? "GET " : "") << (src.servers[i].allowed_methods[1] ? "POST " : "") << (src.servers[i].allowed_methods[2] ? "DELETE " : "") << RESET << std::endl
+        << "\t allowed methods: " << WHITE << (src.servers[i].methods[0] ? "GET " : "") << (src.servers[i].methods[1] ? "POST " : "") << (src.servers[i].methods[2] ? "DELETE " : "") << RESET << std::endl
         << "\t status: " << WHITE << (src.servers[i].valid ? GREEN : RED) << (src.servers[i].valid ? "OK" : "KO") << RESET << std::endl;
     }
     return ostream;

@@ -36,7 +36,7 @@ class Server
     std::string index;
     std::string page404;
     std::string client_body_buffer_size;
-    bool allowed_methods[3];
+    bool methods[3];
     bool autoindex;
     bool valid;
 };
