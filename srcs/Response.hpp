@@ -5,9 +5,11 @@ class Response
 public:
     Response(Request *request, Server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
     {
-        _isaCGI = false;
+        std::string cgi_response = "";
         get_filepath();
-        set_redirection();
+        if (is_cgi() == true)
+            cgi_response = treat_cgi();
+        set_redirection(cgi_response);
         get_status();
         get_content_type();
         _response = getHeader() + _filecontent + "\r\n\r\n";
@@ -20,7 +22,6 @@ public:
         _filecontent = "";
         _filepath = "";
         _response = "";
-        _isaCGI = false;
     }
 
     Response(Response const &src)
@@ -33,7 +34,6 @@ public:
         _filepath = src._filepath;
         _stat_rd = src._stat_rd;
         _response = src._response;
-        _isaCGI = src._isaCGI;
     }
 
     Response operator=(const Response &src)
@@ -44,18 +44,17 @@ public:
         _filecontent = src._filecontent;
         _filepath = src._filepath;
         _response = src._response;
-        _isaCGI = src._isaCGI;
         return (*this);
     }
 
+    std::string getDate();
     std::string getHeader();
     std::string get_pathfile() { return (_filepath); }
     int readFile(std::string filename, std::string *fileContent);
     std::string get_response() { return (_response); }
     std::string getBody() { return (_filecontent); }
-    bool is_aCGI(std::string path); 
     int get_status();
-    int set_redirection();
+    int set_redirection(std::string cgi_response);
     int getstat() { return (_stat_rd); }
     int get_content_type();
 
@@ -69,13 +68,15 @@ private:
     Request *_request;
     std::string _status;
     int _is_waiting;
-    bool _isaCGI;
     std::string _header;
     std::string _content_type;
     std::string _response;
     std::string _filecontent;
     std::string _filepath;
     int _stat_rd;
+
+    bool    is_cgi(void);
+    std::string&    treat_cgi(void);
 };
 
 // getter de ready, constructeur par defaut et copie, et fonction clear et getter qui dit si cest vide (is_empty), et sil le texte est faux il faut clear

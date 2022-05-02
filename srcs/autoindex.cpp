@@ -32,7 +32,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 	*codeHTML += "<head><title>autoindex</title></head>\n";
 	*codeHTML += "<body>\n";
 	*codeHTML += "<h1>Index of /";
-	*codeHTML += (path != defaultFolder + "/") ? path.substr(defaultFolder.length()+1, path.length() - defaultFolder.length()+2) : ""; //actual_file
+	*codeHTML += (path != defaultFolder + "/") ? path.substr(defaultFolder.length()+2, path.length() - defaultFolder.length()+2) : ""; //actual_file
 	*codeHTML += "</h1><hr/>\n";
 	*codeHTML += "<table width=\"100%\" border=\"0\">\n";
 	*codeHTML += "<tr>\n";

@@ -178,7 +178,7 @@ int main(int argc, char const *argv[])
 	Config conf(check_config(argc, argv));
 	int listen_sock[conf.server.size()];
 	signal(SIGINT, quit_sig);
-	std::cout << conf << std::endl;
+	// std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
 	{
@@ -268,12 +268,13 @@ int main(int argc, char const *argv[])
 					if (connection_list_sock[j][i] == -1)
 					{
 						connection_list_sock[j][i] = new_socket;
+						request[j][i].set_sockaddr(address);
 						break;
 					}
 					if (i == CO_MAX - 1)
 					{
 						close(new_socket);
-						getpeername(new_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+						// getpeername(new_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 						// close(client_socket);
 						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
 					}
@@ -294,10 +295,13 @@ int main(int argc, char const *argv[])
 					char client_data[30001];
 					if ((valread = read(client_socket, client_data, 30000)) <= 0)
 					{
-						getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
-
+						// getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+						// std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(request[j][i].get_sockaddr().sin_addr) << WHITE << ":" << RESET << ntohs(request[j][i].get_sockaddr().sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						
 						close(client_socket);
+						request[j][i].clear();
+						// request[j][i].set_sockaddr();
 						connection_list_sock[j][i] = -1;
 					}
 					else
@@ -314,7 +318,7 @@ int main(int argc, char const *argv[])
 							{
 								getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 								close(client_socket);
-								std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+					    		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(request[j][i].get_sockaddr().sin_addr) << WHITE << ":" << RESET << ntohs(request[j][i].get_sockaddr().sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
 								connection_list_sock[j][i] = -1;
 							}
 							if (LOG == 1)
