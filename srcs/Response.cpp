@@ -77,7 +77,7 @@ void Response::get_filepath()
 {
     if (_request->get_path() != "")
     {
-        _filepath = _conf->default_folder + _request->get_path();
+        _filepath = _conf->root + _request->get_path();
         // if (is_a_cgi(_filepath))
         //     _isaCGI = true;
         if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
@@ -95,7 +95,7 @@ int Response::get_status()
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         else
         {
-            _filepath = _conf->default_folder + "/" + _conf->page404;
+            _filepath = _conf->root + "/" + _conf->page404;
             readFile(_filepath.c_str(), &_filecontent);
             if (_stat_rd == 404 && _conf->page404 == "")
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
