@@ -40,6 +40,11 @@ bool	Server::operator==(const Server &c) const
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
 
+Location::Location() : folder(""), s() {}
+Location::Location(const Location &src) : folder(src.folder), s(src.s) {}
+Location::~Location() {}
+Location& Location::operator=(const Location &src) { folder = src.folder; s = src.s; return (*this);}
+bool      Location::operator==(const Location &c) const { return (folder == c.folder && s == c.s); }
 
 Config::Config() : valid(0) {}
 
@@ -64,6 +69,7 @@ void    Config::init_server(Server* s)
 {
     // if (!s->locations.empty())
         // s->locations.clear();    
+    s->id = 0;
     s->ip = "";
     s->name = "";
     s->port = "";
@@ -71,6 +77,10 @@ void    Config::init_server(Server* s)
     s->index = "";
     s->error404 = "";
     s->client_body_buffer_size = "";
+    s->cgi.clear();
+    s->methods[0] = 0;
+    s->methods[1] = 0;
+    s->methods[2] = 0;
     s->autoindex = 0;
     s->valid = 0;
 }

@@ -43,7 +43,19 @@ class Server
     bool                      valid;
 };
 
+class Location
+{
+  public:
+    Location();
+    Location(const Location &src);
+    ~Location();
 
+    Location& operator=(const Location &src);
+    bool	operator==(const Location &c) const;
+
+    std::string   folder;
+    Server        s;
+};
 
 class Config
 {
