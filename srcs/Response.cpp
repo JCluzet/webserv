@@ -83,7 +83,7 @@ void Response::get_filepath()
         if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
             _filepath += "/";
         if (is_directory(_filepath) && !_conf->autoindex)
-            _filepath += _conf->default_page;
+            _filepath += _conf->index;
     }
 }
 

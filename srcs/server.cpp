@@ -171,6 +171,7 @@ int main(int argc, char const *argv[])
 	Config conf(check_config(argc, argv));
 	int listen_sock[conf.servers.size()];
 	signal(SIGINT, quit_sig);
+	std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.servers.size(); i++)
 	{

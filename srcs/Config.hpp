@@ -29,13 +29,14 @@ class Server
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
 
-    std::string host;
+    std::string ip_address;
     std::string server_name;
     std::string port;
     std::string root;
-    std::string default_page;
+    std::string index;
     std::string page404;
     std::string client_body_buffer_size;
+    bool allowed_methods[3];
     bool autoindex;
     bool valid;
 };
