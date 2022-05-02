@@ -1,7 +1,7 @@
 #include "server.hpp"
 #include <sys/types.h> // For mkdir
-#include <dirent.h>
-
+#include <dirent.h> // For mkdir
+#include <stdio.h>
 // std::string sizetToStr(size_t n){
 //     std::string s;
 //     size_t x = 1;
@@ -116,20 +116,30 @@ bool s_a_have_b(const std::string a, const std::string::size_type i, const std::
   return (a.length() >= (b.length() + i) && a.substr(i, b.length()) == b);
 }
 
-bool error_msg(std::string msg)
+bool error_msg(const std::string msg)
 {
   std::cerr << msg << std::endl;
   return 0;
 }
 
-bool is_directory(std::string path)
+bool is_directory(const std::string path)
 {
   DIR *ptr;
   if ((ptr = opendir(path.c_str())) == NULL)
-    return (0);
+    return 0;
   else
-  {
     closedir(ptr);
-    return (1);
-  }
+  return 1;
+}
+
+bool is_file(const std::string path)
+{
+  std::ifstream ifs;
+
+  ifs.open(path.c_str());
+  if (!ifs)
+    return 0;
+  else
+    ifs.close();
+  return 1;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/01 23:39:22 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/02 16:51:02 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,13 +91,13 @@ int Response::get_status()
 {
     if (_stat_rd == 404)
     {
-        if (_conf->page404 == "")
+        if (_conf->error404 == "")
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         else
         {
-            _filepath = _conf->root + "/" + _conf->page404;
+            _filepath = _conf->root + "/" + _conf->error404;
             readFile(_filepath.c_str(), &_filecontent);
-            if (_stat_rd == 404 && _conf->page404 == "")
+            if (_stat_rd == 404 && _conf->error404 == "")
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
         _status = "404 Not Found";

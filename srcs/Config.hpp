@@ -6,15 +6,15 @@
 #include <dirent.h> // For mkdir
 #include <fstream> // for readInFile
 
-// struct t_location
+// class Location
 // {
-  // std::string path;
-  // std::string root;
-  // std::string index;
-  // bool exist;
-  // bool valid;
-  // std::vector<t_locations> l;
-  // int lvl;
+//   std::string path;
+//   std::string root;
+//   std::string index;
+//   bool exist;
+//   bool valid;
+//   // std::vector<t_locations> l;
+//   int lvl;
 // };
 
 class Server 
@@ -29,12 +29,13 @@ class Server
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
 
+    int         id;
     std::string ip;
     std::string name;
     std::string port;
     std::string root;
     std::string index;
-    std::string page404;
+    std::string error404;
     std::string client_body_buffer_size;
     bool methods[3];
     bool autoindex;
@@ -66,6 +67,7 @@ class Config
     // bool pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i); // PAS FINIT
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b);
     bool    get_conf(const std::string s);
+    bool    check_server(Server s);
 };
 
 std::ostream&	operator<<(std::ostream& ostream, const Config& src);
