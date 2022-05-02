@@ -156,8 +156,10 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     for (int j = 0; j < 4; j++)
                     {
                         while (p < s.length() && is_number(s[p]))
+                        {
                             serv_tmp->host += s[p];
                             p++;
+                        }
                         if (p >= s.length() || (j != 3 && s[p] != '.'))
                             return (error_config_message(s, *line_i) + 1);
                         if (j != 3)
