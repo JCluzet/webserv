@@ -115,8 +115,8 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 8;
-    std::string             serv_type[nb_serv_types] = {"host", "server_name", "listen", "root", "default_page"
+    const int               nb_serv_types = 7;
+    std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "default_page"
                                                         , "client_body_buffer_size", "404_page", "autoindex"};
     std::string tmp;
 
@@ -150,29 +150,44 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0):
-                    serv_tmp->host = tmp;
-                    break;
-                case (1):
                     serv_tmp->server_name = tmp;
                     break;
-                case (2):
-                    if (tmp.length() != 4 || !is_number(tmp[0]) || !is_number(tmp[1]) || !is_number(tmp[2]) || !is_number(tmp[3]))
+                case (1):
+                    for (int j = 0; j < 4; j++)
+                    {
+                        while (p < s.length() && is_number(s[p]))
+                            serv_tmp->host += s[p];
+                            p++;
+                        if (p >= s.length() || (j != 3 && s[p] != '.'))
+                            return (error_config_message(s, *line_i) + 1);
+                        if (j != 3)
+                        {
+                            serv_tmp->host += '.';
+                            p++;
+                        }
+                    }
+                    if (s[p] != ':')
                         return (error_config_message(s, *line_i) + 1);
-                    serv_tmp->port = tmp;
+                    p++;
+                    if (s.length() <= p + 4)
+                        return (error_config_message(s, *line_i) + 1);
+                    if (!is_number(s[p]) || !is_number(s[p + 1]) || !is_number(s[p + 2]) || !is_number(s[p + 3]))
+                        return (error_config_message(s, *line_i) + 1);
+                    serv_tmp->port = s.substr (p, 4);
                     break;
-                case (3):
+                case (2):
                     serv_tmp->root = tmp;
                     break;
-                case (4):
+                case (3):
                     serv_tmp->default_page = tmp;
                     break;
-                case (5):
+                case (4):
                     serv_tmp->client_body_buffer_size = tmp;
                     break;
-                case (6):
+                case (5):
                     serv_tmp->page404 = tmp;
                     break;
-                case (7):
+                case (6):
                     if (tmp != "on" && tmp != "off")
                         return (error_config_message(s, *line_i) + 1);
                     serv_tmp->autoindex = (tmp == "on");
