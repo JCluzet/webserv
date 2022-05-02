@@ -2,13 +2,13 @@
 #include "server.hpp"
 
 Server::Server() : id(0), ip(""), name(""), port(""), root(""), index("")
-                    , error404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
+                    , error404(""), client_body_buffer_size(""), cgi(""), autoindex(0), valid(0) 
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
 Server::Server(const Server &src) : id(src.id), ip(src.ip), name(src.name), port(src.port)
                             , root(src.root), index(src.index)
-                            , error404(src.error404), client_body_buffer_size(src.client_body_buffer_size), autoindex(src.autoindex)
-                            , valid(src.valid) {
+                            , error404(src.error404), client_body_buffer_size(src.client_body_buffer_size)
+                            , cgi(src.cgi), autoindex(src.autoindex), valid(src.valid){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];}
@@ -19,6 +19,7 @@ Server& Server::operator=(const Server &src)
 {
     id = src.id;
     ip = src.ip;
+    cgi = src.cgi;
     name = src.name;
     port = src.port;
     root = src.root;
@@ -34,7 +35,7 @@ Server& Server::operator=(const Server &src)
 }
 
 bool	Server::operator==(const Server &c) const
-    { return (id == c.id && ip == c.ip && name == c.name && port == c.port && root == c.root
+    { return (cgi == c.cgi && id == c.id && ip == c.ip && name == c.name && port == c.port && root == c.root
         && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
@@ -125,10 +126,10 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 8;
+    const int               nb_serv_types = 9;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_body_buffer_size", "error_page"
-                                                        , "autoindex", "allow_methods"};
+                                                        , "autoindex", "allow_methods", "cgi_pass"};
     std::string tmp;
 
     pass_blanck(s, i, line_i);
@@ -273,6 +274,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         pass_not_blanck(s, i);
                         pass_space(s, i);
                     }
+                    break;
+                default:
+                    if (serv_tmp->cgi.length())
+                        return (error_config_message(s, *line_i) + 1);
+                    serv_tmp->cgi = tmp;
                 }
                 pass_blanck(s, i, line_i);
                 return (0);
@@ -384,6 +390,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
             ostream << "\t autoindex: " << WHITE << (src.server[i].autoindex ? "on" : "off") << RESET << std::endl;
         // if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
             ostream << "\t allo methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
+        ostream << "\t cgi pass: " << WHITE << src.server[i].cgi << RESET << std::endl;
         ostream << "\t status: " << WHITE << (src.server[i].valid ? GREEN : RED) << (src.server[i].valid ? "OK" : "KO") << RESET << std::endl;;
     }
     return ostream;

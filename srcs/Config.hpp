@@ -37,9 +37,10 @@ class Server
     std::string index;
     std::string error404;
     std::string client_body_buffer_size;
-    bool methods[3];
-    bool autoindex;
-    bool valid;
+    std::string cgi;
+    bool        methods[3];
+    bool        autoindex;
+    bool        valid;
 };
 
 
