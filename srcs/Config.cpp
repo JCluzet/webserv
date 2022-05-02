@@ -165,26 +165,29 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->name = tmp;
                     break;
                 case (1):
-                    if (serv_tmp->ip.length())
+                    if (serv_tmp->port.length())
                         return (error_config_message(s, *line_i) + 1);
-                    for (int j = 0; j < 4; j++)
+                    if (tmp.find(":") != std::string::npos)
                     {
-                        while (p < s.length() && is_number(s[p]))
+                        for (int j = 0; j < 4; j++)
                         {
-                            serv_tmp->ip += s[p];
-                            p++;
+                            while (p < s.length() && is_number(s[p]))
+                            {
+                                serv_tmp->ip += s[p];
+                                p++;
+                            }
+                            if (p >= s.length() || (j != 3 && s[p] != '.'))
+                                return (error_config_message(s, *line_i) + 1);
+                            if (j != 3)
+                            {
+                                serv_tmp->ip += '.';
+                                p++;
+                            }
                         }
-                        if (p >= s.length() || (j != 3 && s[p] != '.'))
+                        if (s[p] != ':')
                             return (error_config_message(s, *line_i) + 1);
-                        if (j != 3)
-                        {
-                            serv_tmp->ip += '.';
-                            p++;
-                        }
+                        p++;
                     }
-                    if (s[p] != ':')
-                        return (error_config_message(s, *line_i) + 1);
-                    p++;
                     if (s.length() <= p + 4)
                         return (error_config_message(s, *line_i) + 1);
                     if (!is_number(s[p]) || !is_number(s[p + 1]) || !is_number(s[p + 2]) || !is_number(s[p + 3]))
@@ -292,7 +295,7 @@ bool Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i) + 1;
         i += 1;
-        if (serv_tmp.ip.size() && serv_tmp.port.size() &&
+        if (serv_tmp.port.size() &&
         (serv_tmp.methods[0] || serv_tmp.methods[1] || serv_tmp.methods[2]))
            serv_tmp.valid = 1;
         server.push_back(serv_tmp);
