@@ -6,9 +6,9 @@ class Response;
 void output_log(int ans, std::string filetosearch)
 {
     if (ans == 200)
-        std::cout << GREEN << "    [⊛ 200]    => " << WHITE << filetosearch << RESET << std::endl;
+        std::cout << GREEN << "[⊛ 200]        => " << WHITE << filetosearch << RESET << std::endl;
     if (ans == 404)
-        std::cout << RED << "    [⊛ 404]    => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
+        std::cout << RED << "[⊛ 404]        => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
 }
 
 Response response_sender(std::string client, Request *request, Server *conf)
