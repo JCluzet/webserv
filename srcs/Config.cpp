@@ -136,10 +136,11 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 9;
+    const int               nb_serv_types = 10;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_body_buffer_size", "error_page"
-                                                        , "autoindex", "allow_methods", "cgi_pass"};
+                                                        , "autoindex", "allow_methods", "limit_except"
+                                                        , "cgi_pass"};
     std::string tmp;
 
     pass_blanck(s, i, line_i);
@@ -169,6 +170,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 p = *i;
                 pass_not_blanck(s, i);
                 tmp = s.substr(p, *i - p);
+                o -= (o == 8 ? 1 : 0);
                 switch (o)
                 {
                 case (0):
@@ -397,7 +399,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
         // if (src.server[i].autoindex)
             ostream << "\t autoindex: " << WHITE << (src.server[i].autoindex ? "on" : "off") << RESET << std::endl;
         // if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
-            ostream << "\t allo methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
+            ostream << "\t allow methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
         for (std::vector<std::string>::size_type j = 0; j < src.server[i].cgi.size(); j++)
             ostream << "\t cgi pass: " << WHITE << src.server[i].cgi[j] << RESET << std::endl;
         ostream << "\t status: " << WHITE << (src.server[i].valid ? GREEN : RED) << (src.server[i].valid ? "OK" : "KO") << RESET << std::endl;;
