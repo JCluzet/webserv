@@ -63,7 +63,7 @@ Config check_config(int argc, char const *argv[])
 	}
 
 	Config conf(tmp);
-	if (conf.servers.size() == 0)
+	if (conf.server.empty())
 	{
 		// std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
 		std::cout << std::endl
@@ -176,11 +176,11 @@ int main(int argc, char const *argv[])
 	int valread;
 	struct sockaddr_in address;
 	Config conf(check_config(argc, argv));
-	int listen_sock[conf.servers.size()];
+	int listen_sock[conf.server.size()];
 	signal(SIGINT, quit_sig);
 	std::cout << conf << std::endl;
 
-	for (size_t i = 0; i < conf.servers.size(); i++)
+	for (size_t i = 0; i < conf.server.size(); i++)
 	{
 		if ((listen_sock[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		{
@@ -199,7 +199,7 @@ int main(int argc, char const *argv[])
 			return -1;
 		}
 
-		address = SocketAssign(atoi(conf.servers[i].port.c_str()), &listen_sock[i]);
+		address = SocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
 	}
 	int addrlen = sizeof(address);
 	int high_sock;
@@ -209,26 +209,26 @@ int main(int argc, char const *argv[])
 	std::vector<std::vector<int> > connection_list_sock;
 	std::vector<std::vector<Request> > request;
 	std::cout << "                     ";
-	for (size_t i = 0; i < conf.servers.size(); i++)
+	for (size_t i = 0; i < conf.server.size(); i++)
 	{
 		connection_list_sock.push_back(std::vector<int>(CO_MAX, -1));
 		request.push_back(std::vector<Request>(CO_MAX, Request()));
-		std::cout << RED << "⊛" << WHITE << conf.servers[i].port << "  ";
+		std::cout << RED << "⊛" << WHITE << conf.server[i].port << "  ";
 	}
 	std::cout << RESET << std::endl
 			  << std::endl;
 
 	while (1)
 	{
-		build_fd_set(&listen_sock[0], conf.servers.size(), connection_list_sock, &read_fds, &write_fds, &except_fds);
+		build_fd_set(&listen_sock[0], conf.server.size(), connection_list_sock, &read_fds, &write_fds, &except_fds);
 
 		high_sock = -1;
-		for (size_t i = 0; i < conf.servers.size(); ++i)
+		for (size_t i = 0; i < conf.server.size(); ++i)
 		{
 			if (listen_sock[i] > high_sock)
 				high_sock = listen_sock[i];
 		}
-		for (size_t j = 0; j < conf.servers.size(); j++)
+		for (size_t j = 0; j < conf.server.size(); j++)
 		{
 			for (size_t i = 0; i < CO_MAX; i++)
 			{
@@ -249,7 +249,7 @@ int main(int argc, char const *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		for (size_t j = 0; j < conf.servers.size(); j++)
+		for (size_t j = 0; j < conf.server.size(); j++)
 		{
 			if (FD_ISSET(listen_sock[j], &read_fds))
 			{
@@ -260,7 +260,7 @@ int main(int argc, char const *argv[])
 							  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.servers[j].port << RESET << std::endl;
+				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.server[j].port << RESET << std::endl;
 
 				fcntl(new_socket, F_SETFL, O_NONBLOCK);
 				for (size_t i = 0; i < CO_MAX; i++)
@@ -275,7 +275,7 @@ int main(int argc, char const *argv[])
 						close(new_socket);
 						getpeername(new_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 						// close(client_socket);
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.servers[j].port << RESET << std::endl;
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
 					}
 				}
 			}
@@ -283,7 +283,7 @@ int main(int argc, char const *argv[])
 
 		int client_socket;
 		Response response;
-		for (size_t j = 0; j < conf.servers.size(); j++)
+		for (size_t j = 0; j < conf.server.size(); j++)
 		{
 			response = Response();
 			for (int i = 0; i < CO_MAX; i++)
@@ -295,7 +295,7 @@ int main(int argc, char const *argv[])
 					if ((valread = read(client_socket, client_data, 30000)) <= 0)
 					{
 						getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.servers[j].port << RESET << std::endl;
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
 
 						close(client_socket);
 						connection_list_sock[j][i] = -1;
@@ -303,7 +303,7 @@ int main(int argc, char const *argv[])
 					else
 					{
 						client_data[valread] = '\0';
-						response = response_sender(client_data, &request[j][i], &conf.servers[j]);
+						response = response_sender(client_data, &request[j][i], &conf.server[j]);
 						if (request[j][i].ready() == true)
 						{
 							size_t tmp = 0;
@@ -314,7 +314,7 @@ int main(int argc, char const *argv[])
 							{
 								getpeername(client_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 								close(client_socket);
-								std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.servers[j].port << RESET << std::endl;
+								std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
 								connection_list_sock[j][i] = -1;
 							}
 							if (LOG == 1)

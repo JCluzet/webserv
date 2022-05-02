@@ -30,7 +30,7 @@ class Server
     bool	operator==(const Server &c) const;
 
     std::string ip_address;
-    std::string server_name;
+    std::string name;
     std::string port;
     std::string root;
     std::string index;
@@ -47,7 +47,7 @@ class Config
 {
   public:
 
-    std::vector<Server> servers;
+    std::vector<Server> server;
     bool                  valid;
 
     Config();
@@ -64,7 +64,7 @@ class Config
     void    init_server(Server* s);
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
     // bool pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i); // PAS FINIT
-    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp);
+    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b);
     bool    get_conf(const std::string s);
 };
 

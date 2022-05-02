@@ -1,11 +1,11 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : ip_address(""), server_name(""), port(""), root(""), index("")
-                    , page404(""), client_body_buffer_size(""), autoindex(false), valid(false) 
-{ methods[0] = false; methods[1] = false; methods[2] = false;}
+Server::Server() : ip_address(""), name(""), port(""), root(""), index("")
+                    , page404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
+{ methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
-Server::Server(const Server &src) : ip_address(src.ip_address), server_name(src.server_name), port(src.port)
+Server::Server(const Server &src) : ip_address(src.ip_address), name(src.name), port(src.port)
                             , root(src.root), index(src.index)
                             , page404(src.page404), client_body_buffer_size(src.client_body_buffer_size), autoindex(src.autoindex)
                             , valid(src.valid) {
@@ -18,7 +18,7 @@ Server::~Server() {}
 Server& Server::operator=(const Server &src)
 {
     ip_address = src.ip_address;
-    server_name = src.server_name;
+    name = src.name;
     port = src.port;
     root = src.root;
     index = src.index;
@@ -33,7 +33,7 @@ Server& Server::operator=(const Server &src)
 }
 
 bool	Server::operator==(const Server &c) const
-    { return (ip_address == c.ip_address && server_name == c.server_name && port == c.port && root == c.root
+    { return (ip_address == c.ip_address && name == c.name && port == c.port && root == c.root
         && index == c.index && page404 == c.page404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
@@ -43,7 +43,7 @@ Config::Config() : valid(0) {}
 
 Config::Config(const std::string filename) : valid(0) { init(filename); }
 
-Config::Config(const Config& src) : servers(src.servers), valid(src.valid) {}
+Config::Config(const Config& src) : server(src.server), valid(src.valid) {}
 
 Config::~Config() {}
 
@@ -51,9 +51,9 @@ Config& Config::operator=(const Config &src)
 {
     if (*this == src)
         return *this;
-    if (servers.size())
-        servers.clear();
-    servers = src.servers;
+    if (server.size())
+        server.clear();
+    server = src.server;
     valid = src.valid;
     return *this;
 }
@@ -63,7 +63,7 @@ void    Config::init_server(Server* s)
     // if (!s->locations.empty())
         // s->locations.clear();    
     s->ip_address = "";
-    s->server_name = "";
+    s->name = "";
     s->port = "";
     s->root = "";
     s->index = "";
@@ -121,7 +121,7 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 //     }
 // }
 
-bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp)
+bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 8;
@@ -160,9 +160,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0):
-                    serv_tmp->server_name = tmp;
+                    if (serv_tmp->name.length())
+                        return (error_config_message(s, *line_i) + 1);
+                    serv_tmp->name = tmp;
                     break;
                 case (1):
+                    if (serv_tmp->ip_address.length())
+                        return (error_config_message(s, *line_i) + 1);
                     for (int j = 0; j < 4; j++)
                     {
                         while (p < s.length() && is_number(s[p]))
@@ -188,6 +192,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->port = s.substr (p, 4);
                     break;
                 case (2):
+                    if (serv_tmp->root.length())
+                        return (error_config_message(s, *line_i) + 1);
                     if (!is_directory(tmp))
                     {
                         std::cerr << "Error: Config file line: " << *line_i << ": Wrong root directory path.";
@@ -196,25 +202,33 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->root = tmp;
                     break;
                 case (3):
+                    if (serv_tmp->index.length())
+                        return (error_config_message(s, *line_i) + 1);
                     serv_tmp->index = tmp;
                     break;
                 case (4):
+                    if (serv_tmp->client_body_buffer_size.length())
+                        return (error_config_message(s, *line_i) + 1);
                     serv_tmp->client_body_buffer_size = tmp;
                     break;
                 case (5):
+                    if (serv_tmp->page404.length())
+                        return (error_config_message(s, *line_i) + 1);
                     serv_tmp->page404 = tmp;
                     break;
                 case (6):
-                    if (tmp != "on" && tmp != "off")
+                    if (*a || (tmp != "on" && tmp != "off"))
                         return (error_config_message(s, *line_i) + 1);
+                    *a = 1;
                     serv_tmp->autoindex = (tmp == "on");
                     break;
                 case (7):
                     *i = p;
-                    if (!((s.length() > *i + 3 && s.substr(*i, 3) == "GET")
+                    if (*b || !((s.length() > *i + 3 && s.substr(*i, 3) == "GET")
                     || (s.length() > *i + 4 && s.substr(*i, 3) == "POST")
                     || (s.length() > *i + 6 && s.substr(*i, 3) == "DELETE")))
                         return (error_config_message(s, *line_i) + 1);
+                    *b = 1;
                     for (int j = 0; j < 3; j++)
                     {
                         if (s.length() > *i + 3 && s.substr(*i, 3) == "GET")
@@ -270,9 +284,9 @@ bool Config::get_conf(const std::string s)
             return error_config_message(s, line_i) + 1;
         i += 1;
         init_server(&serv_tmp);
-        while (i < s.length() && s[i] != '}')
+        for (bool a = 0, b = 0; i < s.length() && s[i] != '}';)
         {
-            if (get_server_line(s, &i, &line_i, &serv_tmp))
+            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, &b))
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
@@ -281,7 +295,7 @@ bool Config::get_conf(const std::string s)
         if (serv_tmp.ip_address.size() && serv_tmp.port.size() &&
         (serv_tmp.methods[0] || serv_tmp.methods[1] || serv_tmp.methods[2]))
            serv_tmp.valid = 1;
-        servers.push_back(serv_tmp);
+        server.push_back(serv_tmp);
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)
             break;
@@ -293,23 +307,32 @@ bool Config::get_conf(const std::string s)
 }
 
 bool	Config::operator==(const Config& c) const
-    { return (servers == c.servers && valid == c.valid); }
+    { return (server == c.server && valid == c.valid); }
 
 std::ostream&	operator<<(std::ostream& ostream, const Config& src)
 {
-    for (std::string::size_type i = 0; i < src.servers.size(); i++)
+    for (std::string::size_type i = 0; i < src.server.size(); i++)
     {
-        ostream << WHITE << "server " << i + 1 << ":" << RESET << std::endl
-        << "\t ip_address: " << WHITE << src.servers[i].ip_address << RESET << std::endl
-        << "\t server name: " << WHITE << src.servers[i].server_name << RESET << std::endl
-        << "\t listen: " << WHITE << src.servers[i].port << RESET << std::endl
-        << "\t default page: " << WHITE << src.servers[i].index << RESET << std::endl
-        << "\t default folder: " << WHITE << src.servers[i].root << RESET << std::endl
-        << "\t 404 page: " << WHITE << src.servers[i].page404 << RESET << std::endl
-        << "\t max body size: " << WHITE << src.servers[i].client_body_buffer_size << RESET << std::endl
-        << "\t autoindex: " << WHITE << (src.servers[i].autoindex ? "on" : "off") << RESET << std::endl
-        << "\t allowed methods: " << WHITE << (src.servers[i].methods[0] ? "GET " : "") << (src.servers[i].methods[1] ? "POST " : "") << (src.servers[i].methods[2] ? "DELETE " : "") << RESET << std::endl
-        << "\t status: " << WHITE << (src.servers[i].valid ? GREEN : RED) << (src.servers[i].valid ? "OK" : "KO") << RESET << std::endl;
+        ostream << std::endl << WHITE << "server " << i + 1 << ":" << RESET << std::endl;
+        // if (src.server[i].name.length())
+            ostream << "\t server name: " << WHITE << src.server[i].name << RESET << std::endl;
+        // if (src.server[i].ip_address.length())
+            ostream << "\t ip: " << WHITE << src.server[i].ip_address << RESET << std::endl;
+        // if (src.server[i].port.length())
+            ostream << "\t port: " << WHITE << src.server[i].port << RESET << std::endl;
+        // if (src.server[i].index.length())
+            ostream << "\t index : " << WHITE << src.server[i].index << RESET << std::endl;
+        // if (src.server[i].root.length())
+            ostream << "\t root: " << WHITE << src.server[i].root << RESET << std::endl;
+        // if (src.server[i].page404.length())
+            ostream << "\t 404 page: " << WHITE << src.server[i].page404 << RESET << std::endl;
+        // if (src.server[i].client_body_buffer_size.length())
+            ostream << "\t client body size buffer : " << WHITE << src.server[i].client_body_buffer_size << RESET << std::endl;
+        // if (src.server[i].autoindex)
+            ostream << "\t autoindex: " << WHITE << (src.server[i].autoindex ? "on" : "off") << RESET << std::endl;
+        // if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
+            ostream << "\t allo methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
+        ostream << "\t status: " << WHITE << (src.server[i].valid ? GREEN : RED) << (src.server[i].valid ? "OK" : "KO") << RESET << std::endl;;
     }
     return ostream;
 }
