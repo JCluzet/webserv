@@ -90,7 +90,6 @@ std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Request 
 std::string    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Request* request);
 //utils
 bool            readinFile(std::string filename, std::string *fileContent);
-bool            is_number(char c);
 bool            is_space(const char c);
 bool            is_blanck(const char c);
 std::string     intToStr(int n);

@@ -79,9 +79,6 @@ bool readinFile(std::string filename, std::string *fileContent)
     return (0);
 }
 
-bool    is_number(char c)
-  { return (c >= '0' && c <= '9'); }
-
 bool is_space(const char c)
   { return (c == ' ' || c == '\t' || c == '\v' || c == '\f' || c == '\r'); }
 

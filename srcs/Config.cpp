@@ -140,7 +140,7 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
     {
         for (int j = 0; j < 4; j++)
         {
-            while (i < tmp.length() && is_number(tmp[i]))
+            while (i < tmp.length() && isdigit(tmp[i]))
             {
                 serv_tmp->ip += tmp[i];
                 i++;
@@ -165,7 +165,7 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
     }
     else
         serv_tmp->ip = "127.0.0.1";
-    if (tmp.length() != i + 4 || !is_number(tmp[i]) || !is_number(tmp[i + 1]) || !is_number(tmp[i + 2]) || !is_number(tmp[i + 3]))
+    if (tmp.length() != i + 4 || !isdigit(tmp[i]) || !isdigit(tmp[i + 1]) || !isdigit(tmp[i + 2]) || !isdigit(tmp[i + 3]))
     {
         std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
         return 1;
@@ -358,35 +358,70 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 
 bool Config::check_server(Server s)
 {
+    std::string path;
+    bool r = 0;
     if (s.port.empty())
     {
         std::cerr << "Error: server " << s.id << ": need a port" << std::endl;
-        return 1;
+        r = 1;
     }
     if (s.root.empty())
     {
         std::cerr << "Error: server " << s.id << ": need a root" << std::endl;
-        return 1;
+        r = 1;
+    }
+    for (std::string::size_type i = 0; i < s.client_body_buffer_size.length(); i++)
+        if (!isdigit(s.client_body_buffer_size[i]))
+        {
+            std::cerr << "Error: server " << s.id << ": max_client_body_buffer_size (" << s.client_body_buffer_size << ") invalid." << std::endl;
+            r = 1;
+        }
+    if (s.client_body_buffer_size.length() && atoll(s.client_body_buffer_size.c_str()) <= 0)
+    {
+        std::cerr << "Error: server " << s.id << ": max_client_body_buffer_size (" << s.client_body_buffer_size << ") invalid." << std::endl;
+        r = 1;
     }
     if (!is_directory(s.root))
     {
         std::cerr << "Error: server " << s.id << ": root directory path is wrong." << std::endl;
         return 1;
     }
-    std::string path;
+
+
     path = s.root;
-    path += "/";
+    if (path[path.length() - 1] == '/' && s.index[0] == '/')
+        path.erase(path.length() - 1, 1);
+    else if (path[path.length() - 1] != '/' && s.index[0] != '/')
+        path += '/';
     if (s.index.length() && !is_file(path + s.index))
     {
         std::cerr << "Error: server " << s.id << ": index file doesn't exist." << std::endl;
-        return 1;
+        r = 1;
     }
+    path = s.root;
+    if (path[path.length() - 1] == '/' && s.error404[0] == '/')
+        path.erase(path.length() - 1, 1);
+    else if (path[path.length() - 1] != '/' && s.error404[0] != '/')
+        path += '/';
     if (s.error404.length() && !is_file(path + s.error404))
     {
         std::cerr << "Error: server " << s.id << ": 404 error page file doesn't exist." << std::endl;
-        return 1;
+        r = 1;
     }
-    return 0;
+    for (std::vector<std::string>::size_type i = 0; i < s.cgi.size(); i++)
+    {
+        path = s.root;
+        if (path[path.length() - 1] == '/' && s.cgi[i][0] == '/')
+            path.erase(path.length() - 1, 1);
+        else if (path[path.length() - 1] != '/' && s.cgi[i][0] != '/')
+            path += '/';
+        if (!is_file(s.root + s.cgi[i]))
+        {
+            std::cerr << "Error: server " << s.id << ": cgi path(" << s.cgi[i] << ") is not valid." << std::endl;
+            r = 1;
+        }
+    }
+    return r;
 }
 
 bool Config::get_conf(const std::string s)
@@ -418,8 +453,9 @@ bool Config::get_conf(const std::string s)
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
-        // if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
-        //     return 1;
+        serv_tmp.valid = check_server(serv_tmp) ? 0 : 1;
+        if (!serv_tmp.valid)
+            return 1;
         server.push_back(serv_tmp);
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)
