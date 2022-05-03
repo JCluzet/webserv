@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 01:28:26 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/03 02:55:17 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,9 @@ std::string get_status(int ans);
 std::string getHeader(std::string client_data, std::string file_content, int ans);
 std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
-char**  cgi_env(std::string cmd, std::string cgi_str, Request *request, Server* server);
-std::string    cgi_exec(char **cmd, char **env, Request* request);
+std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Request *request, Server* server);
+// std::string    cgi_exec(char** cmd, char **env, Request* request);
+std::string    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Request* request);
 //utils
 bool            readinFile(std::string filename, std::string *fileContent);
 bool            is_number(char c);

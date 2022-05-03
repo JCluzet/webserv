@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 01:32:24 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,16 +127,19 @@ std::string&    Response::treat_cgi(void)
     std::string str;
     std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
     std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
-    char**  cmd = new char*[3];
+    // char**  cmd = new char*[3];
+    std::vector<std::string> cmd;
     if (_request->get_method() == "POST")
     {
         if (_request->get_path().find(".php") != std::string::npos)
         {
-            cmd[0] = new char[cmd_cgi.length() + 1];
-            cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
-            cmd[1] = new char[cmd_path.length() + 1];
-            cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
-            cmd[2] = NULL;
+            // cmd[0] = new char[cmd_cgi.length() + 1];
+            cmd[0] = cmd_cgi;
+            // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
+            // cmd[1] = new char[cmd_path.length() + 1];
+            cmd[1] = cmd_path;
+            // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
+            // cmd[2] = NULL;
             _filepath = _filepath.substr(0, _filepath.find(".php") + 4);
         }
         _response = cgi_exec(cmd, cgi_env(cmd_cgi, "", _request, _conf), _request);
@@ -144,11 +147,13 @@ std::string&    Response::treat_cgi(void)
     if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
     {
         cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
-        cmd[0] = new char[cmd_cgi.length() + 1];
-        cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
-        cmd[1] = new char[cmd_path.length() + 1];
-        cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
-        cmd[2] = NULL;
+        // cmd[0] = new char[cmd_cgi.length() + 1];
+        // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
+        cmd[0] = cmd_cgi;
+        // cmd[1] = new char[cmd_path.length() + 1];
+        // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
+        cmd[1] = cmd_path;
+        // cmd[2] = NULL;
         str = _request->get_path().substr(_request->get_path().find(".php?") + 5, _request->get_path().length());
         _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
         _response = cgi_exec(cmd, cgi_env(cmd_cgi, str, _request, _conf), _request);
@@ -156,9 +161,9 @@ std::string&    Response::treat_cgi(void)
     std::cout << cmd_cgi << " " << cmd_path << std::endl << std::endl;
     std::cout << _response << std::endl;
     _response = _response.substr(_response.find("\r\n\r\n") + 4, _response.length());
-    delete [] cmd[1];
-    delete [] cmd[0];
-    delete [] cmd;
+    // delete [] cmd[1];
+    // delete [] cmd[0];
+    // delete [] cmd;
     return _response;
 }
 
