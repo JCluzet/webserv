@@ -149,7 +149,6 @@ private:
         }
         else
         {
-            _request += r;
             if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos)
             {
                 _body += r;
@@ -157,12 +156,12 @@ private:
                 {
                     if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
                         _body = _body.substr(0, atoi(_m["Content-Length"].c_str()) - 1);
+                    _request += r;
                     _end = true;
                     return true;
                 }
-                else
-                    return true;
             }
+            _request += r;
         }
         nl = r.find(NL);
         if (nl == std::string::npos)

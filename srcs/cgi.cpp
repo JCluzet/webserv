@@ -18,7 +18,7 @@ char**  cgi_cmd(Request* cmd)
 std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Request *request, Server *server)
 {
     std::ostringstream convert;
-    std::vector<std::string> env;
+    std::vector<std::string> env(28);
     // char **env = new char*[29];
     std::string str;
     str = "CONTENT_TYPE="; // The media type of the query data, such as text/html.
@@ -234,20 +234,21 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
     char ret[30001];
     int rd;
 
-    // afficher_env(env);
     char **cmd_execve = new char *[cmd.size() + 1];
     for (size_t i = 0; i < cmd.size(); i++)
     {
         cmd_execve[i] = new char[cmd[i].length() + 1];
         cmd_execve[i] = std::strcpy(cmd_execve[i], cmd[i].c_str());
     }
+    cmd_execve[cmd.size()] = NULL;
     char **env_execve = new char *[env.size() + 1];
     for (size_t i = 0; i < env.size(); i++)
     {
         env_execve[i] = new char[env[i].length() + 1];
         env_execve[i] = std::strcpy(env_execve[i], env[i].c_str());
     }
-    cmd_execve[cmd.size()] = NULL;
+    env_execve[env.size()] = NULL;
+    //afficher_env(env_execve);
     if (pipe(pfd) < 0)
     {
         exit(1);
@@ -258,22 +259,24 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
     }
     if (pid == 0)
     {
+
         close(pfd[0]);
         dup2(pfd[1], 1);
+
         if (request->get_method() == "POST")
         {
             write(0, request->get_body().c_str(), request->get_body().length());
+            close(0);
         }
         if (execve(cmd[0].c_str(), cmd_execve, env_execve) < 0)
         {
             for (size_t k = 0; k < env.size(); k++)
-                delete[] env_execve[k];
-            delete[] env_execve;
+                delete [] env_execve[k];
+            delete [] env_execve;
             for (size_t k = 0; k < cmd.size(); k++)
-                delete[] cmd_execve[k];
-            delete[] cmd_execve;
+                delete [] cmd_execve[k];
+            delete [] cmd_execve;
             close(pfd[1]);
-            exit(1);
         }
         exit(1);
     }
@@ -288,11 +291,11 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
         close(pfd[0]);
         ret[rd] = '\0';
         for (size_t k = 0; k < env.size(); k++)
-            delete[] env_execve[k];
-        delete[] env_execve;
+            delete [] env_execve[k];
+        delete [] env_execve;
         for (size_t k = 0; k < cmd.size(); k++)
-            delete[] cmd_execve[k];
-        delete[] cmd_execve;
+            delete [] cmd_execve[k];
+        delete [] cmd_execve;
     }
     return (ret);
 }
