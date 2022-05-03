@@ -104,15 +104,15 @@ bool    Config::init(const std::string filename)
     return get_conf(data);
 }
 
-bool    Config::error_config_message(const std::string s, const std::string::size_type i) const
+bool    Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
 {
     std::string::size_type p = s.find("\n", i);
     if (p == std::string::npos)
-        std::cout << "Error: config file: line: " << i << "." << std::endl;
+        std::cout << "Error(" << a << "): config file: line: " << i << "." << std::endl;
     else
     {
         std::string tmp = s.substr(i, p - i);
-        std::cout << "Error: config file: line: " << i << "." << std::endl;
+        std::cout << "Error(" << a << "): config file: line: " << i << "." << std::endl;
     }
     return (0);
 }
@@ -133,6 +133,117 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
 //     }
 // }
 
+bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
+{
+    std::string::size_type i = 0;
+    if (tmp.find(":") != std::string::npos)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            while (i < tmp.length() && is_number(tmp[i]))
+            {
+                serv_tmp->ip += tmp[i];
+                i++;
+            }
+            if (i >= tmp.length() || (j != 3 && tmp[i] != '.'))
+            {
+                std::cerr << "Error: config file: IP adress (" << tmp.substr(0, tmp.find(":")) << ") is not valid." << std::endl;
+                return 1;
+            }
+            if (j != 3)
+            {
+                serv_tmp->ip += '.';
+                i++;
+            }
+        }
+        if (tmp[i] != ':')
+        {
+            std::cerr << "Error: config file: IP adress (" << tmp.substr(0, tmp.find(":")) << ") is not valid." << std::endl;
+            return 1;
+        }
+        i++;
+    }
+    else
+        serv_tmp->ip = "127.0.0.1";
+    if (tmp.length() != i + 4 || !is_number(tmp[i]) || !is_number(tmp[i + 1]) || !is_number(tmp[i + 2]) || !is_number(tmp[i + 3]))
+    {
+        std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
+        return 1;
+    }
+    serv_tmp->port = tmp.substr (i, 4);
+    return 0;
+}
+
+bool    Config::get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
+{
+    std::string tmp = "", tmp2 = "";
+
+    while (!is_blanck(s[*i]))
+    {
+        tmp += s[*i];
+        *i += 1;
+    }
+    if (tmp != "404")
+    {
+        std::cerr << "Error: config file: error page can't be (" << tmp << ")." << std::endl;
+        return 1;
+    }
+    if (serv_tmp->error404.length())
+        return (error_config_message(s, *line_i, 1) + 1);
+    if (*i >= s.length() ||!is_blanck(s[*i]))
+        return (error_config_message(s, *line_i, 2) + 1);
+    pass_blanck(s, i, line_i);
+    while (*i <= s.length() && !is_blanck(s[*i]))
+    {
+        tmp2 += s[*i];
+        *i += 1;
+    }
+    if (!tmp2.length())
+        return (error_config_message(s, *line_i, 3) + 1);
+    serv_tmp->error404 = tmp2;
+    return 0;
+}
+
+bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
+{
+    std::string tmp;
+    std::string::size_type k = 0;
+    for (int j = 0; j < 3; j++)
+    {
+        pass_blanck(s, i, line_i);
+        k = *i;
+        tmp = "";
+        for (;*i < s.length() && !is_blanck(s[*i]); *i += 1)
+            tmp += s[*i];
+        if (tmp == "GET")
+        {
+            if (serv_tmp->methods[0])
+                return (error_config_message(s, *line_i, 4) + 1);
+            serv_tmp->methods[0] = 1;
+        }
+        else if (tmp == "POST")
+        {
+            if (serv_tmp->methods[1])
+                return (error_config_message(s, *line_i, 5) + 1);
+            serv_tmp->methods[1] = 1;
+        }
+        else if (tmp == "DELETE")
+        {
+            if (serv_tmp->methods[2])
+                return (error_config_message(s, *line_i, 6) + 1);
+            serv_tmp->methods[2] = 1;
+        }
+        else if (!j)
+            return (error_config_message(s, *line_i, 7) + 1);
+        else
+        {
+            *i = k;
+            return 0;
+        }
+    }
+    return 0;
+}
+
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b)
 {
     std::string::size_type  p;
@@ -146,14 +257,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     pass_blanck(s, i, line_i);
     // if (s_a_have_b(s, *i, "location")) // PAS FINI
     // {
-        // *i += 8;
-        // pass_blanck(s, i, line_i);
-        // if (s[*i] != '{')
-        // {
-            // std::cout << "Error: config file: line: " << *line_i << "." << std::endl;
-            // return (1);
-        // }
-        // return pass_location_line(s, i, line_i);
+    //     *i += 8;
+    //     pass_blanck(s, i, line_i);
+    //     if (s[*i] != '{')
+    //     {
+    //         std::cout << "Error: config file: line: " << *line_i << "." << std::endl;
+    //         return (1);
+    //     }
+    //     return pass_location_line(s, i, line_i);
     // }
     // else
     // {
@@ -162,140 +273,86 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             if (s_a_have_b(s, *i, serv_type[o]))
             {
                 *i += serv_type[o].length();
-                if (*i >= s.length() || !is_space(s[*i]))
-                    return (error_config_message(s, *line_i) + 1);
-                pass_space(s, i);
-                if (s.length() <= *i || is_blanck(s[*i]))
-                    return (error_config_message(s, *line_i) + 1);
-                p = *i;
-                pass_not_blanck(s, i);
-                tmp = s.substr(p, *i - p);
+                if (*i >= s.length() || !is_blanck(s[*i]))
+                    return (error_config_message(s, *line_i, 8) + 1);
+                pass_blanck(s, i, line_i);
+                if (s.length() <= *i)
+                    return (error_config_message(s, *line_i, 9) + 2);
                 o -= (o == 8 ? 1 : 0);
                 switch (o)
                 {
                 case (0):
                     if (serv_tmp->name.length())
-                        return (error_config_message(s, *line_i) + 1);
+                        return (error_config_message(s, *line_i, 10) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     serv_tmp->name = tmp;
                     break;
                 case (1):
                     if (serv_tmp->port.length())
-                        return (error_config_message(s, *line_i) + 1);
-                    if (tmp.find(":") != std::string::npos)
-                    {
-                        for (int j = 0; j < 4; j++)
-                        {
-                            while (p < s.length() && is_number(s[p]))
-                            {
-                                serv_tmp->ip += s[p];
-                                p++;
-                            }
-                            if (p >= s.length() || (j != 3 && s[p] != '.'))
-                                return (error_config_message(s, *line_i) + 1);
-                            if (j != 3)
-                            {
-                                serv_tmp->ip += '.';
-                                p++;
-                            }
-                        }
-                        if (s[p] != ':')
-                            return (error_config_message(s, *line_i) + 1);
-                        p++;
-                    }
-                    if (s.length() <= p + 4)
-                        return (error_config_message(s, *line_i) + 1);
-                    if (!is_number(s[p]) || !is_number(s[p + 1]) || !is_number(s[p + 2]) || !is_number(s[p + 3]))
-                        return (error_config_message(s, *line_i) + 1);
-                    serv_tmp->port = s.substr (p, 4);
+                        return (error_config_message(s, *line_i, 11) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
+                    if (get_listen_line(tmp, serv_tmp))
+                        return 1;
                     break;
                 case (2):
                     if (serv_tmp->root.length())
-                        return (error_config_message(s, *line_i) + 1);
+                        return (error_config_message(s, *line_i, 12) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     serv_tmp->root = tmp;
                     break;
                 case (3):
                     if (serv_tmp->index.length())
-                        return (error_config_message(s, *line_i) + 1);
+                        return (error_config_message(s, *line_i, 13) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     serv_tmp->index = tmp;
                     break;
                 case (4):
                     if (serv_tmp->client_body_buffer_size.length())
-                        return (error_config_message(s, *line_i) + 1);
+                        return (error_config_message(s, *line_i, 14) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     serv_tmp->client_body_buffer_size = tmp;
                     break;
                 case (5):
-                    if (serv_tmp->error404.length())
-                        return (error_config_message(s, *line_i) + 1);
-                    *i = p;
-                    tmp.clear();
-                    for (std::string::size_type j = 0; j < 3; j++)
-                    {
-                        if (*i >= s.length() || !is_number(s[*i]))
-                            return (error_config_message(s, *line_i) + 1);
-                        tmp += s[*i];
-                        *i += 1;
-                    }
-                    if (tmp != "404")
-                        return (error_config_message(s, *line_i) + 1);
-                    if (*i >= s.length() ||!is_space(s[*i]))
-                        return (error_config_message(s, *line_i) + 1);
-                    pass_space(s, i);
-                    p = *i;
-                    if (*i >= s.length() || is_blanck(s[*i]))
-                        return (error_config_message(s, *line_i) + 1);
-                    pass_not_blanck(s, i);
-                    tmp = s.substr(p, *i - p);
-                    serv_tmp->error404 = tmp;
+                    if (get_error_page_line(s, serv_tmp, i, line_i))
+                        return 1;
                     break;
                 case (6):
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     if (*a || (tmp != "on" && tmp != "off"))
-                        return (error_config_message(s, *line_i) + 1);
+                        return (error_config_message(s, *line_i, 15) + 1);
                     *a = 1;
                     serv_tmp->autoindex = (tmp == "on");
                     break;
                 case (7):
-                    *i = p;
-                    if (*b || !((s.length() > *i + 3 && s.substr(*i, 3) == "GET")
-                    || (s.length() > *i + 4 && s.substr(*i, 3) == "POST")
-                    || (s.length() > *i + 6 && s.substr(*i, 3) == "DELETE")))
-                        return (error_config_message(s, *line_i) + 1);
+                    if (*b)
+                        return (error_config_message(s, *line_i, 16));
+                    if (get_methods_line(s, serv_tmp, i, line_i))
+                        return 1;
                     *b = 1;
-                    for (int j = 0; j < 3; j++)
-                    {
-                        if (s.length() > *i + 3 && s.substr(*i, 3) == "GET")
-                        {
-                            if (serv_tmp->methods[0])
-                                return (error_config_message(s, *line_i) + 1);
-                            else
-                                serv_tmp->methods[0] = 1;
-                        }
-                        else if (s.length() > *i + 4 && s.substr(*i, 4) == "POST")
-                        {
-                            if (serv_tmp->methods[1])
-                                return (error_config_message(s, *line_i) + 1);
-                            else
-                                serv_tmp->methods[1] = 1;
-                        }
-                        else if (s.length() > *i + 6 && s.substr(*i, 6) == "DELETE")
-                        {
-                            if (serv_tmp->methods[2])
-                                return (error_config_message(s, *line_i) + 1);
-                            else
-                                serv_tmp->methods[2] = 1;
-                        }
-                        pass_not_blanck(s, i);
-                        pass_space(s, i);
-                    }
                     break;
                 default:
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
                     serv_tmp->cgi.push_back(tmp);
                 }
                 pass_blanck(s, i, line_i);
                 return (0);
             }
         }
-        std::cout << "Error: config file: line: " << *line_i << "." << std::endl;
-        return (1);
+        return error_config_message(s, *line_i, 21) + 1;
     // }
 }
 
@@ -342,13 +399,13 @@ bool Config::get_conf(const std::string s)
     if (s.length() <= i)
         return error_msg("Error: Empty config file") + 1;
     if (!s_a_have_b(s, i, "server"))
-        return error_config_message(s, line_i) + 1;
+        return error_config_message(s, line_i, 17) + 1;
     while (1)
     {
         i += 6;
         pass_blanck(s, &i, &line_i);
         if (s.length() <= i || s[i] != '{')
-            return error_config_message(s, line_i) + 1;
+            return error_config_message(s, line_i, 18) + 1;
         i += 1;
         init_server(&serv_tmp);
         for (bool a = 0, b = 0; i < s.length() && s[i] != '}';)
@@ -357,18 +414,18 @@ bool Config::get_conf(const std::string s)
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
-            return error_config_message(s, line_i) + 1;
+            return error_config_message(s, line_i, 19) + 1;
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
-        if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
-            return 1;
+        // if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
+        //     return 1;
         server.push_back(serv_tmp);
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)
             break;
         if (!s_a_have_b(s, i, "server"))
-            return error_msg("Error: config file: line: ") + 1;
+            return error_config_message(s, line_i, 20) + 1;
     }
     valid = 1;
     return 0;

@@ -76,6 +76,10 @@ class Config
   private:
 
     void    init_server(Server* s);
+    bool    get_methods_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
+    bool    get_listen_line(const std::string tmp, Server* serv_tmp);
+    bool    error_config_message(const std::string s, const std::string::size_type i, const int a) const;
+    bool    get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
     // bool pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i); // PAS FINIT
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b);

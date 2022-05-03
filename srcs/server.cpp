@@ -178,7 +178,8 @@ int main(int argc, char const *argv[])
 	Config conf(check_config(argc, argv));
 	int listen_sock[conf.server.size()];
 	signal(SIGINT, quit_sig);
-	// std::cout << conf << std::endl;
+
+	std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
 	{
@@ -195,7 +196,7 @@ int main(int argc, char const *argv[])
 		int reuse = 1;
 		if (setsockopt(listen_sock[i], SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
 		{
-			perror("setsockopt");
+			perror("set sockopt");
 			return -1;
 		}
 
