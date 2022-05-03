@@ -20,7 +20,7 @@
 class Server 
 {
   // std::vector<t_location> locations;
-  public:
+  public :
 
     Server();
     Server(const Server &src);
@@ -43,19 +43,14 @@ class Server
     bool                      valid;
 };
 
-class Location
-{
-  public:
-    Location();
-    Location(const Location &src);
-    ~Location();
+// class Location : Server
+// {
+//   public:
+//     bool        valid;
+//     bool        alias;
+//     std::string path;
 
-    Location& operator=(const Location &src);
-    bool	operator==(const Location &c) const;
-
-    std::string   folder;
-    Server        s;
-};
+// };
 
 class Config
 {

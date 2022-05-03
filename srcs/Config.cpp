@@ -40,11 +40,11 @@ bool	Server::operator==(const Server &c) const
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
 
-Location::Location() : folder(""), s() {}
-Location::Location(const Location &src) : folder(src.folder), s(src.s) {}
-Location::~Location() {}
-Location& Location::operator=(const Location &src) { folder = src.folder; s = src.s; return (*this);}
-bool      Location::operator==(const Location &c) const { return (folder == c.folder && s == c.s); }
+// Location::Location() : path("") {}
+// Location::Location(const Location &src) : path(src.path) {}
+// Location::~Location() {}
+// Location& Location::operator=(const Location &src) { path = src.path; s = src.s; return (*this);}
+// bool      Location::operator==(const Location &c) const { return (path == c.path && s == c.s); }
 
 Config::Config() : valid(0) {}
 
