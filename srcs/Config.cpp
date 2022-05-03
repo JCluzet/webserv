@@ -1,11 +1,11 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), name(""), port(""), root(""), index("")
+Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
                     , error404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), name(src.name), port(src.port)
+Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port)
                             , root(src.root), index(src.index)
                             , error404(src.error404), client_body_buffer_size(src.client_body_buffer_size)
                             , cgi(src.cgi), autoindex(src.autoindex), valid(src.valid){
@@ -20,7 +20,7 @@ Server& Server::operator=(const Server &src)
     id = src.id;
     ip = src.ip;
     cgi = src.cgi;
-    name = src.name;
+    host = src.host;
     port = src.port;
     root = src.root;
     index = src.index;
@@ -35,7 +35,7 @@ Server& Server::operator=(const Server &src)
 }
 
 bool	Server::operator==(const Server &c) const
-    { return (cgi == c.cgi && id == c.id && ip == c.ip && name == c.name && port == c.port && root == c.root
+    { return (cgi == c.cgi && id == c.id && ip == c.ip && host == c.host && port == c.port && root == c.root
         && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
@@ -71,7 +71,7 @@ void    Config::init_server(Server* s)
         // s->locations.clear();    
     s->id = 0;
     s->ip = "";
-    s->name = "";
+    s->host = "";
     s->port = "";
     s->root = "";
     s->index = "";
@@ -282,12 +282,12 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0):
-                    if (serv_tmp->name.length())
+                    if (serv_tmp->host.length())
                         return (error_config_message(s, *line_i, 10) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->name = tmp;
+                    serv_tmp->host = tmp;
                     break;
                 case (1):
                     if (serv_tmp->port.length())
@@ -439,23 +439,23 @@ std::ostream&	operator<<(std::ostream& ostream, const Config& src)
     for (std::string::size_type i = 0; i < src.server.size(); i++)
     {
         ostream << std::endl << WHITE << "server " << i + 1 << ":" << RESET << std::endl;
-        // if (src.server[i].name.length())
-            ostream << "\t server name: " << WHITE << src.server[i].name << RESET << std::endl;
-        // if (src.server[i].ip.length())
+        if (src.server[i].host.length())
+            ostream << "\t host: " << WHITE << src.server[i].host << RESET << std::endl;
+        if (src.server[i].ip.length())
             ostream << "\t ip: " << WHITE << src.server[i].ip << RESET << std::endl;
-        // if (src.server[i].port.length())
+        if (src.server[i].port.length())
             ostream << "\t port: " << WHITE << src.server[i].port << RESET << std::endl;
-        // if (src.server[i].index.length())
+        if (src.server[i].index.length())
             ostream << "\t index : " << WHITE << src.server[i].index << RESET << std::endl;
-        // if (src.server[i].root.length())
+        if (src.server[i].root.length())
             ostream << "\t root: " << WHITE << src.server[i].root << RESET << std::endl;
-        // if (src.server[i].error404.length())
+        if (src.server[i].error404.length())
             ostream << "\t 404 page: " << WHITE << src.server[i].error404 << RESET << std::endl;
-        // if (src.server[i].client_body_buffer_size.length())
+        if (src.server[i].client_body_buffer_size.length())
             ostream << "\t client body size buffer : " << WHITE << src.server[i].client_body_buffer_size << RESET << std::endl;
-        // if (src.server[i].autoindex)
+        if (src.server[i].autoindex)
             ostream << "\t autoindex: " << WHITE << (src.server[i].autoindex ? "on" : "off") << RESET << std::endl;
-        // if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
+        if (src.server[i].methods[0] || src.server[i].methods[1] || src.server[i].methods[2])
             ostream << "\t allow methods: " << WHITE << (src.server[i].methods[0] ? "GET " : "") << (src.server[i].methods[1] ? "POST " : "") << (src.server[i].methods[2] ? "DELETE " : "") << RESET << std::endl;
         for (std::vector<std::string>::size_type j = 0; j < src.server[i].cgi.size(); j++)
             ostream << "\t cgi pass: " << WHITE << src.server[i].cgi[j] << RESET << std::endl;

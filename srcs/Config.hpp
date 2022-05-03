@@ -31,7 +31,7 @@ class Server
 
     int                       id;
     std::string               ip;
-    std::string               name;
+    std::string               host;
     std::string               port;
     std::string               root;
     std::string               index;
