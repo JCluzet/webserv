@@ -6,22 +6,11 @@
 #include <dirent.h> // For mkdir
 #include <fstream> // for readInFile
 
-// class Location
-// {
-//   std::string path;
-//   std::string root;
-//   std::string index;
-//   bool exist;
-//   bool valid;
-//   // std::vector<t_locations> l;
-//   int lvl;
-// };
+class Location;
 
 class Server 
 {
-  // std::vector<t_location> locations;
   public :
-
     Server();
     Server(const Server &src);
     ~Server();
@@ -38,19 +27,26 @@ class Server
     std::string               error404;
     std::string               client_body_buffer_size;
     std::vector<std::string>  cgi;
+    std::vector<Location>     loc;
     bool                      methods[3];
     bool                      autoindex;
     bool                      valid;
 };
 
-// class Location : Server
-// {
-//   public:
-//     bool        valid;
-//     bool        alias;
-//     std::string path;
+class Location : public Server
+{
+  public :
+    Location();
+    Location(const Location& src);
+    ~Location();
 
-// };
+    Location& operator=(const Location &src);
+    bool	operator==(const Location &c) const;
+
+    std::string           path;
+    size_t                lvl;
+    bool                  alias;
+};
 
 class Config
 {

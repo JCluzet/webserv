@@ -1,6 +1,7 @@
 #include "Config.hpp"
 #include "server.hpp"
 
+//SERVER
 Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
                     , error404(""), client_body_buffer_size(""), autoindex(0), valid(0) 
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
@@ -17,6 +18,8 @@ Server::~Server() {}
 
 Server& Server::operator=(const Server &src)
 {
+    if (*this == src)
+        return *this;
     id = src.id;
     ip = src.ip;
     cgi = src.cgi;
@@ -31,7 +34,7 @@ Server& Server::operator=(const Server &src)
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
-    return (*this);
+    return *this;
 }
 
 bool	Server::operator==(const Server &c) const
@@ -40,12 +43,45 @@ bool	Server::operator==(const Server &c) const
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2]); }
 
-// Location::Location() : path("") {}
-// Location::Location(const Location &src) : path(src.path) {}
-// Location::~Location() {}
-// Location& Location::operator=(const Location &src) { path = src.path; s = src.s; return (*this);}
-// bool      Location::operator==(const Location &c) const { return (path == c.path && s == c.s); }
+//LOCATION
+Location::Location() : Server(), path(""), lvl(1), alias(0) {}
 
+Location::Location(const Location& src) : Server() { *this = src; }
+
+Location::~Location() {}
+
+Location& Location::operator=(const Location &src)
+{
+    if (*this == src)
+        return *this;
+    id = src.id;
+    ip = src.ip;
+    cgi = src.cgi;
+    host = src.host;
+    port = src.port;
+    root = src.root;
+    index = src.index;
+    error404 = src.error404;
+    client_body_buffer_size = src.client_body_buffer_size;
+    autoindex = src.autoindex;
+    valid = src.valid;
+    methods[0] = src.methods[0];
+    methods[1] = src.methods[1];
+    methods[2] = src.methods[2];
+    path = src.path;
+    lvl = src.lvl;
+    alias = src.alias;
+    return *this;
+}
+
+bool	Location::operator==(const Location &c) const
+    { return (cgi == c.cgi && id == c.id && ip == c.ip && host == c.host && port == c.port && root == c.root
+        && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size
+        && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
+        && methods[1] == c.methods[1] && methods[2] == c.methods[2]
+        && path == c.path && lvl == c.lvl && alias == c.alias); }
+
+//CONFIG
 Config::Config() : valid(0) {}
 
 Config::Config(const std::string filename) : valid(0) { init(filename); }
