@@ -179,7 +179,8 @@ int main(int argc, char const *argv[])
 	int listen_sock[conf.server.size()];
 	signal(SIGINT, quit_sig);
 
-	std::cout << conf << std::endl;
+	if (argc >= 2 && !strcmp(argv[2], "--confdebug"))
+		std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
 	{
