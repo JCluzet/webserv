@@ -1,17 +1,68 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-//SERVER
+Client::Client() : request(new Request())
+{
+    socket = -1;
+    pipe_cgi_in[0] = -1;
+    pipe_cgi_in[1] = -1;
+    pipe_cgi_out[0] = -1;
+    pipe_cgi_out[1] = -1;
+    sockaddr = sockaddr_in();
+    return ;
+}
+
+Client::Client(int new_socket, sockaddr_in new_addr) : request(new Request())
+{
+    socket = new_socket;
+    pipe_cgi_in[0] = -1;
+    pipe_cgi_in[1] = -1;
+    pipe_cgi_out[0] = -1;
+    pipe_cgi_out[1] = -1;
+    sockaddr = new_addr;
+    return ;
+}
+
+Client::Client(const Client& src) : request(new Request())
+{
+    *this = src;
+    return ;
+}
+
+Client::~Client()
+{
+    delete request;
+    return ;
+}
+
+Client& Client::operator=(const Client& op2)
+{
+    delete request;
+    request = new Request(*op2.request);
+    socket = op2.socket;
+    pipe_cgi_in[0] = op2.pipe_cgi_in[0];
+    pipe_cgi_in[1] = op2.pipe_cgi_in[1];
+    pipe_cgi_out[0] = op2.pipe_cgi_out[0];
+    pipe_cgi_out[1] = op2.pipe_cgi_out[1];
+    sockaddr = op2.sockaddr;
+    return (*this);
+}
+
+bool	Client::operator==(const Client &c) const
+{ return (socket == c.socket && pipe_cgi_in == c.pipe_cgi_in
+    && pipe_cgi_out == c.pipe_cgi_out); }
+
 Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
                     , error404(""), client_body_buffer_size(""), autoindex(0), valid(0)
-                    , lvl(0), path(""), alias(0)
+                    , lvl(0), path(""), alias(0), client()
 { methods[0] = 0; methods[1] = 0; methods[2] = 0;}
 
 Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port)
                             , root(src.root), index(src.index), error404(src.error404)
                             , client_body_buffer_size(src.client_body_buffer_size)
                             , cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
-                            , valid(src.valid), lvl(src.lvl), path(src.path), alias(src.alias){
+                            , valid(src.valid), lvl(src.lvl), path(src.path), alias(src.alias)
+                            , client(src.client){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];}
@@ -20,8 +71,6 @@ Server::~Server() {}
 
 Server& Server::operator=(const Server &src)
 {
-    if (*this == src)
-        return *this;
     id = src.id;
     ip = src.ip;
     cgi = src.cgi;
@@ -33,6 +82,7 @@ Server& Server::operator=(const Server &src)
     client_body_buffer_size = src.client_body_buffer_size;
     autoindex = src.autoindex;
     valid = src.valid;
+    client = src.client;
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
@@ -40,6 +90,7 @@ Server& Server::operator=(const Server &src)
     lvl = src.lvl;
     path = src.path;
     loc = src.loc;
+    client = src.client;
     return *this;
 }
 
@@ -48,7 +99,7 @@ bool	Server::operator==(const Server &c) const
         && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size
         && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
         && methods[1] == c.methods[1] && methods[2] == c.methods[2] && alias == c.alias
-        && lvl == c.lvl && path == c.path && loc == c.loc); }
+        && lvl == c.lvl && path == c.path && loc == c.loc && client == c.client); }
 
 //CONFIG
 Config::Config() : valid(0) {}
@@ -132,7 +183,7 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
     {
         for (int j = 0; j < 4; j++)
         {
-            while (i < tmp.length() && isdigit(tmp[i]))
+            while (i < tmp.length() && is_number(tmp[i]))
             {
                 serv_tmp->ip += tmp[i];
                 i++;
@@ -157,7 +208,7 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
     }
     else
         serv_tmp->ip = "127.0.0.1";
-    if (tmp.length() != i + 4 || !isdigit(tmp[i]) || !isdigit(tmp[i + 1]) || !isdigit(tmp[i + 2]) || !isdigit(tmp[i + 3]))
+    if (tmp.length() != i + 4 || !is_number(tmp[i]) || !is_number(tmp[i + 1]) || !is_number(tmp[i + 2]) || !is_number(tmp[i + 3]))
     {
         std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
         return 1;
@@ -371,70 +422,35 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 
 bool Config::check_server(Server s)
 {
-    std::string path;
-    bool r = 0;
     if (s.port.empty())
     {
         std::cerr << "Error: server " << s.id << ": need a port" << std::endl;
-        r = 1;
+        return 1;
     }
     if (s.root.empty())
     {
         std::cerr << "Error: server " << s.id << ": need a root" << std::endl;
-        r = 1;
-    }
-    for (std::string::size_type i = 0; i < s.client_body_buffer_size.length(); i++)
-        if (!isdigit(s.client_body_buffer_size[i]))
-        {
-            std::cerr << "Error: server " << s.id << ": max_client_body_buffer_size (" << s.client_body_buffer_size << ") invalid." << std::endl;
-            r = 1;
-        }
-    if (s.client_body_buffer_size.length() && atoll(s.client_body_buffer_size.c_str()) <= 0)
-    {
-        std::cerr << "Error: server " << s.id << ": max_client_body_buffer_size (" << s.client_body_buffer_size << ") invalid." << std::endl;
-        r = 1;
+        return 1;
     }
     if (!is_directory(s.root))
     {
         std::cerr << "Error: server " << s.id << ": root directory path is wrong." << std::endl;
         return 1;
     }
-
-
+    std::string path;
     path = s.root;
-    if (path[path.length() - 1] == '/' && s.index[0] == '/')
-        path.erase(path.length() - 1, 1);
-    else if (path[path.length() - 1] != '/' && s.index[0] != '/')
-        path += '/';
+    path += "/";
     if (s.index.length() && !is_file(path + s.index))
     {
         std::cerr << "Error: server " << s.id << ": index file doesn't exist." << std::endl;
-        r = 1;
+        return 1;
     }
-    path = s.root;
-    if (path[path.length() - 1] == '/' && s.error404[0] == '/')
-        path.erase(path.length() - 1, 1);
-    else if (path[path.length() - 1] != '/' && s.error404[0] != '/')
-        path += '/';
     if (s.error404.length() && !is_file(path + s.error404))
     {
         std::cerr << "Error: server " << s.id << ": 404 error page file doesn't exist." << std::endl;
-        r = 1;
+        return 1;
     }
-    for (std::vector<std::string>::size_type i = 0; i < s.cgi.size(); i++)
-    {
-        path = s.root;
-        if (path[path.length() - 1] == '/' && s.cgi[i][0] == '/')
-            path.erase(path.length() - 1, 1);
-        else if (path[path.length() - 1] != '/' && s.cgi[i][0] != '/')
-            path += '/';
-        if (!is_file(s.root + s.cgi[i]))
-        {
-            std::cerr << "Error: server " << s.id << ": cgi path(" << s.cgi[i] << ") is not valid." << std::endl;
-            r = 1;
-        }
-    }
-    return r;
+    return 0;
 }
 
 bool Config::get_conf(const std::string s)
@@ -466,9 +482,8 @@ bool Config::get_conf(const std::string s)
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
-        serv_tmp.valid = check_server(serv_tmp) ? 0 : 1;
-        if (!serv_tmp.valid)
-            return 1;
+        // if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
+        //     return 1;
         server.push_back(serv_tmp);
         i_loc = 1;
         pass_blanck(s, &i, &line_i);

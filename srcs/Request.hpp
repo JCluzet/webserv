@@ -17,21 +17,21 @@ class Request
 {
 public:
     // constructors
-    Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _sockaddr(), _body("")
+    Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line("")
     {
         init_header_map();
     }
 
-    Request(std::string new_request) : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _sockaddr(), _body("")
+    Request(std::string new_request) : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line("")
     {
         init_header_map();
         addp(new_request);
     }
 
-    Request(const Request &src) : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _sockaddr(), _body("")
+    Request(const Request &src)
     {
-        init_header_map();
-        addp(src._request);
+        *this = src;
+        return ;
     }
 
     Request &operator=(const Request &src)
@@ -45,20 +45,18 @@ public:
             _version = src._version;
             _end = src._end;
             _valid = src._valid;
+            _body = src._body;
+            _line = src._line;
         }
         return *this;
     }
 
-    ~Request(){};
+    ~Request() {};
 
     //getter
     std::string get_path() const { return _path; };
 
     void set_path(std::string new_path) { _path = new_path; return ; };
-
-    struct sockaddr_in get_sockaddr(void) { return _sockaddr; };
-
-    void    set_sockaddr(struct sockaddr_in new_sockaddr) { _sockaddr = new_sockaddr; return ; };
 
     std::string get_body() const { return _body; };
 
@@ -91,6 +89,7 @@ public:
         _version = "";
         _end = false;
         _valid = false;
+        _line = "";
         init_header_map();
     }
     //modifier
@@ -103,57 +102,48 @@ private:
     std::string _header[NB_HEADERS];
     bool    _end;
     bool    _valid;
-    struct sockaddr_in _sockaddr; 
     std::string _body;
+    std::string _line;
 
     bool addp(std::string r)
     {
         std::string::size_type nl;
-        cut_end(&r);
+        //cut_end(&r);
         if (_request.empty() == true && (r.empty() == true || r == NL))
-        {
             return true;
-        }
-        if (_request.empty() == false && r == NL)
-        {
-            if (_method == "GET")
-            {
-                _end = true;
-                return true;
-            }
-            if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
-                    return false;
-        }
-        if (r == "" || r.substr(0, 1) == " ")
-        {
+        if (_line == "" && (r == "" || r.substr(0, 1) == " "))
             return false;
-        }
-        if (_request.empty())
-        {
-            nl = r.find(NL);
-            if (nl == std::string::npos)
-                return false;
-            _request = r;
-            if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
-            {
-                // std::cout << "error bad request 1\n";
-                return false;
-            }
-            nl = r.find(NL);
-            if (nl == std::string::npos)
-            {
-                // std::cout << "error bad request 2\n";
-                return false;
-            }
-            r.erase(0, nl + NLSIZE);
-        }
+        r = _line + r;
+        if (r.find(NL) != std::string::npos && r.find_last_of(NL) + 1 < r.length())
+            _line = r.substr(r.find_last_of(NL) + 1, r.length());
+        else if (r.find(NL) != std::string::npos && r.find_last_of(NL) + 1 == r.length())
+            _line = "";
         else
+            _line = r;
+        while ((nl = r.find(NL)) != std::string::npos)
         {
-            if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos)
+            if (_request.empty() == true)
+            {
+                if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
+                    return false;
+            }
+            else if (r == NL && _line == "")
+            {
+                if (_method == "GET" || _method == "DELETE")
+                {    
+                    _request += r;
+                    _end = true;
+                    return true;
+                }
+                if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
+                        return false;
+            }
+            else if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos)
             {
                 _body += r;
                 if (static_cast<int>(_body.length()) >= atoi(_m["Content-Length"].c_str()))
                 {
+
                     if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
                         _body = _body.substr(0, atoi(_m["Content-Length"].c_str()) - 1);
                     _request += r;
@@ -161,27 +151,27 @@ private:
                     return true;
                 }
             }
-            _request += r;
-        }
-        nl = r.find(NL);
-        if (nl == std::string::npos)
-        {
-            return true;
-        }
-        while (nl != std::string::npos)
-        {
-            if (!get_request_line(r.substr(0, nl + NLSIZE))) /////////////////////////
+            else
             {
-                // std::cout << "error bad request 4\n";
-                return true;
+                get_request_line(r.substr(0, nl + NLSIZE));
             }
+            _request += r.substr(0, nl + NLSIZE);
             r.erase(0, nl + NLSIZE);
-            nl = r.find(NL);
+        }
+        if (r.empty() == false && _method == "POST" && _request.find("\r\n\r\n") != std::string::npos
+            && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
+        {
+            _body += r;
+            _request += r;
+            if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
+                _body = _body.substr(0, atoi(_m["Content-Length"].c_str()) - 1);
+            _end = true;
+            return true;
         }
         return true;
     }
 
-    void cut_end(std::string *r)
+    /*void cut_end(std::string *r)
     {
         std::string end = NL;
         std::string::size_type x;
@@ -191,7 +181,7 @@ private:
             *r = r->substr(0, x + NLSIZE);
             _end = true;
         }
-    }
+    }*/
 
     void pprint()
     {
@@ -236,58 +226,33 @@ private:
         std::string::size_type next_nl = std::string::npos;
         std::string::size_type n = std::string::npos;
         std::string request = r;
-        // _request = request;
-        // Check & get method
-        // std::cout << "HELLO" << std::endl;
+
         if ((next_space = request.find(" ")) == n)
-        {
-            // std::cout << "error bad request 1.0\n";
             return (false);
-        }
         if ((next_nl = request.find(NL)) == n)
-        {
-            // std::cout << "error bad request 1.1\n";
             return (false);
-        }
         if (next_nl < request.length())
             request = request.substr(0, next_nl);
         request += "   ";
         if (request.substr(0, next_space) != "GET" && request.substr(0, next_space) != "POST" && request.substr(0, next_space) != "DELETE")
-        {
-            // std::cout << "error bad request 1.2\n";
             return (false);
-        }
         _method = request.substr(0, next_space);
+        //std::cout << request.substr(0, next_space) << " " << _method << std::endl;
         request.erase(0, next_space);
-        // Check & get path
         if ((next_space = request.find_first_not_of(" ")) == n)
-        {
-            // std::cout << "error bad request 1.3\n";
             return (false);
-        }
         request.erase(0, next_space);
         if ((next_space = request.find(" ")) == n)
-        {
-            // std::cout << "error bad request 1.4\n";
             return (false);
-        }
-        // if (!file_exist((request.substr(0, next_space)).c_str())) //secu
-        // return false;
         _path = request.substr(0, next_space); // secu
         request.erase(0, next_space);          //secu
                                                // Check version
         request.erase(0, request.find_first_not_of(" "));
         next_space = request.find(" ");
         if (next_space == n)
-        {
-            // std::cout << "error bad request 1.5\n";
             return (false);
-        }
         if (request.substr(0, next_space) != "HTTP/1.1" && request.substr(0, next_space) != "HTTP/1.0")
-        {
-            // std::cout << "error bad request 1.6\n";
             return (false);
-        }
         _version = request.substr(0, next_space);
         return true;
     }
@@ -322,7 +287,7 @@ private:
         _header[15] = "Server"; // Pas dans la requete ?
         _header[16] = "Transfer-Encoding";
         _header[17] = "User-Agent";
-        _header[18] = "Www-Authenticate";
+        _header[18] = "Www-Authenticate"; // Pas utile ?
         _header[19] = "Connection";
         _header[20] = "Accept";
         _header[21] = "Cookie";

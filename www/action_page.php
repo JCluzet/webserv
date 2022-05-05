@@ -1,3 +1,3 @@
 <?php
-echo "Bonjour " . $_GET['lname'] . " " . $_GET['fname'] . " !";
+echo "Bonjour " . $_POST["lname"] . " " . $_POST["fname"] . " !";
 ?>

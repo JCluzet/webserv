@@ -3,12 +3,12 @@
 class Response
 {
 public:
-    Response(Request *request, Server *conf) : _conf(conf), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
+    Response(Client* client, Server *conf) : _conf(conf), _request(client->request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
     {
         std::string cgi_response = "";
         get_filepath();
         if (is_cgi() == true)
-            cgi_response = treat_cgi();
+            cgi_response = treat_cgi(client);
         set_redirection(cgi_response);
         get_status();
         get_content_type();
@@ -75,8 +75,9 @@ private:
     std::string _filepath;
     int _stat_rd;
 
-    bool    is_cgi(void);
-    std::string&    treat_cgi(void);
+    bool            is_cgi(void);
+    std::string&    treat_cgi(Client* client);
+    int             method_delete(void);
 };
 
 // getter de ready, constructeur par defaut et copie, et fonction clear et getter qui dit si cest vide (is_empty), et sil le texte est faux il faut clear

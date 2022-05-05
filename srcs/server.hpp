@@ -12,7 +12,7 @@
 
 #pragma once
 
-#define LOG 0
+#define LOG 1
 
 // #include "utils.hpp"
 #define RED "\033[1;31m"
@@ -75,7 +75,7 @@ std::string getHour();
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
-Response response_sender(std::string client, Request *request, Server *conf);
+Response response_sender(std::string data, Client* client, Server *conf);
 
 std::string cut_aftercomma(std::string s);
 std::string getDate();
@@ -85,11 +85,12 @@ std::string get_status(int ans);
 std::string getHeader(std::string client_data, std::string file_content, int ans);
 std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
-std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Request *request, Server* server);
+std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Client* client, Server* server);
 // std::string    cgi_exec(char** cmd, char **env, Request* request);
 std::string    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Request* request);
 //utils
 bool            readinFile(std::string filename, std::string *fileContent);
+bool            is_number(char c);
 bool            is_space(const char c);
 bool            is_blanck(const char c);
 std::string     intToStr(int n);

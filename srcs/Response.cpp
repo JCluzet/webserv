@@ -39,22 +39,58 @@ int Response::set_redirection(std::string cgi_response)
     if (_filepath == "")
     {
         _stat_rd = 400;
-        return(1);
+        return (1);
     }
-    if (_conf->autoindex && is_directory(_filepath))
+    if (is_directory(_filepath))
     {
-        indexGenerator(&_filecontent, _filepath);
-        _stat_rd = 200; 
+        if (_request->get_method() != "GET")
+        {
+            _stat_rd = 400;
+            return (1);
+        }
+        if (_conf->autoindex)
+        {
+            indexGenerator(&_filecontent, _filepath);
+            _stat_rd = 200;
+        }
     }
     else
     {
-        if (cgi_response == "")
+        
+        std::string method = _request->get_method();
+        if (method == "DELETE")
+        {
+            _stat_rd = method_delete();
+            if (_stat_rd != 200)
+                return (1);
+        }
+        else if (method == "GET" && cgi_response == "")
             _stat_rd = readFile(_filepath.c_str(), &_filecontent);
         else
+        {
             _filecontent = cgi_response;
-        _stat_rd = 200;
+            _stat_rd = 200;
+        }
     }
     return (0);
+}
+
+int Response::method_delete(void)
+{
+    
+    std::ifstream ifs;
+    ifs.open(_filepath.c_str());
+
+    if (!ifs)
+        return (404);
+    ifs.close();
+    if (_request->get_header("Authorization") == "user42")
+    {
+        if (remove(_filepath.c_str()) < 0)
+            return (500); // 500 Internal Server Error / avec strerror ?/// bonne erreur ?
+        return (200);
+    }
+    return (403); // Forbidden: you don't have permission /// bonne erreur ??
 }
 
 int Response::get_content_type()
@@ -122,48 +158,35 @@ bool    Response::is_cgi(void)
     return false;
 }
 
-std::string&    Response::treat_cgi(void)
+std::string&    Response::treat_cgi(Client* client)
 {
     std::string str;
     std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
     std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
     // char**  cmd = new char*[3];
-    std::vector<std::string> cmd;
+    std::vector<std::string> cmd(2);
+
     if (_request->get_method() == "POST")
     {
         if (_request->get_path().find(".php") != std::string::npos)
         {
-            // cmd[0] = new char[cmd_cgi.length() + 1];
             cmd[0] = cmd_cgi;
-            // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
-            // cmd[1] = new char[cmd_path.length() + 1];
             cmd[1] = cmd_path;
-            // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
-            // cmd[2] = NULL;
             _filepath = _filepath.substr(0, _filepath.find(".php") + 4);
         }
-        _response = cgi_exec(cmd, cgi_env(cmd_cgi, "", _request, _conf), _request);
+        _response = cgi_exec(cmd, cgi_env(cmd_cgi, "", client, _conf), _request);
     }
     if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
     {
         cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
-        // cmd[0] = new char[cmd_cgi.length() + 1];
-        // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
         cmd[0] = cmd_cgi;
-        // cmd[1] = new char[cmd_path.length() + 1];
-        // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
         cmd[1] = cmd_path;
-        // cmd[2] = NULL;
         str = _request->get_path().substr(_request->get_path().find(".php?") + 5, _request->get_path().length());
         _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-        _response = cgi_exec(cmd, cgi_env(cmd_cgi, str, _request, _conf), _request);
+        _response = cgi_exec(cmd, cgi_env(cmd_cgi, str, client, _conf), _request);
     }
-    std::cout << cmd_cgi << " " << cmd_path << std::endl << std::endl;
-    std::cout << _response << std::endl;
+    //std::cout << std::endl << _response << std::endl;
     _response = _response.substr(_response.find("\r\n\r\n") + 4, _response.length());
-    // delete [] cmd[1];
-    // delete [] cmd[0];
-    // delete [] cmd;
     return _response;
 }
 

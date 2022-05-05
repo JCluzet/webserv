@@ -5,10 +5,31 @@
 #include <sys/types.h> // For mkdir
 #include <dirent.h> // For mkdir
 #include <fstream> // for readInFile
+#include "Request.hpp"
+
+struct  Client
+{
+  public:
+    Client();
+    Client(int new_socket, struct sockaddr_in new_addr);
+    Client(const Client &src);
+    ~Client();
+
+    Client& operator=(const Client &src);
+    bool    operator==(const Client &c) const;
+
+    Request*            request;
+    int                 socket;
+    int                 pipe_cgi_in[2];
+    int                 pipe_cgi_out[2];
+    struct sockaddr_in  sockaddr;
+};
 
 class Server 
 {
+  // std::vector<t_location> locations;
   public :
+
     Server();
     Server(const Server &src);
     ~Server();
@@ -32,6 +53,8 @@ class Server
     size_t                    lvl;
     std::string               path;
     bool                      alias;
+
+    std::vector<Client>       client;   
 };
 
 class Config
