@@ -175,17 +175,22 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
     int rd;
 
     char **cmd_execve = new char *[cmd.size() + 1];
+    std::cout << "cmd_execve : ";
     for (size_t i = 0; i < cmd.size(); i++)
     {
         cmd_execve[i] = new char[cmd[i].length() + 1];
         cmd_execve[i] = std::strcpy(cmd_execve[i], cmd[i].c_str());
+        std::cout << cmd_execve[i] << " ";
     }
     cmd_execve[cmd.size()] = NULL;
     char **env_execve = new char *[env.size() + 1];
+    std::cout << std::endl;
+    std::cout << "env_execve : ";
     for (size_t i = 0; i < env.size(); i++)
     {
         env_execve[i] = new char[env[i].length() + 1];
         env_execve[i] = std::strcpy(env_execve[i], env[i].c_str());
+        std::cout << env_execve[i] << " ";
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);

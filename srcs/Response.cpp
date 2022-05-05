@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/05 18:22:00 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,11 @@ int Response::set_redirection(std::string cgi_response)
         if (cgi_response == "")
             _stat_rd = readFile(_filepath.c_str(), &_filecontent);
         else
+        {
             _filecontent = cgi_response;
+            std::cout << YELLOW << "[⊛ CGI]        => " << WHITE << "Request output a CGI" << RESET << std::endl;
+            // std::cout << "CGI response: " << _filecontent << std::endl;
+        }
         _stat_rd = 200;
     }
     return (0);
@@ -133,13 +137,8 @@ std::string&    Response::treat_cgi(void)
     {
         if (_request->get_path().find(".php") != std::string::npos)
         {
-            // cmd[0] = new char[cmd_cgi.length() + 1];
-            cmd[0] = cmd_cgi;
-            // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
-            // cmd[1] = new char[cmd_path.length() + 1];
-            cmd[1] = cmd_path;
-            // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
-            // cmd[2] = NULL;
+            cmd.push_back(cmd_cgi);
+            cmd.push_back(cmd_path);
             _filepath = _filepath.substr(0, _filepath.find(".php") + 4);
         }
         _response = cgi_exec(cmd, cgi_env(cmd_cgi, "", _request, _conf), _request);
@@ -147,23 +146,22 @@ std::string&    Response::treat_cgi(void)
     if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
     {
         cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
-        // cmd[0] = new char[cmd_cgi.length() + 1];
         // cmd[0] = std::strcpy(cmd[0], cmd_cgi.c_str());
-        cmd[0] = cmd_cgi;
-        // cmd[1] = new char[cmd_path.length() + 1];
-        // cmd[1] = std::strcpy(cmd[1], cmd_path.c_str());
-        cmd[1] = cmd_path;
-        // cmd[2] = NULL;
+        cmd.push_back(cmd_cgi);
+        cmd.push_back(cmd_path);
+
         str = _request->get_path().substr(_request->get_path().find(".php?") + 5, _request->get_path().length());
         _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-        _response = cgi_exec(cmd, cgi_env(cmd_cgi, str, _request, _conf), _request);
+        std::vector<std::string> veccgi_env = cgi_env(cmd_cgi, str, _request, _conf);
+        // std::cout << "Ligne 1 de Response.cpp" << std::endl;
+        _response = cgi_exec(cmd, veccgi_env, _request);
+        // std::cout << "Ligne 2 de Response.cpp" << std::endl;
     }
-    std::cout << cmd_cgi << " " << cmd_path << std::endl << std::endl;
-    std::cout << _response << std::endl;
-    _response = _response.substr(_response.find("\r\n\r\n") + 4, _response.length());
-    // delete [] cmd[1];
-    // delete [] cmd[0];
-    // delete [] cmd;
+    // std::cout << cmd_cgi << " " << cmd_path << std::endl << std::endl;
+    std::cout << "response from treat_cgi : " << _response << std::endl;
+    if (_response != "")                                                                  // pour 'regler le seg'
+        _response = _response.substr(_response.find("\r\n\r\n") + 4, _response.length()); // ->>segfault quand ligne vide
+    // std::cout << "Ligne 5 de Response.cpp" << std::endl;
     return _response;
 }
 
