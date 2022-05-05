@@ -180,7 +180,7 @@ int main(int argc, char const *argv[])
 	signal(SIGINT, quit_sig);
 
 	if (argc >= 2 && !strcmp(argv[2], "--confdebug"))
-		std::cout << conf << std::endl;
+		std::cout << std::endl << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
 	{
