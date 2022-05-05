@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/05 20:40:37 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,9 +152,26 @@ int Response::get_status()
 bool    Response::is_cgi(void)
 {
     if (_request->get_method() == "POST")
+    {
+        std::cout << GREEN << "[⊛ CGI]        => " << WHITE << "Output treated as CGI POST" << RESET << std::endl;
+        return (true);
+    }
         return true;
     if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
-        return true;
+    {
+        for (unsigned int i = 0; i < _conf->cgi.size(); i++)
+        {
+            std::cout << "allow CGI : " << _conf->cgi[i] << std::endl;
+            if (_request->get_path().find(_conf->cgi[i]) != std::string::npos)
+            {
+                std::cout << GREEN << "[⊛ CGI]        => " << WHITE << "Output treated as CGI" << RESET << std::endl;
+
+                return true;
+            }
+        }
+        std::cout << RED << "[⊛ CGI]        => " << WHITE << "This CGI does not seem to be specified in the config file" << RESET << std::endl;
+        return false;
+    }
     return false;
 }
 
