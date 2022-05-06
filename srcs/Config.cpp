@@ -482,8 +482,8 @@ bool Config::get_conf(const std::string s)
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
-        // if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
-        //     return 1;
+        if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
+            return 1;
         server.push_back(serv_tmp);
         i_loc = 1;
         pass_blanck(s, &i, &line_i);
