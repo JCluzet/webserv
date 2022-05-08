@@ -206,7 +206,7 @@ int main(int argc, char const *argv[])
 			return -1;
 		}
 
-		address = SocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
+		address = SocketAssign(atoi(conf.server[i].port[0].c_str()), &listen_sock[i]); // uniquement le premier port (port 0)
 	}
 	int addrlen = sizeof(address);
 	int high_sock;
@@ -215,7 +215,7 @@ int main(int argc, char const *argv[])
 	//fd_set except_fds;
 	std::cout << "                     ";
 	for (size_t j = 0; j < conf.server.size(); j++)
-		std::cout << RED << "⊛" << WHITE << conf.server[j].port << "  ";
+		std::cout << RED << "⊛" << WHITE << conf.server[j].port[0] << "  ";
 	std::cout << RESET << std::endl
 			  << std::endl;
 
@@ -265,7 +265,7 @@ int main(int argc, char const *argv[])
 							  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.server[j].port << RESET << std::endl;
+				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf.server[j].port[0] << RESET << std::endl;
 				fcntl(new_socket, F_SETFL, O_NONBLOCK);
 				if (conf.server[j].client.size() < CO_MAX) // A mettre avec FD_ISSET ?
 				{
@@ -274,7 +274,7 @@ int main(int argc, char const *argv[])
 				else
 				{
 					close(new_socket);
-					std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+					std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port[0] << RESET << std::endl;
 				}
 			}
 		}
@@ -291,7 +291,7 @@ int main(int argc, char const *argv[])
 				{
 					if ((valread = read(client->socket, data, 10)) <= 0)
 					{
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port[0] << RESET << std::endl;
 						close(client->socket);
 						conf.server[j].client.erase(conf.server[j].client.begin() + i);
 					}
@@ -322,7 +322,7 @@ int main(int argc, char const *argv[])
 					if ((valread = read(client->pipe_cgi_out[0], data, 10)) < 0)
 			        {
 						close(client->pipe_cgi_out[0]);
- 			        	std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+ 			        	std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port[0] << RESET << std::endl;
 						close(client->socket);
 						conf.server[j].client.erase(conf.server[j].client.begin() + i);
    				    }
@@ -347,7 +347,7 @@ int main(int argc, char const *argv[])
 					write(client->socket, client->response->get_response().c_str(), client->response->get_response().length());
 					if (client->response->getstat() == 400)
 					{
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port[0] << RESET << std::endl;
 						close(client->socket);
 						conf.server[j].client.erase(conf.server[j].client.begin() + i);
 					}

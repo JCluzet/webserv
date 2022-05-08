@@ -88,7 +88,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str += "HTTP/1.1";
     env[14] = str;
     str = "SERVER_PORT="; // The port number of the host on which the server is running.
-    str += server->port;
+    str += server->port[0];                                                                                                                   // !!! THIS TAKE ONLY the first port of the server !!!
     env[15] = str;
     str = "SERVER_SOFTWARE="; // The name and version of the server software that is answering the client client->request
     str += "WebServ/1.0";
