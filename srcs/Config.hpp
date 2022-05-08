@@ -22,9 +22,9 @@ class Server
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
 
-    int                       id;
-    std::string               ip;
-    std::string               host;
+    int                       id; // Server id
+    std::string               ip; // Server adresse ip
+    std::string               host; // Server hostname
     std::vector<std::string>  port;
     std::string               root;
     std::string               index;
@@ -32,13 +32,14 @@ class Server
     std::string               client_body_buffer_size;
     bool                      methods[3];
     std::vector<std::string>  cgi;
-    std::vector<Server>       loc;
+    std::vector<Server>       loc; // locations
     bool                      autoindex;
     bool                      valid;
-    size_t                    lvl;
-    std::string               path;
+    std::vector<Client>       client;
+    //ONLY FOR LOCATIONS 
+    size_t                    lvl; // if > 0, it's a location
+    std::string               path; // location path
     bool                      alias;
-    std::vector<Client>       client;   
 };
 
 class Config
