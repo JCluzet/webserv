@@ -35,11 +35,11 @@ class Server
     std::vector<Server>       loc; // locations
     bool                      autoindex;
     bool                      valid;
-    std::vector<Client>       client;
     //ONLY FOR LOCATIONS 
     size_t                    lvl; // if > 0, it's a location
     std::string               path; // location path
     bool                      alias;
+    std::vector<Client>       client;
 };
 
 class Config
