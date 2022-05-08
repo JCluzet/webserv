@@ -30,7 +30,7 @@ class Server
     std::string               index;
     std::string               error404;
     std::string               client_body_buffer_size;
-    bool                      methods[3];
+    bool                      methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
     std::vector<std::string>  cgi;
     std::vector<Server>       loc; // locations
     bool                      autoindex;
