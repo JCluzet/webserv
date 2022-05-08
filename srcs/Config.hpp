@@ -25,7 +25,7 @@ class Server
     int                       id;
     std::string               ip;
     std::string               host;
-    std::string               port;
+    std::vector<std::string>  port;
     std::string               root;
     std::string               index;
     std::string               error404;

@@ -1,24 +1,23 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
-                    , error404(""), client_body_buffer_size(""), autoindex(0), valid(0)
-                    , lvl(0), path(""), alias(0), client()
-{ methods[0] = 0; methods[1] = 0; methods[2] = 0;}
+Server::Server() : id(0), ip(""), host(""), root(""), index(""), error404(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), alias(0), client()
+{
+    methods[0] = 0;
+    methods[1] = 0;
+    methods[2] = 0;
+}
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port)
-                            , root(src.root), index(src.index), error404(src.error404)
-                            , client_body_buffer_size(src.client_body_buffer_size)
-                            , cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
-                            , valid(src.valid), lvl(src.lvl), path(src.path), alias(src.alias)
-                            , client(src.client){
+Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port), root(src.root), index(src.index), error404(src.error404), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), alias(src.alias), client(src.client)
+{
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
-    methods[2] = src.methods[2];}
+    methods[2] = src.methods[2];
+}
 
 Server::~Server() {}
 
-Server& Server::operator=(const Server &src)
+Server &Server::operator=(const Server &src)
 {
     id = src.id;
     ip = src.ip;
@@ -43,23 +42,21 @@ Server& Server::operator=(const Server &src)
     return *this;
 }
 
-bool	Server::operator==(const Server &c) const
-    { return (cgi == c.cgi && id == c.id && ip == c.ip && host == c.host && port == c.port && root == c.root
-        && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size
-        && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0]
-        && methods[1] == c.methods[1] && methods[2] == c.methods[2] && alias == c.alias
-        && lvl == c.lvl && path == c.path && loc == c.loc && client == c.client); }
+bool Server::operator==(const Server &c) const
+{
+    return (cgi == c.cgi && id == c.id && ip == c.ip && host == c.host && port == c.port && root == c.root && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0] && methods[1] == c.methods[1] && methods[2] == c.methods[2] && alias == c.alias && lvl == c.lvl && path == c.path && loc == c.loc && client == c.client);
+}
 
-//CONFIG
+// CONFIG
 Config::Config() : valid(0) {}
 
 Config::Config(const std::string filename) : valid(0) { init(filename); }
 
-Config::Config(const Config& src) : server(src.server), valid(src.valid) {}
+Config::Config(const Config &src) : server(src.server), valid(src.valid) {}
 
 Config::~Config() {}
 
-Config& Config::operator=(const Config &src)
+Config &Config::operator=(const Config &src)
 {
     if (*this == src)
         return *this;
@@ -70,13 +67,12 @@ Config& Config::operator=(const Config &src)
     return *this;
 }
 
-
-void    Config::init_server(Server* s)
+void Config::init_server(Server *s)
 {
     s->id = 0;
     s->ip = "";
     s->host = "";
-    s->port = "";
+    s->port.clear();
     s->root = "";
     s->index = "";
     s->error404 = "";
@@ -94,11 +90,11 @@ void    Config::init_server(Server* s)
     s->client.clear();
 }
 
-bool    Config::init(const std::string filename)
+bool Config::init(const std::string filename)
 {
     std::string data;
     std::string::size_type a, b;
-    if (filename.substr(filename.length() - 5, 5) != ".conf" || readinFile(filename, &data))//verifie que le fichier existe et est en .conf
+    if (filename.substr(filename.length() - 5, 5) != ".conf" || readinFile(filename, &data)) // verifie que le fichier existe et est en .conf
         return error_msg("Error: Wrong config file extension.") + 1;
     a = data.find('#'); // supprime les commentaires du fichier config
     while (a != std::string::npos)
@@ -112,11 +108,11 @@ bool    Config::init(const std::string filename)
     }
     for (std::string::size_type i = 0; i < data.length(); i++)
         if ((data[i] == ';' || data[i] == '}') && i != 0 && !is_blanck(data[i - 1]))
-            data.insert(i, " "); 
-       return get_conf(data);
+            data.insert(i, " ");
+    return get_conf(data);
 }
 
-bool    Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
+bool Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
 {
     std::string::size_type p = s.find("\n", i);
     if (p == std::string::npos)
@@ -129,7 +125,7 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
     return (0);
 }
 
-bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
+bool Config::get_listen_line(const std::string tmp, Server *serv_tmp)
 {
     std::string::size_type i = 0;
     if (tmp.find(":") != std::string::npos)
@@ -164,11 +160,11 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
         std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
         return 1;
     }
-    serv_tmp->port = tmp.substr (i, 4);
+    serv_tmp->port.push_back(tmp.substr(i, 4));
     return 0;
 }
 
-bool    Config::get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
+bool Config::get_error_page_line(const std::string s, Server *serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
 {
     std::string tmp = "", tmp2 = "";
 
@@ -299,8 +295,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->host = tmp;
                     break;
                 case (1):
-                    if (serv_tmp->port.length())
-                        return (error_config_message(s, *line_i, 14) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -381,6 +375,14 @@ bool Config::check_server(Server s)
     {
         std::cerr << "Error: server " << s.id << ": need a port" << std::endl;
         return 1;
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s.port.size(); i++)
+    {
+        for (std::vector<std::string>::size_type j = 0; j < s.port.size(); j++)
+        {
+            if (i != j && s.port[i] == s.port[j])
+                std::cerr << "Error: server " << s.id << ": port " << s.port[i] << " is already used" << std::endl;
+        }
     }
     if (s.root.empty())
     {
@@ -469,11 +471,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
-    if (src.port.length())
+    for (std::vector<std::string>::size_type j = 0; j < src.port.size(); j++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "port: " << RESET << src.port << std::endl;
+        ostream << WHITE << "port: " << RESET << src.port[j] << std::endl;
     }
     if (src.index.length())
     {
