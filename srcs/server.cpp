@@ -63,7 +63,7 @@ Config check_config(int argc, char const *argv[])
 	}
 
 	Config conf(tmp);
-	if (conf.server.empty())
+	if (!conf.valid)
 	{
 		// std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
 		std::cout << std::endl

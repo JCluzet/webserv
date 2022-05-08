@@ -110,7 +110,10 @@ bool    Config::init(const std::string filename)
             data.erase(a, data.length() - a);
         a = data.find('#');
     }
-    return get_conf(data);
+    for (std::string::size_type i = 0; i < data.length(); i++)
+        if ((data[i] == ';' || data[i] == '}') && i != 0 && !is_blanck(data[i - 1]))
+            data.insert(i, " "); 
+       return get_conf(data);
 }
 
 bool    Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
@@ -156,8 +159,6 @@ bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
         }
         i++;
     }
-    else
-        serv_tmp->ip = "127.0.0.1";
     if (tmp.length() != i + 4 || !is_number(tmp[i]) || !is_number(tmp[i + 1]) || !is_number(tmp[i + 2]) || !is_number(tmp[i + 3]))
     {
         std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
@@ -285,7 +286,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     return (error_config_message(s, *line_i, 11) + 1);
                 pass_blanck(s, i, line_i);
                 if (s.length() <= *i)
-                    return (error_config_message(s, *line_i, 12) + 2);
+                    return (error_config_message(s, *line_i, 12) + 1);
                 o -= (o == 8 ? 1 : 0);
                 switch (o)
                 {
@@ -345,7 +346,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (7):
                     if (*b)
-                        return (error_config_message(s, *line_i, 19));
+                        return (error_config_message(s, *line_i, 19) + 1);
                     if (get_methods_line(s, serv_tmp, i, line_i))
                         return 1;
                     *b = 1;
@@ -358,10 +359,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (10):
                     if (!calling_lvl || serv_tmp->alias)
-                        return (error_config_message(s, *line_i, 20));
+                        return (error_config_message(s, *line_i, 20) + 1);
                     serv_tmp->alias = 1;
                     break;
                 }
+                pass_blanck(s, i, line_i);
+                if (*i >= s.length() || s[*i] != ';')
+                    return (error_config_message(s, *line_i, 21) + 1);
+                *i += 1;
                 pass_blanck(s, i, line_i);
                 return (0);
             }
@@ -385,19 +390,6 @@ bool Config::check_server(Server s)
     if (!is_directory(s.root))
     {
         std::cerr << "Error: server " << s.id << ": root directory path is wrong." << std::endl;
-        return 1;
-    }
-    std::string path;
-    path = s.root;
-    path += "/";
-    if (s.index.length() && !is_file(path + s.index))
-    {
-        std::cerr << "Error: server " << s.id << ": index file doesn't exist." << std::endl;
-        return 1;
-    }
-    if (s.error404.length() && !is_file(path + s.error404))
-    {
-        std::cerr << "Error: server " << s.id << ": 404 error page file doesn't exist." << std::endl;
         return 1;
     }
     return 0;
