@@ -9,11 +9,15 @@
 
 #include <errno.h>
 #include <sstream>
-/*
-char**  cgi_cmd(Request* cmd)
-{
 
-}*/
+bool    is_cgi(Request* request)
+{
+    if (request->get_method() == "POST")
+        return true;
+    if (request->get_method() == "GET" && request->get_path().find(".php?") != std::string::npos)
+        return true;
+    return false;
+}
 
 std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *client, Server *server)
 {
@@ -131,32 +135,6 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
 
     return (env);
 }
-/*
-  if (config_.getMethod() == "POST") {
-        cgi_env_["CONTENT_TYPE"] = req_headers_["Content-Type"];
-        cgi_env_["CONTENT_LENGTH"] = ft::to_string(req_body_.length());
-    }
-    cgi_env_["GATEWAY_INTERFACE"] = "CGI/1.1";
-  cgi_env_["PATH_INFO"] = file_path_;
-    cgi_env_["PATH_TRANSLATED"] = file_path_;
-  cgi_env_["QUERY_STRING"] = config_.getQuery();
-  cgi_env_["REMOTE_ADDR"] = config_.getClient().getAddr();
-
-  if (config_.getAuth() != "off") {
-    cgi_env_["AUTH_TYPE"] = "Basic";
-    cgi_env_["REMOTE_IDENT"] = config_.getAuth().substr(0, config_.getAuth().find(':'));
-    cgi_env_["REMOTE_USER"] = config_.getAuth().substr(0, config_.getAuth().find(':'));
-  }
-
-  cgi_env_["REQUEST_METHOD"] = config_.getMethod();
-    cgi_env_["REQUEST_URI"] = file_path_;
-
-  cgi_env_["SCRIPT_NAME"] = cgi_path_;
-    cgi_env_["SERVER_NAME"] = config_.getHost();
-    cgi_env_["SERVER_PROTOCOL"] = config_.getProtocol();
-    cgi_env_["SERVER_PORT"] = ft::to_string(config_.getPort());
-  cgi_env_["SERVER_SOFTWARE"] = "WEBSERV/1.0";
-*/
 
 void afficher_env(char **env)
 {
@@ -169,14 +147,9 @@ void afficher_env(char **env)
     return;
 }
 
-std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Request *request)
+void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
 {
     pid_t pid;
-    int pfd[2];
-    int pfd2[2];
-    int status;
-    char ret[30001];
-    int rd;
 
     char **cmd_execve = new char *[cmd.size() + 1];
     for (size_t i = 0; i < cmd.size(); i++)
@@ -193,11 +166,7 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);
-    if (pipe(pfd) < 0)
-    {
-        exit(1);
-    }
-    if (pipe(pfd2) < 0)
+    if (pipe(client->pipe_cgi_out) < 0 || pipe(client->pipe_cgi_in) < 0)
     {
         exit(1);
     }
@@ -207,10 +176,10 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
     }
     if (pid == 0)
     {
-        close(pfd2[1]);
-        close(pfd[0]);
-        dup2(pfd[1], 1);
-        dup2(pfd2[0], 0);
+        close(client->pipe_cgi_in[1]);
+        close(client->pipe_cgi_out[0]);
+        dup2(client->pipe_cgi_out[1], 1);
+        dup2(client->pipe_cgi_in[0], 0);
 
         if (execve(cmd[0].c_str(), cmd_execve, env_execve) < 0)
         {
@@ -220,32 +189,47 @@ std::string cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env,
             for (size_t k = 0; k < cmd.size(); k++)
                 delete [] cmd_execve[k];
             delete [] cmd_execve;
-            close(pfd[1]);
+            close(client->pipe_cgi_out[1]);
         }
         exit(1);
     }
     else
     {
-        close(pfd2[0]);
-        close(pfd[1]);
-        if (request->get_method() == "POST")
-        {
-            write(pfd2[1], request->get_body().c_str(), request->get_body().length());
-        }
-        close(pfd2[1]);
-        wait(&status);
-        if ((rd = read(pfd[0], ret, 30000)) < 0)
-        {
-            exit(1);
-        }
-        close(pfd[0]);
-        ret[rd] = '\0';
+        close(client->pipe_cgi_in[0]);
+        close(client->pipe_cgi_out[1]);
         for (size_t k = 0; k < env.size(); k++)
             delete [] env_execve[k];
         delete [] env_execve;
         for (size_t k = 0; k < cmd.size(); k++)
             delete [] cmd_execve[k];
         delete [] cmd_execve;
+        //wait(&status);
     }
-    return (ret);
+    return ;
+}
+
+void    treat_cgi(Server* server, Client* client)
+{
+    std::string str;
+    std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
+    std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path();
+    std::vector<std::string> cmd(2);
+    if (client->request->get_method() == "POST")
+    {
+        if (client->request->get_path().find(".php") != std::string::npos)
+        {
+            cmd[0] = cmd_cgi;
+            cmd[1] = cmd_path;
+        }
+        cgi_exec(cmd, cgi_env(cmd_cgi, "", client, server), client);
+    }
+    if (client->request->get_method() == "GET" && client->request->get_path().find(".php?") != std::string::npos)
+    {
+        cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
+        cmd[0] = cmd_cgi;
+        cmd[1] = cmd_path;
+        str = client->request->get_path().substr(client->request->get_path().find(".php?") + 5, client->request->get_path().length());
+        cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server), client);
+    }
+    return ;
 }

@@ -137,6 +137,8 @@ void build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *writ
 		{
 			if (conf->server[j].client[i].socket != -1)
 				FD_SET(conf->server[j].client[i].socket, read_fds);
+			if (conf->server[j].client[i].pipe_cgi_out[0] != -1)
+				FD_SET(conf->server[j].client[i].pipe_cgi_out[0], read_fds);
 		}
 	}
 
@@ -147,6 +149,8 @@ void build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *writ
 		{
 			if (conf->server[j].client[i].socket != -1)
 				FD_SET(conf->server[j].client[i].socket, write_fds);
+			if (conf->server[j].client[i].pipe_cgi_in[1] != -1)
+				FD_SET(conf->server[j].client[i].pipe_cgi_in[1], write_fds);
 		}
 	}
 
@@ -181,7 +185,7 @@ int main(int argc, char const *argv[])
 	signal(SIGINT, quit_sig);
 
 	if (argc >= 2 && !strcmp(argv[2], "--confdebug"))
-		std::cout << std::endl << conf << std::endl;
+		std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
 	{
@@ -231,6 +235,10 @@ int main(int argc, char const *argv[])
 			{
 				if (high_sock < conf.server[j].client[i].socket)
 					high_sock = conf.server[j].client[i].socket;
+				if (high_sock < conf.server[j].client[i].pipe_cgi_in[1])
+					high_sock = conf.server[j].client[i].pipe_cgi_in[1];
+				if (high_sock < conf.server[j].client[i].pipe_cgi_out[0])
+					high_sock = conf.server[j].client[i].pipe_cgi_out[0];
 			}
 		}
 
@@ -261,7 +269,7 @@ int main(int argc, char const *argv[])
 				fcntl(new_socket, F_SETFL, O_NONBLOCK);
 				if (conf.server[j].client.size() < CO_MAX) // A mettre avec FD_ISSET ?
 				{
-					conf.server[j].client.push_back(Client(new_socket, address));
+					conf.server[j].client.push_back(Client(new_socket, address, &conf.server[j]));
 				}
 				else
 				{
@@ -271,44 +279,86 @@ int main(int argc, char const *argv[])
 			}
 		}
 
-		int client_socket;
-		Response response;
+		Client*	client;
+
+		char data[11];
 		for (size_t j = 0; j < conf.server.size(); j++)
 		{
-			response = Response();
 			for (size_t i = 0; i < conf.server[j].client.size(); i++)
 			{
-				client_socket = conf.server[j].client[i].socket;
-				if (FD_ISSET(client_socket, &read_fds))
+				client = &conf.server[j].client[i];
+				if (client->request->ready() == false && FD_ISSET(client->socket, &read_fds)) // read client
 				{
-					char client_data[11];
-					if ((valread = read(client_socket, client_data, 10)) <= 0)
+					if ((valread = read(client->socket, data, 10)) <= 0)
 					{
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(conf.server[j].client[i].sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(conf.server[j].client[i].sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
-						close(client_socket);
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						close(client->socket);
 						conf.server[j].client.erase(conf.server[j].client.begin() + i);
 					}
 					else
 					{
-						client_data[valread] = '\0';
-						response = response_sender(client_data, &conf.server[j].client[i], &conf.server[j]);
+						data[valread] = '\0';
+					    client->request->add(data);
+					    if (client->request->ready())
+					    {
+  							if (is_cgi(client->request) == true)
+							{
+								treat_cgi(&conf.server[j], client);
+							}	        
+						}
 					}
 				}
-			}
-			for (size_t i = 0; i < conf.server[j].client.size(); i++)
-			{
-				if (conf.server[j].client[i].request->ready() == true && FD_ISSET(client_socket, &write_fds))
+				else if (client->request->ready() == true && client->request->get_method() == "POST"
+					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) //write cgi
 				{
-					write(client_socket, response.get_response().c_str(), response.get_response().length());
-					if (response.getstat() == 400)
-					{
-						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(conf.server[j].client[i].sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(conf.server[j].client[i].sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
-						close(client_socket);
+         			write(client->pipe_cgi_in[1], client->request->get_body().c_str(), client->request->get_body().length());
+        			close(client->pipe_cgi_in[1]);
+					client->pipe_cgi_in[1] = -1;
+					client->pipe_cgi_in[0] = -1;
+				}
+				else if (client->request->ready() == true && is_cgi(client->request) && client->pipe_cgi_out[0] != -1
+					&& FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
+				{
+					if ((valread = read(client->pipe_cgi_out[0], data, 10)) < 0)
+			        {
+						close(client->pipe_cgi_out[0]);
+ 			        	std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						close(client->socket);
 						conf.server[j].client.erase(conf.server[j].client.begin() + i);
+   				    }
+					else if (valread == 0)
+					{
+    					close(client->pipe_cgi_out[0]);
+						client->pipe_cgi_out[1] = -1;
+						client->pipe_cgi_out[0] = -1;
+     		   			data[valread] = '\0';
+						client->response->cgi_response += data;
+					}
+					else
+					{
+						data[valread] = '\0';
+						client->response->cgi_response += data;
+					}
+				}
+				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1 && FD_ISSET(client->socket, &write_fds)) // write client
+				{
+					client->response->makeResponse();
+					//std::cout << client->response->get_response() << std::endl;
+					write(client->socket, client->response->get_response().c_str(), client->response->get_response().length());
+					if (client->response->getstat() == 400)
+					{
+						std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf.server[j].port << RESET << std::endl;
+						close(client->socket);
+						conf.server[j].client.erase(conf.server[j].client.begin() + i);
+					}
+					else
+					{
+						output_log(client->response->getstat(), client->response->get_pathfile());
+						client->response->clear();
+						client->request->clear();
 					}
 					//if (LOG == 1)
 					//	output(client_data, response.get_response(), request[j][i].get_request());
-					conf.server[j].client[i].request->clear();
 				}
 			}
 		}

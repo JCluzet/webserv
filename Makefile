@@ -11,7 +11,7 @@ NAME        := webserv
 CC         := c++
 
 # ifeq ($(UNAME), Darwin)
-FLAGS    = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+FLAGS    = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3
 # endif
 # ifeq ($(UNAME), Linux)
 # FLAGS    = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3
@@ -38,6 +38,7 @@ SRCS        :=      srcs/utils.cpp \
 						srcs/Response.cpp \
 						srcs/Config.cpp \
 						srcs/cgi.cpp \
+						srcs/Client.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 

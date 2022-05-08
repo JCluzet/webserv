@@ -1,57 +1,6 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Client::Client() : request(new Request())
-{
-    socket = -1;
-    pipe_cgi_in[0] = -1;
-    pipe_cgi_in[1] = -1;
-    pipe_cgi_out[0] = -1;
-    pipe_cgi_out[1] = -1;
-    sockaddr = sockaddr_in();
-    return ;
-}
-
-Client::Client(int new_socket, sockaddr_in new_addr) : request(new Request())
-{
-    socket = new_socket;
-    pipe_cgi_in[0] = -1;
-    pipe_cgi_in[1] = -1;
-    pipe_cgi_out[0] = -1;
-    pipe_cgi_out[1] = -1;
-    sockaddr = new_addr;
-    return ;
-}
-
-Client::Client(const Client& src) : request(new Request())
-{
-    *this = src;
-    return ;
-}
-
-Client::~Client()
-{
-    delete request;
-    return ;
-}
-
-Client& Client::operator=(const Client& op2)
-{
-    delete request;
-    request = new Request(*op2.request);
-    socket = op2.socket;
-    pipe_cgi_in[0] = op2.pipe_cgi_in[0];
-    pipe_cgi_in[1] = op2.pipe_cgi_in[1];
-    pipe_cgi_out[0] = op2.pipe_cgi_out[0];
-    pipe_cgi_out[1] = op2.pipe_cgi_out[1];
-    sockaddr = op2.sockaddr;
-    return (*this);
-}
-
-bool	Client::operator==(const Client &c) const
-{ return (socket == c.socket && pipe_cgi_in == c.pipe_cgi_in
-    && pipe_cgi_out == c.pipe_cgi_out); }
-
 Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
                     , error404(""), client_body_buffer_size(""), autoindex(0), valid(0)
                     , lvl(0), path(""), alias(0), client()
@@ -142,6 +91,7 @@ void    Config::init_server(Server* s)
     s->alias = 0;
     s->lvl = 0;
     s->path = "";
+    s->client.clear();
 }
 
 bool    Config::init(const std::string filename)

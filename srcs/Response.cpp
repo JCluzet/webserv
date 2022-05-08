@@ -6,11 +6,57 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/05 20:40:37 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
+
+Response::Response(Request* request, Server* srv) : _conf(srv), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
+{
+    cgi_response = "";
+    _response = "";
+    return ;
+}
+
+Response::Response()
+{
+    _stat_rd = 400;
+    _header = "";
+    _content_type = "text/html";
+    _filecontent = "";
+    _filepath = "";
+    _request = NULL;
+    _response = "";
+    cgi_response = "";
+}
+
+Response::Response(Response const &src)
+{
+    _conf = src._conf;
+    _request = src._request;
+    _header = src._header;
+    _content_type = src._content_type;
+    _filecontent = src._filecontent;
+    _filepath = src._filepath;
+    _stat_rd = src._stat_rd;
+    cgi_response = src.cgi_response;
+        
+    _response = src._response;
+}
+
+Response&   Response::operator=(const Response &src)
+{
+    _stat_rd = src._stat_rd;
+    _header = src._header;
+    _content_type = src._content_type;
+    _filecontent = src._filecontent;
+    _filepath = src._filepath;
+    _request = src._request;
+    _response = src._response;
+    cgi_response = src.cgi_response;
+    return (*this);
+}
 
 std::string Response::getHeader()
 {
@@ -22,6 +68,40 @@ std::string Response::getHeader()
     head += "\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\r\n\r\n";
     return (head);
+}
+
+void    Response::makeResponse()
+{
+    get_filepath();
+    std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
+    std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
+    if ((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos)
+        || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
+    {
+        if (_request->get_method() == "GET")
+            _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+        if (cgi_response.find("\r\n\r\n") != std::string::npos)
+            cgi_response = cgi_response.substr(cgi_response.find("\r\n\r\n") + 4, cgi_response.length());
+        set_redirection(cgi_response);
+    }
+    else
+        set_redirection("");
+    get_status();
+    get_content_type();
+    _response = getHeader() + _filecontent + "\r\n\r\n";
+    return ;
+}
+
+void    Response::clear()
+{
+    _header = "";
+    _content_type = "text/html";
+    _filecontent = "";
+    _filepath = "";
+    _stat_rd = 400;
+    cgi_response = "";
+    _response = "";
+    return ;
 }
 
 std::string Response::getDate()
@@ -115,8 +195,6 @@ void Response::get_filepath()
     if (_request->get_path() != "")
     {
         _filepath = _conf->root + _request->get_path();
-        // if (is_a_cgi(_filepath))
-        //     _isaCGI = true;
         if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
             _filepath += "/";
         if (is_directory(_filepath) && !_conf->autoindex)
@@ -147,64 +225,6 @@ int Response::get_status()
     else if (_stat_rd == 200)
         _status = "200 OK";
     return (0);
-}
-
-bool    Response::is_cgi(void)
-{
-    if (_request->get_method() == "POST")
-    {
-        std::cout << GREEN << "[⊛ CGI]        => " << WHITE << "Output treated as CGI POST" << RESET << std::endl;
-        return (true);
-    }
-        return true;
-    if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
-    {
-        for (unsigned int i = 0; i < _conf->cgi.size(); i++)
-        {
-            std::cout << "allow CGI : " << _conf->cgi[i] << std::endl;
-            if (_request->get_path().find(_conf->cgi[i]) != std::string::npos)
-            {
-                std::cout << GREEN << "[⊛ CGI]        => " << WHITE << "Output treated as CGI" << RESET << std::endl;
-
-                return true;
-            }
-        }
-        std::cout << RED << "[⊛ CGI]        => " << WHITE << "This CGI does not seem to be specified in the config file" << RESET << std::endl;
-        return false;
-    }
-    return false;
-}
-
-std::string&    Response::treat_cgi(Client* client)
-{
-    std::string str;
-    std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
-    std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
-    // char**  cmd = new char*[3];
-    std::vector<std::string> cmd(2);
-
-    if (_request->get_method() == "POST")
-    {
-        if (_request->get_path().find(".php") != std::string::npos)
-        {
-            cmd[0] = cmd_cgi;
-            cmd[1] = cmd_path;
-            _filepath = _filepath.substr(0, _filepath.find(".php") + 4);
-        }
-        _response = cgi_exec(cmd, cgi_env(cmd_cgi, "", client, _conf), _request);
-    }
-    if (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)
-    {
-        cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
-        cmd[0] = cmd_cgi;
-        cmd[1] = cmd_path;
-        str = _request->get_path().substr(_request->get_path().find(".php?") + 5, _request->get_path().length());
-        _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-        _response = cgi_exec(cmd, cgi_env(cmd_cgi, str, client, _conf), _request);
-    }
-    //std::cout << std::endl << _response << std::endl;
-    _response = _response.substr(_response.find("\r\n\r\n") + 4, _response.length());
-    return _response;
 }
 
 int Response::readFile(std::string filename, std::string *fileContent)

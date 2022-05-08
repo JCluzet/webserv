@@ -11,6 +11,7 @@ void output_log(int ans, std::string filetosearch)
         std::cout << RED << "[⊛ 404]        => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
 }
 
+/*
 Response response_sender(std::string data, Client* client, Server *conf)
 {
     client->request->add(data);
@@ -23,4 +24,4 @@ Response response_sender(std::string data, Client* client, Server *conf)
     Response tmp;
     output_log(tmp.getstat(), tmp.get_pathfile());
     return(tmp);
-}
+}*/

@@ -1,71 +1,15 @@
 #pragma once
 
+#include "server.hpp"
+
+class Server;
+class Request;
+
 class Response
 {
-public:
-    Response(Client* client, Server *conf) : _conf(conf), _request(client->request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
-    {
-        std::string cgi_response = "";
-        get_filepath();
-        if (is_cgi() == true)
-            cgi_response = treat_cgi(client);
-        set_redirection(cgi_response);
-        get_status();
-        get_content_type();
-        _response = getHeader() + _filecontent + "\r\n\r\n";
-    }
-    Response()
-    {
-        _stat_rd = 400;
-        _header = "";
-        _content_type = "text/html";
-        _filecontent = "";
-        _filepath = "";
-        _response = "";
-    }
-
-    Response(Response const &src)
-    {
-        _conf = src._conf;
-        _request = src._request;
-        _header = src._header;
-        _content_type = src._content_type;
-        _filecontent = src._filecontent;
-        _filepath = src._filepath;
-        _stat_rd = src._stat_rd;
-        _response = src._response;
-    }
-
-    Response operator=(const Response &src)
-    {
-        _stat_rd = src._stat_rd;
-        _header = src._header;
-        _content_type = src._content_type;
-        _filecontent = src._filecontent;
-        _filepath = src._filepath;
-        _response = src._response;
-        return (*this);
-    }
-
-    std::string getDate();
-    std::string getHeader();
-    std::string get_pathfile() { return (_filepath); }
-    int readFile(std::string filename, std::string *fileContent);
-    std::string get_response() { return (_response); }
-    std::string getBody() { return (_filecontent); }
-    int get_status();
-    int set_redirection(std::string cgi_response);
-    int getstat() { return (_stat_rd); }
-    int get_content_type();
-
-    bool is_waiting() { return (_is_waiting); }
-    void get_filepath();
-
-    ~Response(void){};
-
 private:
-    Server *_conf;
-    Request *_request;
+    Server*     _conf;
+    Request*    _request;
     std::string _status;
     int _is_waiting;
     std::string _header;
@@ -73,11 +17,38 @@ private:
     std::string _response;
     std::string _filecontent;
     std::string _filepath;
-    int _stat_rd;
+    int         _stat_rd;
 
-    bool            is_cgi(void);
-    std::string&    treat_cgi(Client* client);
     int             method_delete(void);
+
+public:
+    std::string cgi_response;
+
+    Response(Request* request, Server* srv);
+    Response();
+    Response(Response const &src);
+    ~Response() {};
+
+    Response& operator=(const Response &src);
+
+    void        clear();
+    std::string getDate();
+    std::string getHeader();
+    std::string get_pathfile() { return (_filepath); }
+    int readFile(std::string filename, std::string *fileContent);
+    std::string get_response() { return (_response); }
+    std::string getBody() { return (_filecontent); }
+    Request*    getRequest() { return (_request); }
+    void        setRequest(Request* req) { _request = req; return ; }
+    int get_status();
+    int set_redirection(std::string cgi_response);
+    int getstat() { return (_stat_rd); }
+    int get_content_type();
+
+    bool is_waiting() { return (_is_waiting); }
+    void get_filepath();
+    void makeResponse();
+
 };
 
 // getter de ready, constructeur par defaut et copie, et fonction clear et getter qui dit si cest vide (is_empty), et sil le texte est faux il faut clear

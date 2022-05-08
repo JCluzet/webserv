@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <cstring>
+#include "Client.hpp"
 
 struct server_data {
     std::string header;
@@ -75,8 +76,11 @@ std::string getHour();
 std::string findInHeader(std::string header, std::string s);
 // void response_sender(server_data *server, std::string client_data, Config *conf);
 // void response_sender(server_data *server, std::string client_data, s_server *conf);
-Response response_sender(std::string data, Client* client, Server *conf);
+//Response response_sender(std::string data, Client* client, Server *conf);
+bool        is_cgi(Request* request);
+void    treat_cgi(Server* server, Client* client);
 
+void output_log(int ans, std::string filetosearch);
 std::string cut_aftercomma(std::string s);
 std::string getDate();
 std::string getContentType(std::string client_data);
@@ -87,7 +91,7 @@ std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
 std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Client* client, Server* server);
 // std::string    cgi_exec(char** cmd, char **env, Request* request);
-std::string    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Request* request);
+void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client* client);
 //utils
 bool            readinFile(std::string filename, std::string *fileContent);
 bool            is_number(char c);
