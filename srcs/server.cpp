@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 
 #define CO_MAX 20
+#define DEFAULT_CONF "config/default.conf"
 
 bool exit_status = false;
 
@@ -52,7 +53,8 @@ Config check_config(int argc, char const *argv[])
 			  << WHITE;
 	if (argc == 1 || strcmp("--debug", argv[1]) == 0)
 	{
-		tmp = "config/default.conf";
+		// std::cout << WHITE << "[" << BLUE << "⊛" << WHITE << "] => " << WHITE << "Start using default config " << RESET << tmp << std::endl;
+		tmp = DEFAULT_CONF;
 	}
 	else
 		tmp = argv[1];
@@ -75,17 +77,17 @@ Config check_config(int argc, char const *argv[])
 	return conf;
 }
 
-void output(std::string client_data, std::string server_data, std::string request_cast)
+void output(std::string client_data, std::string server_data)
 {
-	(void)server_data;
-	(void)client_data;
+	// (void)server_data;
+	// (void)client_data;
 	std::cout << WHITE << "\nRequest: \n"
 			  << RESET << client_data << std::endl;
-	std::cout << WHITE << "\nRequest CAST: \n"
-			  << RESET << request_cast << std::endl;
+	// std::cout << WHITE << "\nRequest CAST: \n"
+	// 		  << RESET << request_cast << std::endl;
 
 	std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
-			  << server_data << std::endl;
+			  << server_data << WHITE << "<INVISIBLE BODY>" << std::endl;
 }
 
 sockaddr_in SocketAssign(int port, int *server_fd)
@@ -184,7 +186,7 @@ int main(int argc, char const *argv[])
 	int listen_sock[conf.server.size()];
 	signal(SIGINT, quit_sig);
 
-	if (argc >= 2 && !strcmp(argv[2], "--confdebug"))
+	if (argc > 2 && !strcmp(argv[2], "--confdebug"))
 		std::cout << conf << std::endl;
 
 	for (size_t i = 0; i < conf.server.size(); i++)
@@ -354,11 +356,11 @@ int main(int argc, char const *argv[])
 					else
 					{
 						output_log(client->response->getstat(), client->response->get_pathfile());
+						if (argc == 2 && !strcmp(argv[1], "--debug"))
+							output(client->request->get_request(), client->response->getHeader());
 						client->response->clear();
 						client->request->clear();
 					}
-					//if (LOG == 1)
-					//	output(client_data, response.get_response(), request[j][i].get_request());
 				}
 			}
 		}
