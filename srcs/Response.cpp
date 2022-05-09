@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/09 13:19:08 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,11 @@ Response&   Response::operator=(const Response &src)
     cgi_response = src.cgi_response;
     return (*this);
 }
+
+bool    Response::operator==(const Response &c) const
+{ return (*_conf == *c._conf && *_request == *c._request && _status == c._status && _is_waiting == c._is_waiting
+            && _header == c._header && _content_type == c._content_type && _response == c._response
+            && _filecontent == c._filecontent && _filepath == c._filepath && _stat_rd == c._stat_rd); }
 
 std::string Response::getHeader()
 {

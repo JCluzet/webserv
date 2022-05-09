@@ -30,6 +30,7 @@ public:
     ~Response() {};
 
     Response& operator=(const Response &src);
+    bool	operator==(const Response &c) const;
 
     void        clear();
     std::string getDate();

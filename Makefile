@@ -39,6 +39,7 @@ SRCS        :=      srcs/utils.cpp \
 						srcs/Config.cpp \
 						srcs/cgi.cpp \
 						srcs/Client.cpp \
+						srcs/Request.cpp \
                           
 OBJS        := ${SRCS:.cpp=.o}
 

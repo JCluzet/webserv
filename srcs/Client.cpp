@@ -53,4 +53,6 @@ Client& Client::operator=(const Client& op2)
 }
 
 bool	Client::operator==(const Client &c) const
-{ (void)c; return (1); }
+{ return (*request == *c.request && *response == *c.response && socket == c.socket && pipe_cgi_in[0] == c.pipe_cgi_in[0]
+            && pipe_cgi_in[1] == c.pipe_cgi_in[1] && pipe_cgi_out[0] == c.pipe_cgi_out[0] && pipe_cgi_out[1] == c.pipe_cgi_out[1]
+            && sockaddr.sin_port == c.sockaddr.sin_port); }

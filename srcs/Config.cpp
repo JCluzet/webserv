@@ -17,7 +17,7 @@ Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port
 
 Server::~Server() {}
 
-Server &Server::operator=(const Server &src)
+Server& Server::operator=(const Server &src)
 {
     id = src.id;
     ip = src.ip;
@@ -42,7 +42,7 @@ Server &Server::operator=(const Server &src)
     return *this;
 }
 
-bool Server::operator==(const Server &c) const
+bool    Server::operator==(const Server &c) const
 {
     return (cgi == c.cgi && id == c.id && ip == c.ip && host == c.host && port == c.port && root == c.root && index == c.index && error404 == c.error404 && client_body_buffer_size == c.client_body_buffer_size && autoindex == c.autoindex && valid == c.valid && methods[0] == c.methods[0] && methods[1] == c.methods[1] && methods[2] == c.methods[2] && alias == c.alias && lvl == c.lvl && path == c.path && loc == c.loc && client == c.client);
 }
@@ -56,7 +56,7 @@ Config::Config(const Config &src) : server(src.server), valid(src.valid) {}
 
 Config::~Config() {}
 
-Config &Config::operator=(const Config &src)
+Config& Config::operator=(const Config &src)
 {
     if (*this == src)
         return *this;
@@ -67,7 +67,7 @@ Config &Config::operator=(const Config &src)
     return *this;
 }
 
-void Config::init_server(Server *s)
+void    Config::init_server(Server *s)
 {
     s->id = 0;
     s->ip = "";
@@ -90,7 +90,7 @@ void Config::init_server(Server *s)
     s->client.clear();
 }
 
-bool Config::init(const std::string filename)
+bool    Config::init(const std::string filename)
 {
     std::string data;
     std::string::size_type a, b;
@@ -112,7 +112,7 @@ bool Config::init(const std::string filename)
     return get_conf(data);
 }
 
-bool Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
+bool    Config::error_config_message(const std::string s, const std::string::size_type i, const int a) const
 {
     std::string::size_type p = s.find("\n", i);
     if (p == std::string::npos)
@@ -125,7 +125,7 @@ bool Config::error_config_message(const std::string s, const std::string::size_t
     return (0);
 }
 
-bool Config::get_listen_line(const std::string tmp, Server *serv_tmp)
+bool    Config::get_listen_line(const std::string tmp, Server *serv_tmp)
 {
     std::string::size_type i = 0;
     if (tmp.find(":") != std::string::npos)
@@ -164,7 +164,7 @@ bool Config::get_listen_line(const std::string tmp, Server *serv_tmp)
     return 0;
 }
 
-bool Config::get_error_page_line(const std::string s, Server *serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
+bool    Config::get_error_page_line(const std::string s, Server *serv_tmp, std::string::size_type *i, std::string::size_type *line_i)
 {
     std::string tmp = "", tmp2 = "";
 
@@ -369,7 +369,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     }
 }
 
-bool Config::check_server(Server s)
+bool    Config::check_server(Server s)
 {
     if (s.port.empty())
     {
@@ -397,7 +397,7 @@ bool Config::check_server(Server s)
     return 0;
 }
 
-bool Config::get_conf(const std::string s)
+bool    Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     Server serv_tmp;

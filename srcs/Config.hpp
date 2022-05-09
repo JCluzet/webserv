@@ -53,10 +53,10 @@ class Config
     Config(const std::string s);
     Config(const Config& src);
     ~Config();
-    Config& operator=(const Config &src);
 
-    bool  init(const std::string filename);    
-    bool	operator==(const Config &c) const;
+    Config& operator=(const Config &src);
+    bool	  operator==(const Config &c) const;
+    bool    init(const std::string filename);    
 
   private:
 
