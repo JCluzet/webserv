@@ -3,32 +3,34 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/09 13:19:08 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server.hpp"
+#include "server.hpp"//  1: CHANGER RESPONSE pour lire en dehors (les erreur) // 2: AJOUTER UPLOAD dans response/request, ecrire en dehors, faire isupload
 
-Response::Response(Request* request, Server* srv) : _conf(srv), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(400)
+Response::Response(Request* request, Server* srv) : _conf(srv), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
 {
-    cgi_response = "";
+    transfer = "";
+    writing = false;
     _response = "";
     return ;
 }
 
 Response::Response()
 {
-    _stat_rd = 400;
+    _stat_rd = 0;
     _header = "";
     _content_type = "text/html";
     _filecontent = "";
     _filepath = "";
     _request = NULL;
     _response = "";
-    cgi_response = "";
+    transfer = "";
+    writing = false;
 }
 
 Response::Response(Response const &src)
@@ -40,7 +42,8 @@ Response::Response(Response const &src)
     _filecontent = src._filecontent;
     _filepath = src._filepath;
     _stat_rd = src._stat_rd;
-    cgi_response = src.cgi_response;
+    transfer = src.transfer;
+    writing = src.writing;
         
     _response = src._response;
 }
@@ -54,14 +57,10 @@ Response&   Response::operator=(const Response &src)
     _filepath = src._filepath;
     _request = src._request;
     _response = src._response;
-    cgi_response = src.cgi_response;
+    transfer = src.transfer;
+    writing = src.writing;
     return (*this);
 }
-
-bool    Response::operator==(const Response &c) const
-{ return (*_conf == *c._conf && *_request == *c._request && _status == c._status && _is_waiting == c._is_waiting
-            && _header == c._header && _content_type == c._content_type && _response == c._response
-            && _filecontent == c._filecontent && _filepath == c._filepath && _stat_rd == c._stat_rd); }
 
 std::string Response::getHeader()
 {
@@ -75,9 +74,43 @@ std::string Response::getHeader()
     return (head);
 }
 
+int     Response::treatRequest()
+{
+    int fd_file = -1;
+    std::string method = _request->get_method();
+
+    get_filepath();
+    if (_filepath == "")
+    {
+        _stat_rd = 400;
+    //    return (-1);
+    }
+    if (is_directory(_filepath))
+    {
+        if (method != "GET")
+        {
+            _stat_rd = 400;
+    //        return (-1);
+        }
+        if (_conf->autoindex)
+        {
+            indexGenerator(&_filecontent, _filepath);
+            _stat_rd = 200;
+        }
+    }
+    if (method == "DELETE")
+    {
+        _stat_rd = method_delete();
+    //    if (_stat_rd != 200)
+    //        return (-1);
+    }
+    //std::cout << _stat_rd << std::endl;
+    fd_file = openFile();
+    return (fd_file);
+}
+
 void    Response::makeResponse()
 {
-    get_filepath();
     std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
     std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
     if ((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos)
@@ -85,16 +118,19 @@ void    Response::makeResponse()
     {
         if (_request->get_method() == "GET")
             _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-        if (cgi_response.find("\r\n\r\n") != std::string::npos)
-            cgi_response = cgi_response.substr(cgi_response.find("\r\n\r\n") + 4, cgi_response.length());
-        set_redirection(cgi_response);
+        if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
+            _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
+        else
+            _content_type = "text/html";
+        if (transfer.find("\r\n\r\n") != std::string::npos)
+            transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
     }
     else
-        set_redirection("");
-    get_status();
-    get_content_type();
+        get_content_type();
+    if (transfer != "")
+        _filecontent = transfer;
     _response = getHeader() + _filecontent + "\r\n\r\n";
-    // _request->print();
+    //std::cout << _filecontent.length() << std::endl;
     return ;
 }
 
@@ -104,9 +140,10 @@ void    Response::clear()
     _content_type = "text/html";
     _filecontent = "";
     _filepath = "";
-    _stat_rd = 400;
-    cgi_response = "";
+    _stat_rd = 0;
+    transfer = "";
     _response = "";
+    writing = false;
     return ;
 }
 
@@ -120,47 +157,6 @@ std::string Response::getDate()
     return (buf);
 }
 
-int Response::set_redirection(std::string cgi_response)
-{
-    if (_filepath == "")
-    {
-        _stat_rd = 400;
-        return (1);
-    }
-    if (is_directory(_filepath))
-    {
-        if (_request->get_method() != "GET")
-        {
-            _stat_rd = 400;
-            return (1);
-        }
-        if (_conf->autoindex)
-        {
-            indexGenerator(&_filecontent, _filepath);
-            _stat_rd = 200;
-        }
-    }
-    else
-    {
-        
-        std::string method = _request->get_method();
-        if (method == "DELETE")
-        {
-            _stat_rd = method_delete();
-            if (_stat_rd != 200)
-                return (1);
-        }
-        else if (method == "GET" && cgi_response == "")
-            _stat_rd = readFile(_filepath.c_str(), &_filecontent);
-        else
-        {
-            _filecontent = cgi_response;
-            _stat_rd = 200;
-        }
-    }
-    return (0);
-}
-
 int Response::method_delete(void)
 {
     
@@ -170,7 +166,7 @@ int Response::method_delete(void)
     if (!ifs)
         return (404);
     ifs.close();
-    if (_request->get_header("Authorization") == "user42")
+    if (_request->get_header("Authorization") == "user42 token")
     {
         if (remove(_filepath.c_str()) < 0)
             return (500); // 500 Internal Server Error / avec strerror ?/// bonne erreur ?
@@ -182,16 +178,17 @@ int Response::method_delete(void)
 int Response::get_content_type()
 {
     _content_type = "text/html";
+
     if (_request->get_path() != "")
     {
-    if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
-        _content_type = "image/svg+xml";
-    else if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
-        _content_type = "application/pdf";
-    else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
-        _content_type = "image/apng";
-    else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
-        _content_type = "text/css";
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
+            _content_type = "image/svg+xml";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
+            _content_type = "application/pdf";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
+            _content_type = "image/apng";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
+            _content_type = "text/css";
     }
     return (0);
 }
@@ -208,51 +205,46 @@ void Response::get_filepath()
     }
 }
 
-int Response::get_status()
+void    Response::setStatus(int new_status)
 {
+    _stat_rd = new_status;
+    return ; 
+}
+
+int Response::openFile()
+{
+    int fd_file = -1;
+
+    if (_stat_rd == 0)
+    {
+        fd_file = open(_filepath.c_str(), O_RDONLY);
+        if (fd_file < 0)
+            _stat_rd = 404;
+        else
+            _stat_rd = 200;
+    }
     if (_stat_rd == 404)
     {
         if (_conf->error404 == "")
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         else
         {
-            _filepath = _conf->root + "/" + _conf->error404;
-            readFile(_filepath.c_str(), &_filecontent);
             if (_stat_rd == 404 && _conf->error404 == "")
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+            _filepath = _conf->root + "/" + _conf->error404;
+            fd_file = open(_filepath.c_str(), O_RDONLY);
+            if (fd_file < 0)
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
         }
         _status = "404 Not Found";
     }
-    if (_stat_rd == 400)
+    else if (_stat_rd == 400)
     {
         _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad Request.</p>\n</body>\n\n</html>";
         _status = "400 Bad Request";
     }
     else if (_stat_rd == 200)
         _status = "200 OK";
-    return (0);
-}
-
-int Response::readFile(std::string filename, std::string *fileContent)
-{
-    std::string s;
-    std::ifstream ifs;
-    ifs.open(filename.c_str());
-
-    if (!ifs)
-        return (404);
-    getline(ifs, s);
-    if (s == "")
-    {
-        ifs.close();
-        return (404);
-    }
-    *fileContent += s;
-    while (getline(ifs, s))
-    {
-        *fileContent += "\n";
-        *fileContent += s;
-    }
-    ifs.close();
-    return (200);
+    
+    return (fd_file);
 }

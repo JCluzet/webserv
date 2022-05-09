@@ -12,14 +12,14 @@ class  Client
     ~Client();
 
     Client& operator=(const Client &src);
-    bool	operator==(const Client &c) const;
 
     Request*            request;
     Response*           response;
+    struct sockaddr_in  sockaddr;
     int                 socket;
     int                 pipe_cgi_in[2];
     int                 pipe_cgi_out[2];
-    struct sockaddr_in  sockaddr;
+    int                 fd_file;
 };
 
 #endif

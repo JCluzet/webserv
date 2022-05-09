@@ -17,8 +17,12 @@
         <input type="text" id="lname" name="lname"><br><br>
         <input type="submit" value="Submit">
     </form>
-    <br>
-
+    <br><br>
+    <form enctype="multipart/form-data" action="http://localhost:9943/" method="POST">
+        Choose a file to upload: <input name="uploadedfile" type="file" /><br />
+        <input type="submit" value="Upload File" />
+        </form>
+    <br><br>
     <a href="/webservsujet.pdf" download>Download File</a>
     <a href="/webservsujet.pdf">Visualize PDF</a>
 </body>

@@ -22,7 +22,8 @@ private:
     int             method_delete(void);
 
 public:
-    std::string cgi_response;
+    std::string transfer;
+    bool        writing;
 
     Response(Request* request, Server* srv);
     Response();
@@ -30,7 +31,6 @@ public:
     ~Response() {};
 
     Response& operator=(const Response &src);
-    bool	operator==(const Response &c) const;
 
     void        clear();
     std::string getDate();
@@ -41,13 +41,17 @@ public:
     std::string getBody() { return (_filecontent); }
     Request*    getRequest() { return (_request); }
     void        setRequest(Request* req) { _request = req; return ; }
-    int get_status();
+    void        setStatus(int new_status);
+
+    int openFile();
     int set_redirection(std::string cgi_response);
     int getstat() { return (_stat_rd); }
     int get_content_type();
 
     bool is_waiting() { return (_is_waiting); }
     void get_filepath();
+
+    int  treatRequest();
     void makeResponse();
 
 };

@@ -88,7 +88,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str += "HTTP/1.1";
     env[14] = str;
     str = "SERVER_PORT="; // The port number of the host on which the server is running.
-    str += server->port[0];                                                                                                                   // !!! THIS TAKE ONLY the first port of the server !!!
+    str += server->port;
     env[15] = str;
     str = "SERVER_SOFTWARE="; // The name and version of the server software that is answering the client client->request
     str += "WebServ/1.0";
@@ -166,7 +166,11 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);
-    if (pipe(client->pipe_cgi_out) < 0 || pipe(client->pipe_cgi_in) < 0)
+    if (pipe(client->pipe_cgi_out) < 0 )
+    {
+        exit(1);
+    }
+    if (client->request->get_method() == "POST" && pipe(client->pipe_cgi_in) < 0)
     {
         exit(1);
     }

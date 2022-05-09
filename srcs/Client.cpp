@@ -7,6 +7,7 @@ Client::Client() : request(new Request()), response(new Response())
     pipe_cgi_in[1] = -1;
     pipe_cgi_out[0] = -1;
     pipe_cgi_out[1] = -1;
+    fd_file = -1;
     sockaddr = sockaddr_in();
     return ;
 }
@@ -19,6 +20,7 @@ Client::Client(int new_socket, sockaddr_in new_addr, Server *server) : request(n
     pipe_cgi_in[1] = -1;
     pipe_cgi_out[0] = -1;
     pipe_cgi_out[1] = -1;
+    fd_file = -1;
     sockaddr = new_addr;
     return ;
 }
@@ -33,6 +35,16 @@ Client::~Client()
 {
     delete request;
     delete response;
+    if (pipe_cgi_in[0] != -1)
+        close(pipe_cgi_in[0]);
+    if (pipe_cgi_in[1] != -1)
+        close(pipe_cgi_in[1]);
+    if (pipe_cgi_out[0] != -1)
+        close(pipe_cgi_out[0]);
+    if (pipe_cgi_out[1] != -1)
+        close(pipe_cgi_out[1]);
+    if (fd_file != -1)
+        close(fd_file);
     return ;
 }
 
@@ -48,11 +60,7 @@ Client& Client::operator=(const Client& op2)
     pipe_cgi_in[1] = op2.pipe_cgi_in[1];
     pipe_cgi_out[0] = op2.pipe_cgi_out[0];
     pipe_cgi_out[1] = op2.pipe_cgi_out[1];
+    fd_file = op2.fd_file;
     sockaddr = op2.sockaddr;
     return (*this);
 }
-
-bool	Client::operator==(const Client &c) const
-{ return (*request == *c.request && *response == *c.response && socket == c.socket && pipe_cgi_in[0] == c.pipe_cgi_in[0]
-            && pipe_cgi_in[1] == c.pipe_cgi_in[1] && pipe_cgi_out[0] == c.pipe_cgi_out[0] && pipe_cgi_out[1] == c.pipe_cgi_out[1]
-            && sockaddr.sin_port == c.sockaddr.sin_port); }
