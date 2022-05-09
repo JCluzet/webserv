@@ -313,7 +313,7 @@ void	WriteCGI(Client* client)
 	return ;
 }
 
-void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
+void	ReadRequest(Config* conf, Client* client, size_t j)
 {
 	int valread;
 	char data[BUFFER_SIZE + 1];
@@ -415,7 +415,7 @@ int main(int argc, char const *argv[])
 				client = &conf.server[j].client[i];
 				if (client->request->ready() == false && FD_ISSET(client->socket, &read_fds)) // read client
 				{
-					ReadRequest(&conf, client, j, i);
+					ReadRequest(&conf, client, j);
 				}
 				else if (client->request->ready() == true && client->request->get_method() == "POST"
 					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) //write cgi
