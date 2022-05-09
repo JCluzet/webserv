@@ -68,7 +68,7 @@ class Config
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b, size_t calling_lvl, size_t *loc_i);
     bool    get_conf(const std::string s);
-    bool    check_server(Server s);
+    bool    check_server(Server* s);
 };
 
 std::ostream&	operator<<(std::ostream& ostream, const Server& src);

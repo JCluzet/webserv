@@ -244,6 +244,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                                                         , "cgi_pass", "alias"};
     std::string tmp;
     Server      loc_tmp;
+    size_t      j_loc;
     pass_blanck(s, i, line_i);
     if (s_a_have_b(s, *i, "location"))
     {
@@ -258,8 +259,9 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         if (s[*i] != '{')
             return (error_config_message(s, *line_i, 9) + 1);
         *i += 1;
+        j_loc = 1;
         for (bool c = 0, d = 0; *i <= s.length() && s[*i] != '}';)
-            if (get_server_line(s, i, line_i, &loc_tmp, &c, &d, calling_lvl + 1, i_loc))
+            if (get_server_line(s, i, line_i, &loc_tmp, &c, &d, calling_lvl + 1, &j_loc))
                 return 1;
         if (*i <= s.length() && s[*i] != '}')
             return (error_config_message(s, *line_i, 10) + 1);
@@ -355,6 +357,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (!calling_lvl || serv_tmp->alias)
                         return (error_config_message(s, *line_i, 20) + 1);
                     serv_tmp->alias = 1;
+                    if (s[*i] == ';')
+                        serv_tmp->path = "/";
+                    else
+                    {
+                        p = *i;
+                        pass_not_blanck(s, i);
+                        serv_tmp->path = s.substr(p, *i - p);
+                    }
                     break;
                 }
                 pass_blanck(s, i, line_i);
@@ -369,30 +379,43 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     }
 }
 
-bool    Config::check_server(Server s)
+bool    Config::check_server(Server* s)
 {
-    if (s.port.empty())
+    std::string p; 
+    if (s->root.empty())
     {
-        std::cerr << "Error: server " << s.id << ": need a port" << std::endl;
+        std::cerr << "Error: server " << s->id << ": need a root" << std::endl;
         return 1;
     }
-    for (std::vector<std::string>::size_type i = 0; i < s.port.size(); i++)
+    if (!is_directory(s->root))
     {
-        for (std::vector<std::string>::size_type j = 0; j < s.port.size(); j++)
+        std::cerr << "Error: server " << s->id << ": root directory path is wrong." << std::endl;
+        return 1;
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s->port.size(); i++)
+    {
+        for (std::vector<std::string>::size_type j = 0; j < s->port.size(); j++)
         {
-            if (i != j && s.port[i] == s.port[j])
-                std::cerr << "Error: server " << s.id << ": port " << s.port[i] << " is already used" << std::endl;
+            if (i != j && s->port[i] == s->port[j])
+                std::cerr << "Error: server " << s->id << ": port " << s->port[i] << " is already used" << std::endl;
         }
     }
-    if (s.root.empty())
+    if (s->port.empty())
+        s->port.push_back("8080");
+    if (s->ip.empty())
+        s->ip = "0.0.0.0";
+    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
     {
-        std::cerr << "Error: server " << s.id << ": need a root" << std::endl;
-        return 1;
-    }
-    if (!is_directory(s.root))
-    {
-        std::cerr << "Error: server " << s.id << ": root directory path is wrong." << std::endl;
-        return 1;
+        p = s->root;
+        if (p[p.length() - 1] != '/' && s->loc[i].path[0] != '/')
+            p += "/";
+        else if (p[p.length() - 1] == '/' && s->loc[i].path[0] == '/')
+            p.erase(p.length() - 1);
+        if (!is_directory(p + s->loc[i].path))
+        {
+            std::cerr << "Error: server " << s->id << ": location " << s->loc[i].id << ": invalid directory path(" << s->root << "+" << s->loc[i].path << ")." << std::endl;
+            return 1;
+        }
     }
     return 0;
 }
@@ -426,7 +449,7 @@ bool    Config::get_conf(const std::string s)
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
-        if (!(serv_tmp.valid = (check_server(serv_tmp) ? 0 : 1)))
+        if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
         server.push_back(serv_tmp);
         i_loc = 1;
@@ -452,12 +475,6 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
         for (size_t i = 0; i < src.lvl; i++)
             ostream << "\t";
         ostream << WHITE << "location : " << RESET << src.path << std::endl;
-    }
-    if (src.alias)
-    {
-        for (size_t i = 0; i < src.lvl + 1; i++)
-            ostream << "\t";
-        ostream << WHITE << "alias" << std::endl;
     }
     if (src.host.length())
     {

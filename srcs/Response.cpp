@@ -94,6 +94,7 @@ void    Response::makeResponse()
     get_status();
     get_content_type();
     _response = getHeader() + _filecontent + "\r\n\r\n";
+    // _request->print();
     return ;
 }
 
