@@ -221,9 +221,7 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	}
 	if (valwrite < 0)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
-		close(client->socket);
-		conf->server[j].client.erase(conf->server[j].client.begin() + i); // error 500	
+		client->response->setStatus(500);
 	}
 	else if (valwrite == 0)
 	{
@@ -234,6 +232,7 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
+		i--;
 	}
 	else if (client->response->writing == false)
 	{
@@ -326,9 +325,7 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 	}
 	else if (valread == 0)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
-		close(client->socket);
-		conf->server[j].client.erase(conf->server[j].client.begin() + i);
+		client->response->setStatus(500);
 	}
 	else
 	{
