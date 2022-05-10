@@ -45,7 +45,8 @@ class Config
 
     bool  init(const std::string filename);    
     bool	operator==(const Config &c) const;
-    void    set_debug() {_debug = true;}
+    void    set_debug() {_debug = true;
+    std::cout << YELLOW << "--debug" << RESET;}
     bool    get_debug() {return _debug;}
 
   private:
