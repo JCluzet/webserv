@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/10 20:46:27 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/10 20:59:12 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void                        output_debug(std::string request, std::string respon
 void                        treat_cgi(Server* server, Client* client);
 void	                    quit_sig(int sig);
 bool                        is_cgi(Request* request);
-bool	                    indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder);
+bool	                    indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
 int                         run_server(Config conf);
 int                         build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
 std::string                 findInHeader(std::string header, std::string s);
