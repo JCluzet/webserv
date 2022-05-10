@@ -221,7 +221,11 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	}
 	if (valwrite < 0)
 	{
-		client->response->setStatus(500);
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		close(client->socket);
+		conf->server[j].client.erase(conf->server[j].client.begin() + i);
+		i--;
+		return ;
 	}
 	else if (valwrite == 0)
 	{
@@ -313,19 +317,26 @@ void	WriteCGI(Client* client)
 	return ;
 }
 
-void	ReadRequest(Config* conf, Client* client, size_t j)
+void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 {
 	int valread;
 	char data[BUFFER_SIZE + 1];
 
 	if ((valread = read(client->socket, data, BUFFER_SIZE)) < 0)
 	{
-		client->response->setStatus(500);
-		// error 500, envoyer rep avant
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		close(client->socket);
+		conf->server[j].client.erase(conf->server[j].client.begin() + i);
+		i--;
+		return ;
 	}
 	else if (valread == 0)
 	{
-		client->response->setStatus(500);
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		close(client->socket);
+		conf->server[j].client.erase(conf->server[j].client.begin() + i);
+		i--;
+		return ;
 	}
 	else
 	{
@@ -415,7 +426,7 @@ int main(int argc, char const *argv[])
 				client = &conf.server[j].client[i];
 				if (client->request->ready() == false && FD_ISSET(client->socket, &read_fds)) // read client
 				{
-					ReadRequest(&conf, client, j);
+					ReadRequest(&conf, client, j, i);
 				}
 				else if (client->request->ready() == true && client->request->get_method() == "POST"
 					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) //write cgi
