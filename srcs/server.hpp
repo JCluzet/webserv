@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/10 21:10:15 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/10 21:10:53 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #define RESET   "\033[0m"
 #include <unistd.h>
 #include <iostream>
+#include <signal.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
