@@ -1,14 +1,8 @@
-// Server side C program to demonstrate HTTP Server programming
 #include "server.hpp"
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <vector>
-#include <arpa/inet.h>
-
-#define CO_MAX 20
 
 bool exit_status = false;
+
+// class Config;
 
 void launch_browser(int port)
 {
@@ -37,55 +31,6 @@ void launch_browser(int port)
 	system("clear");
 	std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n"
 			  << RESET;
-}
-
-Config check_config(int argc, char const *argv[])
-{
-	std::string tmp;
-	// std::cout << "___       __    ______ ________                               \n__ |     / /_______  /___  ___/______________   ______________\n__ | /| / /_  _ \\_  __ \\____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n__ |/ |/ / /  __/  /_/ /___/ //  __/  /   __ |/ //  __/  /    \n____/|__/  \\___//_.___//____/ \\___//_/    _____/ \\___//_/     \n\n";
-
-	std::cout << WHITE << "___       __    ______ " << RED << "________                               \n"
-			  << WHITE << "__ |     / /_______  /" << RED << "___  ___/______________   ______________\n"
-			  << WHITE << "__ | /| / /_  _ \\_  __ \\" << RED << "____ \\_  _ \\_  ___/_ | / /  _ \\_  ___/\n"
-			  << WHITE << "__ |/ |/ / /  __/  /_/ /" << RED << "___/ //  __/  /   __ |/ //  __/  /    \n"
-			  << WHITE << "____/|__/  \\___//_.___/" << RED << "/____/ \\___//_/    _____/ \\___//_/     \n\n"
-			  << WHITE;
-	if (argc == 1 || strcmp("--debug", argv[1]) == 0)
-	{
-		tmp = "config/default.conf";
-	}
-	else
-		tmp = argv[1];
-	if (access(tmp.c_str(), F_OK) == -1)
-	{
-		std::cout << WHITE << "[" << BLUE << "⊛" << WHITE << "] => " << WHITE << "Config file " << RESET << tmp << WHITE << " not found" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	Config conf(tmp);
-	if (conf.server.empty())
-	{
-		// std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
-		std::cout << std::endl
-				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Configuration ERROR" << std::endl;
-
-		exit(EXIT_FAILURE);
-	}
-	std::cout << WHITE << "[" << getHour() << "] START Web" << RED << "Serv" << WHITE << "   ";
-	return conf;
-}
-
-void output(std::string client_data, std::string server_data, std::string request_cast)
-{
-	(void)server_data;
-	(void)client_data;
-	std::cout << WHITE << "\nRequest: \n"
-			  << RESET << client_data << std::endl;
-	std::cout << WHITE << "\nRequest CAST: \n"
-			  << RESET << request_cast << std::endl;
-
-	std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
-			  << server_data << std::endl;
 }
 
 sockaddr_in ListenSocketAssign(int port, int *listen_sock)
@@ -190,12 +135,6 @@ int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write
 	return (high_sock);
 }
 
-// include atoi lib
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
-
 #define BUFFER_SIZE 1024
 
 void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
@@ -241,11 +180,11 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	else if (client->response->writing == false)
 	{
 		output_log(client->response->getstat(), client->response->get_pathfile());
+	if (conf->get_debug() == true)
+			output_debug(client->request->get_request(), client->response->getHeader());
 		client->response->clear();
 		client->request->clear();
 	}
-	//if (LOG == 1)
-	//	output(client_data, response.get_response(), request[j][i].get_request());
 	return ;
 }
 
@@ -379,29 +318,16 @@ void	NewClients(int* listen_sock, Config* conf, fd_set* read_fds)
 	return ;
 }
 
-int main(int argc, char const *argv[])
+int run_server(Config conf)
 {
+	Client*	client;
 	int		high_sock;
 	fd_set	read_fds;
 	fd_set	write_fds;
-	Client*	client;
-	Config	conf(check_config(argc, argv));
 	int		listen_sock[conf.server.size()];
-
-	signal(SIGINT, quit_sig);
-
-	if (argc >= 2 && !strcmp(argv[2], "--confdebug"))
-		std::cout << conf << std::endl;
-
 	for (size_t i = 0; i < conf.server.size(); i++)
 		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
-
-	std::cout << "                     ";
-	for (size_t j = 0; j < conf.server.size(); j++)
-		std::cout << RED << "⊛" << WHITE << conf.server[j].port << "  ";
-	std::cout << RESET << std::endl
-			  << std::endl;
-
+	
 	while (1)
 	{
 		high_sock = build_fd_set(&listen_sock[0], &conf, &read_fds, &write_fds, NULL);
@@ -414,7 +340,7 @@ int main(int argc, char const *argv[])
 			perror("select error");
 			std::cout << std::endl
 					  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-			exit(EXIT_FAILURE);
+			exit(-1);
 		}
 
 		NewClients(&listen_sock[0], &conf, &read_fds);
@@ -453,6 +379,7 @@ int main(int argc, char const *argv[])
 	}
 	return 0;
 }
+
 
 void quit_sig(int sig)
 {

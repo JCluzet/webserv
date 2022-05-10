@@ -1,29 +1,10 @@
 #pragma once
-
-#include <iostream> // For std
-#include <vector> // for vector
-#include <sys/types.h> // For mkdir
-#include <dirent.h> // For mkdir
-#include <fstream> // for readInFile
-
 #include "server.hpp"
-
-// class Location
-// {
-//   std::string path;
-//   std::string root;
-//   std::string index;
-//   bool exist;
-//   bool valid;
-//   // std::vector<t_locations> l;
-//   int lvl;
-// };
 
 class Client;
 
 class Server 
 {
-  // std::vector<t_location> locations;
   public :
 
     Server();
@@ -44,18 +25,10 @@ class Server
     std::vector<std::string>  cgi;
     bool                      methods[3];
     bool                      autoindex;
+    // bool                      debug;
     bool                      valid;
     std::vector<Client>       client;   
 };
-
-// class Location : Server
-// {
-//   public:
-//     bool        valid;
-//     bool        alias;
-//     std::string path;
-
-// };
 
 class Config
 {
@@ -72,6 +45,8 @@ class Config
 
     bool  init(const std::string filename);    
     bool	operator==(const Config &c) const;
+    void    set_debug() {_debug = true;}
+    bool    get_debug() {return _debug;}
 
   private:
 
@@ -81,10 +56,10 @@ class Config
     bool    error_config_message(const std::string s, const std::string::size_type i, const int a) const;
     bool    get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
-    // bool pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i); // PAS FINIT
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b);
     bool    get_conf(const std::string s);
     bool    check_server(Server s);
+    bool    _debug;
 };
 
 std::ostream&	operator<<(std::ostream& ostream, const Config& src);

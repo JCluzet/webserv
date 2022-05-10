@@ -1,9 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <cstring>
+#include "server.hpp"
 
 std::string sizetToStr(size_t n){
     std::string s;
@@ -19,7 +14,7 @@ std::string sizetToStr(size_t n){
     return s;
 }
 
-bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www")
+bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder)
 {
     DIR *dir = opendir(path.c_str());
     if (!dir){

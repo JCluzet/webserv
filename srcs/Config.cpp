@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include "server.hpp"
 
 Server::Server() : id(0), ip(""), host(""), port(""), root(""), index("")
                     , error404(""), client_body_buffer_size(""), autoindex(0), valid(0), client() 
@@ -47,11 +46,11 @@ bool	Server::operator==(const Server &c) const
 // Location& Location::operator=(const Location &src) { path = src.path; s = src.s; return (*this);}
 // bool      Location::operator==(const Location &c) const { return (path == c.path && s == c.s); }
 
-Config::Config() : valid(0) {}
+Config::Config() : valid(0), _debug(false) {}
 
-Config::Config(const std::string filename) : valid(0) { init(filename); }
+Config::Config(const std::string filename) : valid(0) , _debug(false){ init(filename); }
 
-Config::Config(const Config& src) : server(src.server), valid(src.valid) {}
+Config::Config(const Config& src) : server(src.server), valid(src.valid), _debug(src._debug) {}
 
 Config::~Config() {}
 
@@ -63,6 +62,7 @@ Config& Config::operator=(const Config &src)
         server.clear();
     server = src.server;
     valid = src.valid;
+    _debug = src._debug;
     return *this;
 }
 
@@ -117,22 +117,6 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
     }
     return (0);
 }
-
-// bool    Config::pass_location_line(std::string s, std::string::size_type *i, std::string::size_type *line_i)
-// {
-//     pass_blanck(s, i, line_i);
-//     // if (s_have_b(s.substr(0,)))
-//     if (s_a_have_b(s, *i, "location"))
-//     {
-//         *i += 8;
-//         pass_blanck(s, i, line_i);
-//         if (s[*i] != '{')
-//         {
-//             std::cout << "Error: config file: line: " << *line_i << "." << std::endl;
-//             return (1);
-//         }
-//     }
-// }
 
 bool    Config::get_listen_line(const std::string tmp, Server* serv_tmp)
 {

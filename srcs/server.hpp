@@ -6,43 +6,35 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 02:55:17 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/10 19:47:02 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#define LOG 1
+#define CO_MAX 20
 
-// #include "utils.hpp"
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
-#define  WHITE "\033[1;37m"
+#define WHITE "\033[1;37m"
 #define YELLOW "\033[1;33m"
 #define BLUE "\033[1;34m"
-#define MAGENTA "\033[1;35m"
-#define CYAN "\033[1;36m"
 #define RESET "\033[0m"
-#include "Config.hpp"
-#include "Request.hpp"
-#include <signal.h>
-#include "Response.hpp"
-#include <stdio.h>
-#include <sys/socket.h>
-#include <pthread.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <fstream>
 #include <iostream>
-#include <sys/types.h>
-#include <string>
-#include <sys/stat.h>
 #include <fstream>
-#include <cstring>
-#include "Client.hpp"
+#include <sstream>
+#include <vector>
+#include <map>
+#include <arpa/inet.h>
+#include <sys/stat.h>
+#include <dirent.h>
 #include <fcntl.h>
+
+#include "Request.hpp"
+#include "Response.hpp"
+#include "Config.hpp"
+#include "Client.hpp"
 
 struct server_data {
     std::string header;
@@ -50,14 +42,10 @@ struct server_data {
     std::string filetosearch;
     std::string filecontent;
     std::string body; 
-    std::string response; // ✅
+    std::string response;
     std::string host;
     std::string server_name;
     std::string port;
-    // std::string default_folder;
-    // std::string default_page;
-    // std::string page404;
-    // std::string max_body_size;
     bool valid;
 };
 
@@ -68,16 +56,15 @@ struct server_data {
     #define MAC 0
 #endif
 
-// PARSING
+class Config;
 
-
+int run_server(Config conf);
+int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
+void output_debug(std::string request, std::string response);
 void	quit_sig(int sig);
 bool	indexGenerator(std::string* codeHTML, std::string path, std::string defaultFolder = "www");
 std::string getHour();
 std::string findInHeader(std::string header, std::string s);
-// void response_sender(server_data *server, std::string client_data, Config *conf);
-// void response_sender(server_data *server, std::string client_data, s_server *conf);
-//Response response_sender(std::string data, Client* client, Server *conf);
 bool        is_cgi(Request* request);
 void    treat_cgi(Server* server, Client* client);
 
@@ -91,7 +78,6 @@ std::string getHeader(std::string client_data, std::string file_content, int ans
 std::string set_default_page(std::string filetosearch, std::string client_data);
 std::string data_sender(std::string client_data);
 std::vector<std::string>  cgi_env(std::string cmd, std::string cgi_str, Client* client, Server* server);
-// std::string    cgi_exec(char** cmd, char **env, Request* request);
 void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client* client);
 //utils
 bool            readinFile(std::string filename, std::string *fileContent);

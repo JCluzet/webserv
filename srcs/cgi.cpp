@@ -1,14 +1,4 @@
-#include "Request.hpp"
 #include "server.hpp"
-#include <unistd.h>
-#include <sys/wait.h>
-#include <string>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <errno.h>
-#include <sstream>
 
 bool    is_cgi(Request* request)
 {

@@ -1,20 +1,4 @@
 #include "server.hpp"
-#include <sys/types.h> // For mkdir
-#include <dirent.h> // For mkdir
-#include <stdio.h>
-// std::string sizetToStr(size_t n){
-//     std::string s;
-//     size_t x = 1;
-//     while (n / x > 9)
-// 		x *= 10;
-// 	while (x)
-// 	{
-// 		s += (n / x) + '0';
-// 		n %= x;
-// 		x /= 10;
-// 	}
-//     return s;
-// }
 
 std::string intToStr(int n){
     std::string s = (n < 0) ? "-" : "";
@@ -142,4 +126,20 @@ bool is_file(const std::string path)
   else
     ifs.close();
   return 1;
+}
+
+void output_log(int ans, std::string filetosearch)
+{
+    if (ans == 200)
+        std::cout << GREEN << "[⊛ 200]        => " << WHITE << filetosearch << RESET << std::endl;
+    if (ans == 404)
+        std::cout << RED << "[⊛ 404]        => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
+}
+
+void output_debug(std::string request, std::string response)
+{
+	std::cout << WHITE << "\nRequest: \n"
+			  << RESET << request;
+	std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
+			  << response << RESET << "<" << WHITE << "INVISIBLE BODY" << RESET << ">" << std::endl;
 }

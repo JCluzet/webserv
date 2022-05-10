@@ -32,13 +32,13 @@ CLEAR_LINE := \33[2K\r
 ################################################################################
 
 SRCS        :=      srcs/utils.cpp \
-                          srcs/parser.cpp \
                           srcs/server.cpp \
 						srcs/autoindex.cpp \
 						srcs/Response.cpp \
 						srcs/Config.cpp \
 						srcs/cgi.cpp \
 						srcs/Client.cpp \
+						srcs/main.cpp 
                           
 OBJS        := ${SRCS:.cpp=.o}
 

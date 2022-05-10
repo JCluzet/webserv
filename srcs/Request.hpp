@@ -1,14 +1,5 @@
 #pragma once
 
-// #include "server.hpp"
-#include <iostream>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <map>
-#include <netinet/in.h>
-
-
 #define NB_HEADERS 24
 #define NL "\r\n"
 #define NLSIZE 2

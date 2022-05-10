@@ -1,0 +1,12 @@
+# if there is no argument, we display the help
+if [ $# -eq 0 ]
+then
+    echo "Usage: ./boucle [COMMAND TO DO IN EACH LOOP]"
+    exit
+fi
+while true 
+do
+    output=$($1 $2 $3 $4 $5 $6 $7 $8 $9)
+    echo "$output"
+    sleep 1
+done

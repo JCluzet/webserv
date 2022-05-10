@@ -55,5 +55,3 @@ public:
     void makeResponse();
 
 };
-
-// getter de ready, constructeur par defaut et copie, et fonction clear et getter qui dit si cest vide (is_empty), et sil le texte est faux il faut clear

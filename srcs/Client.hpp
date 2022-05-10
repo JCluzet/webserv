@@ -1,6 +1,4 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
-
+#pragma once
 #include "server.hpp"
 
 class  Client
@@ -21,5 +19,3 @@ class  Client
     int                 pipe_cgi_out[2];
     int                 fd_file;
 };
-
-#endif
