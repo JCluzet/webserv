@@ -160,7 +160,7 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	}
 	if (valwrite < 0)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port[0] << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
@@ -172,7 +172,7 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	//std::cout << valwrite << " " << client->response->get_response().length();
 	if (client->response->getstat() == 400 || client->response->getstat() == 500)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port[0] << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
@@ -263,7 +263,7 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 
 	if ((valread = read(client->socket, data, BUFFER_SIZE)) < 0)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port[0] << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
@@ -271,7 +271,7 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 	}
 	else if (valread == 0)
 	{
-		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
+		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port[0] << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
@@ -312,7 +312,7 @@ void	NewClients(int* listen_sock, Config* conf, fd_set* read_fds)
 			}
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
 			conf->server[j].client.push_back(Client(new_socket, address, &conf->server[j]));
-			std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf->server[j].port << RESET << std::endl;
+			std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf->server[j].port[0] << RESET << std::endl;
 		}
 	}
 	return ;
@@ -326,7 +326,7 @@ int run_server(Config conf)
 	fd_set	write_fds;
 	int		listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
-		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
+		ListenSocketAssign(atoi(conf.server[i].port[0].c_str()), &listen_sock[i]);
 	
 	while (1)
 	{

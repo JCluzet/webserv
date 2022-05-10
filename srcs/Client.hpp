@@ -10,6 +10,8 @@ class  Client
     ~Client();
 
     Client& operator=(const Client &src);
+    bool	operator==(const Client &c) const;
+
 
     Request*            request;
     Response*           response;

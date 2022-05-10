@@ -64,3 +64,6 @@ Client& Client::operator=(const Client& op2)
     sockaddr = op2.sockaddr;
     return (*this);
 }
+
+bool	Client::operator==(const Client &c) const
+{ (void)c; return (1); }
