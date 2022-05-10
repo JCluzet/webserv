@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/10 21:08:48 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/10 21:10:15 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "Request.hpp"
 #include "Response.hpp"
