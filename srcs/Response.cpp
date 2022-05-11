@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/03 02:50:07 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/11 23:01:30 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,40 +211,92 @@ void    Response::setStatus(int new_status)
     return ; 
 }
 
+const std::string Response::error_page_message(int status)
+{
+    if (status == 200)
+        return ("OK");
+    if (status == 403)
+        return ("Forbidden");
+    if (status == 404)
+        return ("Not Found");
+    // if (status == 400)
+    return ("Bad Request");
+    
+}
+
 int Response::openFile()
 {
     int fd_file = -1;
-
-    if (_stat_rd == 0)
+    DIR* dir;
+    bool b = 0;
+    struct dirent* ent;
+    std::string     tmp = _filepath;
+    if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
+        tmp.erase(tmp.length() - 1, 1);
+    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
+        tmp.erase(0, 1);
+    // tmp = le repertory contenant le path
+    if (tmp.find('/') == std::string::npos)
+        tmp = "./";
+    else
+        tmp = tmp.substr(0, tmp.find_last_of('/'));
+    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
+        tmp.erase(0, 1);
+    // verification existence du fichier dans son repertoire
+    dir = opendir(tmp.c_str());
+    tmp = _filepath;
+    if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
+        tmp.erase(tmp.length() - 1, 1);
+    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
+        tmp.erase(0, 1);
+    if (tmp.find('/') != std::string::npos)
+        tmp = tmp.substr(tmp.find_last_of('/'), tmp.length() - tmp.find_last_of('/'));
+    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
+        tmp.erase(0, 1);
+    while ((ent = readdir(dir)))
+        if (ent->d_name == tmp)
+            b = 1;
+    closedir(dir);
+    if (!b) // le fichier n'existe pas
+    {
+        std::cout << "le fichier nexiste pas 404";
+        _stat_rd = 404;
+    }
+    if (_stat_rd == 0) // le fichier existe
     {
         fd_file = open(_filepath.c_str(), O_RDONLY);
-        if (fd_file < 0)
-            _stat_rd = 404;
+        if (fd_file < 0) // le fichier exite mais n'as pas les droits
+            _stat_rd = 403;
         else
-            _stat_rd = 200;
+            _stat_rd = 200; // le fichier est lisible
     }
-    if (_stat_rd == 404)
+    if (_stat_rd == 400 || _stat_rd == 403 || _stat_rd == 404)
     {
-        if (_conf->error404 == "")
-            _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+        if (!_conf->error_page.count(_stat_rd))
+            _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
         else
         {
-            if (_stat_rd == 404 && _conf->error404 == "")
+            _filepath = _conf->root + _conf->error_page[_stat_rd];
+            dir = opendir(_conf->root.c_str());
+            b = 0;
+            while ((ent = readdir(dir)))
+                if (ent->d_name == _filepath)
+                    b = 1;
+            closedir(dir);
+            if (!b)
+            {
+                _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
-            _filepath = _conf->root + "/" + _conf->error404;
+            }
             fd_file = open(_filepath.c_str(), O_RDONLY);
             if (fd_file < 0)
-                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+            {
+                _stat_rd = 403;
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 403</h1>\n    <p>Forbidden.</p>\n</body>\n\n</html>";
+            }
         }
-        _status = "404 Not Found";
     }
-    else if (_stat_rd == 400)
-    {
-        _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 400</h1>\n    <p>Bad Request.</p>\n</body>\n\n</html>";
-        _status = "400 Bad Request";
-    }
-    else if (_stat_rd == 200)
-        _status = "200 OK";
-    
+    _status = intToStr(_stat_rd);
+    _status += " " + error_page_message(_stat_rd);
     return (fd_file);
 }

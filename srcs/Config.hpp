@@ -15,25 +15,25 @@ class Server
 
     Server& operator=(const Server &src);
     bool	operator==(const Server &c) const;
-
-    int                       id; // Server id
-    std::string               ip; // Server adresse ip
-    std::string               host; // Server hostname
-    std::vector<std::string>  port;
-    std::string               root;
-    std::string               index;
-    std::string               error404;
-    std::string               client_body_buffer_size;
-    bool                      methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
-    std::vector<std::string>  cgi;
-    std::vector<Server>       loc; // locations
-    bool                      autoindex;
-    bool                      valid;
-    //ONLY FOR LOCATIONS 
-    size_t                    lvl; // if > 0, it's a location
-    std::string               path; // location path
-    bool                      alias;
-    std::vector<Client>       client;
+  
+    int                         id; // Server id
+    std::string                 ip; // Server adresse ip
+    std::string                 host; // Server hostname
+    std::vector<std::string>    port;
+    std::string                 root;
+    std::string                 index;
+    std::map<int, std::string>  error_page;
+    std::string                 client_body_buffer_size;
+    bool                        methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
+    std::vector<std::string>    cgi;
+    std::vector<Server>         loc; // locations
+    bool                        autoindex;
+    bool                        valid;
+    //ONLY FOR LOCATIONS  
+    size_t                      lvl; // if > 0, it's a location
+    std::string                 path; // location path
+    bool                        alias;
+    std::vector<Client>         client;
 };
 
 class Config
@@ -49,7 +49,6 @@ class Config
     ~Config();
 
     Config& operator=(const Config &src);
-    bool	  operator==(const Config &c) const;
     bool    init(const std::string filename);    
     bool    get_debug() const {return _debug;}
     void    set_debug() {std::cout << YELLOW << "--debug" << RESET; _debug = 1;}

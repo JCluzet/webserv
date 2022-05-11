@@ -43,6 +43,7 @@ public:
     void        setRequest(Request* req) { _request = req; return ; }
     void        setStatus(int new_status);
 
+    const std::string error_page_message(int status);
     int openFile();
     int set_redirection(std::string cgi_response);
     int getstat() { return (_stat_rd); }
