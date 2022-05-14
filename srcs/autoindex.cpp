@@ -38,7 +38,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 //LISTING
     while ((ent = readdir(dir))){
         // if (!strcmp(ent->d_name, ".")){
-        if (!(ent->d_name[0] == '.' && ent->d_name[1] == '\0')){
+        if (strcmp(ent->d_name, ".") && (strcmp(ent->d_name, "..") || path != defaultFolder + "/")){
             // std::cout << "*******************" << ent->d_name << std::endl;
             std::string filepath = path + "/" + ent->d_name;
             struct stat s;
