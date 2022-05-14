@@ -287,12 +287,17 @@ int Response::openFile()
             {
                 _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+                // _filecontent = "";
+                // _content_type = "";
             }
-            fd_file = open(_filepath.c_str(), O_RDONLY);
-            if (fd_file < 0)
+            else
             {
-                _stat_rd = 403;
-                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 403</h1>\n    <p>Forbidden.</p>\n</body>\n\n</html>";
+                fd_file = open(_filepath.c_str(), O_RDONLY);
+                if (fd_file < 0)
+                {
+                    _stat_rd = 403;
+                    _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 403</h1>\n    <p>Forbidden.</p>\n</body>\n\n</html>";
+                }
             }
         }
     }
