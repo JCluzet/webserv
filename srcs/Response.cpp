@@ -6,7 +6,7 @@
 /*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/11 23:01:30 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/15 14:20:22 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,13 +205,13 @@ void Response::get_filepath()
     }
 }
 
-void    Response::setStatus(int new_status)
+void    Response::setStatus(const int new_status)
 {
     _stat_rd = new_status;
     return ; 
 }
 
-const std::string Response::error_page_message(int status)
+const std::string Response::error_page_message(const int status)
 {
     if (status == 200)
         return ("OK");
@@ -224,44 +224,41 @@ const std::string Response::error_page_message(int status)
     
 }
 
-int Response::openFile()
+bool fileExist(const std::string s)
 {
-    int fd_file = -1;
     DIR* dir;
     bool b = 0;
     struct dirent* ent;
-    std::string     tmp = _filepath;
+    std::string dirp, filep, tmp = s;
+    std::string::size_type i;
     if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
         tmp.erase(tmp.length() - 1, 1);
     if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
         tmp.erase(0, 1);
-    // tmp = le repertory contenant le path
-    if (tmp.find('/') == std::string::npos)
-        tmp = "./";
+    i = (tmp.find_last_of('/'));
+    if (i == std::string::npos)
+    {
+        dirp = "./";
+        filep = tmp;
+    }
     else
-        tmp = tmp.substr(0, tmp.find_last_of('/'));
-    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
-        tmp.erase(0, 1);
-    // verification existence du fichier dans son repertoire
-    dir = opendir(tmp.c_str());
-    tmp = _filepath;
-    if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
-        tmp.erase(tmp.length() - 1, 1);
-    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
-        tmp.erase(0, 1);
-    if (tmp.find('/') != std::string::npos)
-        tmp = tmp.substr(tmp.find_last_of('/'), tmp.length() - tmp.find_last_of('/'));
-    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
-        tmp.erase(0, 1);
+    {
+        dirp = tmp.substr(0, i);
+        filep = tmp.substr(i + 1, tmp.length() - (i + 1));
+    }
+    dir = opendir(dirp.c_str());
     while ((ent = readdir(dir)))
-        if (ent->d_name == tmp)
+        if (ent->d_name == filep)
             b = 1;
     closedir(dir);
-    if (!b) // le fichier n'existe pas
-    {
-        std::cout << "le fichier nexiste pas 404";
+    return b;
+}
+
+int Response::openFile()
+{
+    int fd_file = -1;
+    if (!fileExist(_filepath))
         _stat_rd = 404;
-    }
     if (_stat_rd == 0) // le fichier existe
     {
         fd_file = open(_filepath.c_str(), O_RDONLY);
@@ -277,18 +274,10 @@ int Response::openFile()
         else
         {
             _filepath = _conf->root + _conf->error_page[_stat_rd];
-            dir = opendir(_conf->root.c_str());
-            b = 0;
-            while ((ent = readdir(dir)))
-                if (ent->d_name == _filepath)
-                    b = 1;
-            closedir(dir);
-            if (!b)
+            if (!fileExist(_filepath))
             {
                 _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
-                // _filecontent = "";
-                // _content_type = "";
             }
             else
             {

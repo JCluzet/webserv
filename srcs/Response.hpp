@@ -2,8 +2,10 @@
 
 #include "server.hpp"
 
+bool fileExist(const std::string s);
 class Server;
 class Request;
+
 
 class Response
 {
