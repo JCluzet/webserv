@@ -152,8 +152,10 @@ bool fileExist(const std::string s)
     }
     dir = opendir(dirp.c_str());
     while ((ent = readdir(dir)))
-        if (ent->d_name == filep)
+        if (ent->d_name == filep){
             b = 1;
+            break;
+        }
     closedir(dir);
     return b;
 }
