@@ -6,7 +6,7 @@
 /*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/15 13:01:36 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/15 14:26:24 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ bool            s_a_have_b(const std::string a, const std::string::size_type i, 
 bool            error_msg(const std::string msg);
 bool            is_directory(const std::string path);
 bool            is_file(const std::string path);
+bool			fileExist(const std::string s);
 std::string     intToStr(int n);
 std::string     sizetToStr(size_t n);
 std::string     intToStr(int n);

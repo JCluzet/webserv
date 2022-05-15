@@ -6,7 +6,7 @@
 /*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/15 14:20:22 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/15 14:25:28 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,36 +222,6 @@ const std::string Response::error_page_message(const int status)
     // if (status == 400)
     return ("Bad Request");
     
-}
-
-bool fileExist(const std::string s)
-{
-    DIR* dir;
-    bool b = 0;
-    struct dirent* ent;
-    std::string dirp, filep, tmp = s;
-    std::string::size_type i;
-    if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
-        tmp.erase(tmp.length() - 1, 1);
-    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
-        tmp.erase(0, 1);
-    i = (tmp.find_last_of('/'));
-    if (i == std::string::npos)
-    {
-        dirp = "./";
-        filep = tmp;
-    }
-    else
-    {
-        dirp = tmp.substr(0, i);
-        filep = tmp.substr(i + 1, tmp.length() - (i + 1));
-    }
-    dir = opendir(dirp.c_str());
-    while ((ent = readdir(dir)))
-        if (ent->d_name == filep)
-            b = 1;
-    closedir(dir);
-    return b;
 }
 
 int Response::openFile()

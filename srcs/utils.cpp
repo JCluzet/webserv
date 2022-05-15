@@ -128,6 +128,36 @@ bool is_file(const std::string path)
   return 1;
 }
 
+bool fileExist(const std::string s)
+{
+    DIR* dir;
+    bool b = 0;
+    struct dirent* ent;
+    std::string dirp, filep, tmp = s;
+    std::string::size_type i;
+    if (tmp[tmp.length() - 1] == '/') // si il y a un '/' au debut du path on le supprime
+        tmp.erase(tmp.length() - 1, 1);
+    if (tmp[0] == '/') //si il y a un '/' a la fin du path on le supprime
+        tmp.erase(0, 1);
+    i = (tmp.find_last_of('/'));
+    if (i == std::string::npos)
+    {
+        dirp = "./";
+        filep = tmp;
+    }
+    else
+    {
+        dirp = tmp.substr(0, i);
+        filep = tmp.substr(i + 1, tmp.length() - (i + 1));
+    }
+    dir = opendir(dirp.c_str());
+    while ((ent = readdir(dir)))
+        if (ent->d_name == filep)
+            b = 1;
+    closedir(dir);
+    return b;
+}
+
 void output_log(int ans, std::string filetosearch)
 {
     if (ans == 200)
