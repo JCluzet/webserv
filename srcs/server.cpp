@@ -326,7 +326,7 @@ int run_server(Config conf)
 	fd_set	write_fds;
 	int		listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
-		ListenSocketAssign(atoi(conf.server[i].port[0].c_str()), &listen_sock[i]);
+		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
 	
 	while (1)
 	{

@@ -1,14 +1,14 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), client()
+Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), client()
 {
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
 }
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port), root(src.root), index(src.index), error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client)
+Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), vp(src.vp), root(src.root), index(src.index), error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client)
 {
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -21,9 +21,10 @@ Server& Server::operator=(const Server &src)
 {
     id = src.id;
     ip = src.ip;
+    port = src.port;
     cgi = src.cgi;
     host = src.host;
-    port = src.port;
+    vp = src.vp;
     root = src.root;
     index = src.index;
     error_page = src.error_page;
@@ -64,8 +65,9 @@ void    Config::init_server(Server *s)
 {
     s->id = 0;
     s->ip = "";
+    s->port = "";
     s->host = "";
-    s->port.clear();
+    s->vp.clear();
     s->root = "";
     s->index = "";
     s->error_page.clear();
@@ -117,42 +119,74 @@ bool    Config::error_config_message(const std::string s, const std::string::siz
     return (0);
 }
 
-bool    Config::get_listen_line(const std::string tmp, Server *serv_tmp)
+char     Config::check_ip_line(const std::string s)
 {
-    std::string::size_type i = 0;
-    if (tmp.find(":") != std::string::npos)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            while (i < tmp.length() && is_number(tmp[i]))
-            {
-                serv_tmp->ip += tmp[i];
-                i++;
-            }
-            if (i >= tmp.length() || (j != 3 && tmp[i] != '.'))
-            {
-                std::cerr << "Error: config file: IP adress (" << tmp.substr(0, tmp.find(":")) << ") is not valid." << std::endl;
+    std::string tmp = s;
+    char a = 0, b = 0;
+    if (tmp[0] == '.' || tmp[tmp.length() - 1] == '.' || tmp.find("..") != std::string::npos)
                 return 1;
-            }
-            if (j != 3)
-            {
-                serv_tmp->ip += '.';
-                i++;
-            }
-        }
-        if (tmp[i] != ':')
-        {
-            std::cerr << "Error: config file: IP adress (" << tmp.substr(0, tmp.find(":")) << ") is not valid." << std::endl;
-            return 1;
-        }
-        i++;
-    }
-    if (tmp.length() != i + 4 || !is_number(tmp[i]) || !is_number(tmp[i + 1]) || !is_number(tmp[i + 2]) || !is_number(tmp[i + 3]))
+    for (std::string::size_type i = 0; i < tmp.length(); i++)
     {
-        std::cerr << "Error: config file: port can't be (" << tmp.substr(i, tmp.length() - i) << ") is not valid." << std::endl;
-        return 1;
+        if (tmp[i] == '.')
+        {
+            a++;
+            b = 0;
+        }
+        else if (isdigit(s[i]))
+        {
+            if (b == 3)
+                return 2;
+            b++;
+        }
+        else
+            return 3;
     }
-    serv_tmp->port.push_back(tmp.substr(i, 4));
+    if (a != 3)
+        return 4;
+    return 0;
+}
+
+char     Config::check_port_line(const std::string s)
+{
+    if (s.length() > 4 || s.empty())
+        return 1;
+    for (std::string::size_type i = 0; i < s.length(); i++)
+        if (!isdigit(s[i]))
+            return 2;
+    return 0;
+}
+
+char    Config::get_listen_line(const std::string tmp, Server *serv_tmp)
+{
+    char a = 0;
+    if (!tmp.length())
+        return (1);
+    std::pair<std::string, std::string> pairTmp;
+    if (tmp.find(':') == std::string::npos && tmp.find('.') == std::string::npos)
+    {
+        if ((a = check_port_line(tmp)))
+            return a;
+        pairTmp.first = "0.0.0.0";
+std::cout << "PROUT" << tmp << std::endl;
+        pairTmp.second = tmp;
+    }
+    else if (tmp.find(':') == std::string::npos && tmp.find('.') != std::string::npos)
+    {
+        if ((a = check_port_line(tmp)))
+            return a;
+        pairTmp.first = tmp;
+        pairTmp.second = "80";
+    }
+    else
+    {
+        pairTmp.first = tmp.substr(0, tmp.find(':'));
+        pairTmp.second = tmp.substr(tmp.find(':') + 1, tmp.length());
+        if ((a = check_ip_line(pairTmp.first)))
+            return a;
+        if ((a = check_port_line(pairTmp.second)))
+            return a;
+    }
+    serv_tmp->vp.push_back(pairTmp);
     return 0;
 }
 
@@ -382,18 +416,6 @@ bool    Config::check_server(Server* s)
         std::cerr << "Error: server " << s->id << ": root directory path is wrong." << std::endl;
         return 1;
     }
-    for (std::vector<std::string>::size_type i = 0; i < s->port.size(); i++)
-    {
-        for (std::vector<std::string>::size_type j = 0; j < s->port.size(); j++)
-        {
-            if (i != j && s->port[i] == s->port[j])
-                std::cerr << "Error: server " << s->id << ": port " << s->port[i] << " is already used" << std::endl;
-        }
-    }
-    if (s->port.empty())
-        s->port.push_back("8080");
-    if (s->ip.empty())
-        s->ip = "0.0.0.0";
     if (s->index.size() && !is_file(s->root + s->index))
     {
         std::cerr << "Error: server " << s->lvl << "." << s->id << ": index file path is wrong." << std::endl;
@@ -442,7 +464,23 @@ bool    Config::get_conf(const std::string s)
         i_serv++;
         if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
-        server.push_back(serv_tmp);
+        if (serv_tmp.vp.empty())
+        {
+            serv_tmp.ip = "0.0.0.0";
+            serv_tmp.port = "80";
+            server.push_back(serv_tmp);
+        }
+        else
+        {
+            for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < serv_tmp.vp.size(); i++)
+            {
+                serv_tmp.ip = serv_tmp.vp[i].first;
+                serv_tmp.port = serv_tmp.vp[i].second;
+                server.push_back(serv_tmp);
+            }
+            for (std::vector<Server>::size_type i = 0; i < server.size(); i++)
+                server[i].vp.clear();
+        } 
         i_loc = 1;
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)
@@ -451,6 +489,7 @@ bool    Config::get_conf(const std::string s)
             return error_config_message(s, line_i, 26) + 1;
     }
     valid = 1;
+
     return 0;
 }
 
@@ -464,23 +503,17 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "location : " << RESET << src.path << std::endl;
     }
+    for (size_t i = 0; i < src.lvl + 1; i++)
+        ostream << "\t";
+    ostream << WHITE << "port: " << RESET << src.port << std::endl;
+    for (size_t i = 0; i < src.lvl + 1; i++)
+        ostream << "\t";
+    ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     if (src.host.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
         ostream << WHITE << "host: " << RESET << src.host << std::endl;
-    }
-    if (src.ip.length())
-    {
-        for (size_t i = 0; i < src.lvl + 1; i++)
-            ostream << "\t";
-        ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
-    }
-    for (std::vector<std::string>::size_type j = 0; j < src.port.size(); j++)
-    {
-        for (size_t i = 0; i < src.lvl + 1; i++)
-            ostream << "\t";
-        ostream << WHITE << "port: " << RESET << src.port[j] << std::endl;
     }
     if (src.index.length())
     {
