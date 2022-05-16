@@ -195,10 +195,10 @@ void	ReadFile(Client *client)
 
 	if ((valread = read(client->fd_file, data, BUFFER_SIZE)) < 0)
     {
-		client->response->setStatus(500);
-		client->fd_file = client->response->openFile();
 		close(client->fd_file); // error 500
 		client->fd_file = -1;
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
     }
 	else if (valread == 0)
 	{
