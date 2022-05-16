@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 21:47:57 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/16 22:15:00 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ void Response::makeResponse()
 {
     std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
     std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
-    if ((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
+    if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
     {
         if (_request->get_method() == "GET")
             _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);

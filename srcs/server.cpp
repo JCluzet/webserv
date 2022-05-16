@@ -199,6 +199,7 @@ void	ReadFile(Client *client)
 		client->fd_file = -1;
 		client->response->setStatus(500);
 		client->fd_file = client->response->openFile();
+		client->response->transfer = "";
     }
 	else if (valread == 0)
 	{
@@ -225,6 +226,7 @@ void	ReadCGI(Client* client)
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
+		client->response->transfer = "";
     }
 	else if (valread == 0)
 	{
@@ -255,6 +257,7 @@ void	WriteCGI(Client* client)
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
+		client->response->transfer = "";
 	}
 	else if (valwrite == 0 || valwrite == static_cast<int>(client->request->get_body().length()))
 	{

@@ -156,7 +156,7 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);
-    if (pipe(client->pipe_cgi_out) < 0 )
+    if (pipe(client->pipe_cgi_out) < 0)
     {
         client->pipe_cgi_out[0] = -1;
         client->pipe_cgi_out[1] = -1;
