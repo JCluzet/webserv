@@ -195,14 +195,19 @@ void	ReadFile(Client *client)
 
 	if ((valread = read(client->fd_file, data, BUFFER_SIZE)) < 0)
     {
-		close(client->fd_file); // error 500
+		std::cout << strerror(errno) << std::endl;
+		// std::cout << "valeur retour" << close(client->fd_file) << std::endl; // error 500
+		std::cout << strerror(errno) << std::endl;
+		std::cout << client->fd_file << std::endl;
 		client->fd_file = -1;
 		client->response->setStatus(500);
+		// std::cout << "!!!!!!!!!!!!!!!!1" << std::endl;
 		client->fd_file = client->response->openFile();
 		client->response->transfer = "";
     }
 	else if (valread == 0)
 	{
+		// std::cout << "HERE" << client->fd_file << std::endl;
 		close(client->fd_file);
 		client->fd_file = -1;
 	}
@@ -222,6 +227,7 @@ void	ReadCGI(Client* client)
 	if ((valread = read(client->pipe_cgi_out[0], data, BUFFER_SIZE)) < 0)
     {
 		client->response->setStatus(500);
+		// std::cout << "!!!!!!!!!!!!!!!!2" << std::endl;
 		client->fd_file = client->response->openFile();
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
@@ -250,6 +256,7 @@ void	WriteCGI(Client* client)
 	if (valwrite < 0)
 	{
 		client->response->setStatus(500);
+		// std::cout << "!!!!!!!!!!!!!!!!3" << std::endl;
 		client->fd_file = client->response->openFile();
 		close(client->pipe_cgi_in[1]);
 		client->pipe_cgi_in[1] = -1;

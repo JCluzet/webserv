@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 23:08:33 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/17 00:31:58 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,7 @@ int Response::get_content_type()
         else if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
             _content_type = "application/pdf";
         else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
-            _content_type = "image/apng";
+            _content_type = "image/webp";
         else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
             _content_type = "text/css";
     }
@@ -227,17 +227,21 @@ int Response::openFile()
     int fd_file = -1;
     if (_stat_rd == 0)
     {
-        std::cout << _filepath << std::endl;
+        // std::cout << _filepath << std::endl;
         if (!fileExist(_filepath))
             _stat_rd = 404;
         if (_stat_rd == 0) // le fichier existe
         {
+            char buf[1];
             fd_file = open(_filepath.c_str(), O_RDONLY);
-            if (fd_file < 0) // le fichier exite mais n'as pas les droits
+            if (fd_file < 0 || read(fd_file,buf, 0) < 0) // le fichier exite mais n'as pas les droits
                 _stat_rd = 403;
             else
                 _stat_rd = 200; // le fichier est lisible
         }
+        // std::cout << "stat_rd = " << _stat_rd << std::endl;
+		// std::cout << fd_file << std::endl;
+
     }
     if (_stat_rd != 200)
     {
@@ -245,7 +249,8 @@ int Response::openFile()
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
         else
         {
-            _filepath =  _conf->error_page[_stat_rd];
+            _filepath =  _conf->root + _conf->error_page[_stat_rd];
+            // std::cout << "fileexist: " << _filepath << std::endl;
             if (!fileExist( _filepath))
             {
                 _stat_rd = 404;

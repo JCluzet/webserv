@@ -35,16 +35,16 @@ Client::~Client()
 {
     delete request;
     delete response;
-    if (pipe_cgi_in[0] != -1)
-        close(pipe_cgi_in[0]);
-    if (pipe_cgi_in[1] != -1)
-        close(pipe_cgi_in[1]);
-    if (pipe_cgi_out[0] != -1)
-        close(pipe_cgi_out[0]);
-    if (pipe_cgi_out[1] != -1)
-        close(pipe_cgi_out[1]);
-    if (fd_file != -1)
-        close(fd_file);
+    // if (pipe_cgi_in[0] != -1)
+    //     close(pipe_cgi_in[0]);
+    // if (pipe_cgi_in[1] != -1)
+    //     close(pipe_cgi_in[1]);
+    // if (pipe_cgi_out[0] != -1)
+    //     close(pipe_cgi_out[0]);
+    // if (pipe_cgi_out[1] != -1)
+    //     close(pipe_cgi_out[1]);
+    // if (fd_file != -1)
+    //     close(fd_file);
     return ;
 }
 
