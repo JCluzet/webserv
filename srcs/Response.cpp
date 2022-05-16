@@ -247,8 +247,7 @@ int Response::openFile()
             if (!fileExist(_filepath))
             {
                 _stat_rd = 404;
-                _content_type = "text/plain";
-                // _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
             }
             else
             {

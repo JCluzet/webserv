@@ -1,14 +1,14 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), alias(0), client()
+Server::Server() : id(0), ip(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), client()
 {
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
 }
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port), root(src.root), index(src.index), error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), alias(src.alias), client(src.client)
+Server::Server(const Server &src) : id(src.id), ip(src.ip), host(src.host), port(src.port), root(src.root), index(src.index), error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client)
 {
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -34,7 +34,6 @@ Server& Server::operator=(const Server &src)
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
-    alias = src.alias;
     lvl = src.lvl;
     path = src.path;
     loc = src.loc;
@@ -78,7 +77,6 @@ void    Config::init_server(Server *s)
     s->autoindex = 0;
     s->loc.clear();
     s->valid = 0;
-    s->alias = 0;
     s->lvl = 0;
     s->path = "";
     s->client.clear();
@@ -236,11 +234,11 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b, size_t calling_lvl, size_t *i_loc)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 11;
+    const int               nb_serv_types = 10;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_body_buffer_size", "error_page"
                                                         , "autoindex", "allow_methods", "limit_except"
-                                                        , "cgi_pass", "alias"};
+                                                        , "cgi_pass"};
     std::string tmp;
     Server      loc_tmp;
     size_t      j_loc;
@@ -357,19 +355,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     serv_tmp->cgi.push_back(tmp);
-                    break;
-                case (10):
-                    if (!calling_lvl || serv_tmp->alias)
-                        return (error_config_message(s, *line_i, 20) + 1);
-                    serv_tmp->alias = 1;
-                    if (s[*i] == ';')
-                        serv_tmp->path = "/";
-                    else
-                    {
-                        p = *i;
-                        pass_not_blanck(s, i);
-                        serv_tmp->path = s.substr(p, *i - p);
-                    }
                     break;
                 }
                 pass_blanck(s, i, line_i);
