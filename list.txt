@@ -1,0 +1,15 @@
+TO DO LIST:
+
+- debug le readfile pour les gros fichier (PDF)
+- parser les requetes multi-part (upload)
+- parser les reponses CGI et verifier le content-type du cgi
+- Chunked Transfer Encoding -> Fonction qui prend des lignes precede par un hexa (taille) et qui les concatene
+- Gerer l'autorisation du delete 
+- Tester 42 qui fonctionne
+- Tester Siege qui est available a >99.5%
+- Gerer l'erreur 405 -> Method not allowed (pas de allow_method pour la location dans conf)
+- Gerer l'erreur 406 si le content-type n'est pas accept par le navigateur
+- Gerer l'erreur 500 -> serveur qui crash
+- max_body_size pour les post a Gerer
+- client_body_buffer_size a gerer 
+- gerer les redirections 
