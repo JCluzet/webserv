@@ -167,7 +167,7 @@ char    Config::get_listen_line(const std::string tmp, Server *serv_tmp)
         if ((a = check_port_line(tmp)))
             return a;
         pairTmp.first = "0.0.0.0";
-std::cout << "PROUT" << tmp << std::endl;
+// std::cout << "PROUT" << tmp << std::endl;
         pairTmp.second = tmp;
     }
     else if (tmp.find(':') == std::string::npos && tmp.find('.') != std::string::npos)
