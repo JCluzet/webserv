@@ -195,6 +195,8 @@ void	ReadFile(Client *client)
 
 	if ((valread = read(client->fd_file, data, BUFFER_SIZE)) < 0)
     {
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
 		close(client->fd_file); // error 500
 		client->fd_file = -1;
     }
@@ -218,7 +220,9 @@ void	ReadCGI(Client* client)
 
 	if ((valread = read(client->pipe_cgi_out[0], data, BUFFER_SIZE)) < 0)
     {
-		close(client->pipe_cgi_out[0]); // error 500
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
+		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
     }
@@ -243,9 +247,14 @@ void	WriteCGI(Client* client)
 	valwrite = write(client->pipe_cgi_in[1], client->request->get_body().c_str(), client->request->get_body().length());
 	if (valwrite < 0)
 	{
-		close(client->pipe_cgi_in[1]); // error 500
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
+		close(client->pipe_cgi_in[1]);
 		client->pipe_cgi_in[1] = -1;
 		client->pipe_cgi_in[0] = -1;
+		close(client->pipe_cgi_out[0]);
+		client->pipe_cgi_out[1] = -1;
+		client->pipe_cgi_out[0] = -1;
 	}
 	else if (valwrite == 0 || valwrite == static_cast<int>(client->request->get_body().length()))
 	{
@@ -364,7 +373,7 @@ int run_server(Config conf)
 				{
 					ReadCGI(client);
 				}
-				else if (client->request->ready() == true && is_cgi(client->request) == false //&& client->request->get_method() == "GET"
+				else if (client->request->ready() == true// && is_cgi(client->request) == false //&& client->request->get_method() == "GET"
 					&& client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds))
 				{
 					ReadFile(client);

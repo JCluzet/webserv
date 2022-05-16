@@ -13,3 +13,9 @@ TO DO LIST:
 - max_body_size pour les post a Gerer
 - client_body_buffer_size a gerer 
 - gerer les redirections 
+
+
+- ALEX :
+
+- Remplacer les droits fichiers par ERRNO 
+- PArser les CGI 
