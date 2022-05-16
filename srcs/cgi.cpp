@@ -31,15 +31,15 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[2] = str;
     str = "PATH_INFO="; // Extra path information passed to a CGI program.
     if (client->request->get_method() == "GET")
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
     else
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path();
+        str += server->root + client->request->get_path();
     env[3] = str;
     str = "PATH_TRANSLATED="; // The translated version of the path given by the variable PATH_INFO.
     if (client->request->get_method() == "GET")
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
     else
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path();
+        str += server->root + client->request->get_path();
     env[4] = str;
     str = "QUERY_STRING="; // The query information passed to the program. It is appended to the URL following a question mark (?).
     if (client->request->get_method() == "GET")
@@ -118,9 +118,9 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[26] = str;
     str = "SCRIPT_FILENAME=";
     if (client->request->get_method() == "GET")
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
     else
-        str += "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path();
+        str += server->root + client->request->get_path();
     env[27] = str;
 
     return (env);
@@ -156,7 +156,7 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);
-    if (pipe(client->pipe_cgi_out) < 0)
+    if (pipe(client->pipe_cgi_out) < 0 )
     {
         client->pipe_cgi_out[0] = -1;
         client->pipe_cgi_out[1] = -1;
@@ -226,9 +226,11 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 
 void    treat_cgi(Server* server, Client* client)
 {
+    char    buffer[1024];
     std::string str;
-    std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
-    std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + client->request->get_path();
+    getcwd(buffer, 1024);
+    std::string cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi";
+    std::string cmd_path = server->root + client->request->get_path();
     std::vector<std::string> cmd(2);
     if (client->request->get_method() == "POST")
     {

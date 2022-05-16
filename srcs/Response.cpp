@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 22:15:00 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/16 23:08:33 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,8 +111,6 @@ int Response::treatRequest()
 
 void Response::makeResponse()
 {
-    std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
-    std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
     if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
     {
         if (_request->get_method() == "GET")
@@ -229,6 +227,7 @@ int Response::openFile()
     int fd_file = -1;
     if (_stat_rd == 0)
     {
+        std::cout << _filepath << std::endl;
         if (!fileExist(_filepath))
             _stat_rd = 404;
         if (_stat_rd == 0) // le fichier existe
@@ -246,8 +245,8 @@ int Response::openFile()
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
         else
         {
-            _filepath = _conf->root + _conf->error_page[_stat_rd];
-            if (!fileExist(_filepath))
+            _filepath =  _conf->error_page[_stat_rd];
+            if (!fileExist( _filepath))
             {
                 _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
