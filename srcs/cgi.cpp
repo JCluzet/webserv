@@ -156,17 +156,39 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
     }
     env_execve[env.size()] = NULL;
     //afficher_env(env_execve);
-    if (pipe(client->pipe_cgi_out) < 0 )
+    if (pipe(client->pipe_cgi_out) < 0)
     {
-        exit(1);
+        client->pipe_cgi_out[0] = -1;
+        client->pipe_cgi_out[1] = -1;
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
+        return;
     }
     if (client->request->get_method() == "POST" && pipe(client->pipe_cgi_in) < 0)
     {
-        exit(1);
+        close(client->pipe_cgi_out[0]);
+        close(client->pipe_cgi_out[1]);
+        client->pipe_cgi_out[0] = -1;
+        client->pipe_cgi_out[1] = -1;
+        client->pipe_cgi_in[0] = -1;
+        client->pipe_cgi_in[1] = -1;
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
+        return;
     }
     if ((pid = fork()) < 0)
     {
-        exit(1);
+        close(client->pipe_cgi_out[0]);
+        close(client->pipe_cgi_out[1]);
+        close(client->pipe_cgi_in[0]);
+        close(client->pipe_cgi_in[1]);
+        client->pipe_cgi_in[0] = -1;
+        client->pipe_cgi_in[1] = -1;
+        client->pipe_cgi_out[0] = -1;
+        client->pipe_cgi_out[1] = -1;
+		client->response->setStatus(500);
+		client->fd_file = client->response->openFile();
+        return;
     }
     if (pid == 0)
     {

@@ -6,18 +6,18 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 18:15:21 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/16 22:15:00 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server.hpp"//  1: CHANGER RESPONSE pour lire en dehors (les erreur) // 2: AJOUTER UPLOAD dans response/request, ecrire en dehors, faire isupload
+#include "server.hpp" //  1: CHANGER RESPONSE pour lire en dehors (les erreur) // 2: AJOUTER UPLOAD dans response/request, ecrire en dehors, faire isupload
 
-Response::Response(Request* request, Server* srv) : _conf(srv), _request(request), _header(""),  _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
+Response::Response(Request *request, Server *srv) : _conf(srv), _request(request), _header(""), _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
 {
     transfer = "";
     writing = false;
     _response = "";
-    return ;
+    return;
 }
 
 Response::Response()
@@ -44,11 +44,11 @@ Response::Response(Response const &src)
     _stat_rd = src._stat_rd;
     transfer = src.transfer;
     writing = src.writing;
-        
+
     _response = src._response;
 }
 
-Response&   Response::operator=(const Response &src)
+Response &Response::operator=(const Response &src)
 {
     _stat_rd = src._stat_rd;
     _header = src._header;
@@ -74,7 +74,7 @@ std::string Response::getHeader()
     return (head);
 }
 
-int     Response::treatRequest()
+int Response::treatRequest()
 {
     int fd_file = -1;
     std::string method = _request->get_method();
@@ -83,14 +83,14 @@ int     Response::treatRequest()
     if (_filepath == "")
     {
         _stat_rd = 400;
-    //    return (-1);
+        //    return (-1);
     }
     if (is_directory(_filepath))
     {
         if (method != "GET")
         {
             _stat_rd = 400;
-    //        return (-1);
+            //        return (-1);
         }
         if (_conf->autoindex)
         {
@@ -101,20 +101,19 @@ int     Response::treatRequest()
     if (method == "DELETE")
     {
         _stat_rd = method_delete();
-    //    if (_stat_rd != 200)
-    //        return (-1);
+        //    if (_stat_rd != 200)
+        //        return (-1);
     }
-    //std::cout << _stat_rd << std::endl;
+    // std::cout << _stat_rd << std::endl;
     fd_file = openFile();
     return (fd_file);
 }
 
-void    Response::makeResponse()
+void Response::makeResponse()
 {
     std::string cmd_cgi = "/home/user42/Documents/Projets/webserv/groupe_git/cgi-bin/php-cgi_ubuntu";
     std::string cmd_path = "/home/user42/Documents/Projets/webserv/groupe_git/www" + _request->get_path();
-    if ((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos)
-        || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
+    if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
     {
         if (_request->get_method() == "GET")
             _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
@@ -130,11 +129,11 @@ void    Response::makeResponse()
     if (transfer != "")
         _filecontent = transfer;
     _response = getHeader() + _filecontent + "\r\n\r\n";
-    //std::cout << _filecontent.length() << std::endl;
-    return ;
+    // std::cout << _filecontent.length() << std::endl;
+    return;
 }
 
-void    Response::clear()
+void Response::clear()
 {
     _header = "";
     _content_type = "text/html";
@@ -144,7 +143,7 @@ void    Response::clear()
     transfer = "";
     _response = "";
     writing = false;
-    return ;
+    return;
 }
 
 std::string Response::getDate()
@@ -159,7 +158,7 @@ std::string Response::getDate()
 
 int Response::method_delete(void)
 {
-    
+
     std::ifstream ifs;
     ifs.open(_filepath.c_str());
 
@@ -205,10 +204,10 @@ void Response::get_filepath()
     }
 }
 
-void    Response::setStatus(const int new_status)
+void Response::setStatus(const int new_status)
 {
     _stat_rd = new_status;
-    return ; 
+    return;
 }
 
 const std::string Response::error_page_message(const int status)
@@ -219,25 +218,29 @@ const std::string Response::error_page_message(const int status)
         return ("Forbidden");
     if (status == 404)
         return ("Not Found");
+    if (status == 500)
+        return ("Internal Server Error");
     // if (status == 400)
     return ("Bad Request");
-    
 }
 
 int Response::openFile()
 {
     int fd_file = -1;
-    if (!fileExist(_filepath))
-        _stat_rd = 404;
-    if (_stat_rd == 0) // le fichier existe
+    if (_stat_rd == 0)
     {
-        fd_file = open(_filepath.c_str(), O_RDONLY);
-        if (fd_file < 0) // le fichier exite mais n'as pas les droits
-            _stat_rd = 403;
-        else
-            _stat_rd = 200; // le fichier est lisible
+        if (!fileExist(_filepath))
+            _stat_rd = 404;
+        if (_stat_rd == 0) // le fichier existe
+        {
+            fd_file = open(_filepath.c_str(), O_RDONLY);
+            if (fd_file < 0) // le fichier exite mais n'as pas les droits
+                _stat_rd = 403;
+            else
+                _stat_rd = 200; // le fichier est lisible
+        }
     }
-    if (_stat_rd == 400 || _stat_rd == 403 || _stat_rd == 404)
+    if (_stat_rd != 200)
     {
         if (!_conf->error_page.count(_stat_rd))
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
