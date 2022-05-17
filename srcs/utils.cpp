@@ -135,8 +135,6 @@ bool fileExist(const std::string s)
     struct dirent* ent;
     std::string dirp, filep, tmp = s;
     std::string::size_type i;
-    if (tmp[tmp.length() - 1] == '/')
-        tmp.erase(tmp.length() - 1, 1);
     i = (tmp.find_last_of('/'));
     if (i == std::string::npos)
     {

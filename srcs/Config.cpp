@@ -423,28 +423,47 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 
 bool    Config::check_server(Server* s)
 {
-    std::string p; 
     if (s->root.empty())
     {
-        std::cerr << "Error: server " << s->id << ": need a root" << std::endl;
+        std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
+        return 1;
+    }
+    if (s->root[0] != '/')
+    {
+        std::cerr << "Error config: server " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
         return 1;
     }
     if (!is_directory(s->root))
     {
-        std::cerr << "Error: server " << s->id << ": root directory path is wrong." << std::endl;
+        std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    if (s->index.size() && !is_file(s->root + s->index))
+/*?*/if (s->index.size() && !is_file(s->root + s->index))
     {
-        std::cerr << "Error: server " << s->lvl << "." << s->id << ": index file path is wrong." << std::endl;
+        std::cerr << "Error config: server " << s->lvl << "." << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
         return 1;
+    }
+    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
+    {
+        if (!is_file(s->root + it->second))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
+            return 1;
+        }
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    {
+        if (!is_directory(s->root + s->cgi[i]))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            return 1;
+        }
     }
     for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
     {
-        p = s->root;
-        if (!is_directory(p + s->loc[i].path))
+        if (!is_directory(s->root + s->loc[i].path))
         {
-            std::cerr << "Error: server " << s->id << ": location " << s->loc[i].id << ": invalid directory path(" << s->root << "+" << s->loc[i].path << ")." << std::endl;
+            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
             return 1;
         }
     }
