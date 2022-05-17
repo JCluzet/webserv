@@ -229,43 +229,43 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 {
     std::string tmp;
     std::string::size_type k = 0;
-    for (int j = 0; j < 3; j++)
+    for (char j = 0; j < 3; j++)
     {
         pass_blanck(s, i, line_i);
         k = *i;
-        tmp = "";
-        for (;*i < s.length() && !is_blanck(s[*i]); *i += 1)
-            tmp += s[*i];
-        if (tmp == "GET")
+        while (*i < s.length() && !is_blanck(s[*i]))
+            *i += 1;
+        tmp = s.substr(k, *i - k);
+        if (tmp == ";")
+        {
+            *i -= 1;
+            return (j ? 0 : error_config_message(s, *line_i, 4) + 1);
+        }
+        else if (tmp == "GET")
         {
             if (serv_tmp->methods[0])
-                return (error_config_message(s, *line_i, 4) + 1);
+                return (error_config_message(s, *line_i, 5) + 1);
             serv_tmp->methods[0] = 1;
         }
         else if (tmp == "POST")
         {
             if (serv_tmp->methods[1])
-                return (error_config_message(s, *line_i, 5) + 1);
+                return (error_config_message(s, *line_i, 6) + 1);
             serv_tmp->methods[1] = 1;
         }
         else if (tmp == "DELETE")
         {
             if (serv_tmp->methods[2])
-                return (error_config_message(s, *line_i, 6) + 1);
+                return (error_config_message(s, *line_i, 7) + 1);
             serv_tmp->methods[2] = 1;
         }
-        else if (!j)
-            return (error_config_message(s, *line_i, 7) + 1);
         else
-        {
-            *i = k;
-            return 0;
-        }
+            return (error_config_message(s, *line_i, 8) + 1);
     }
     return 0;
 }
 
-bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, bool *b, size_t calling_lvl, size_t *i_loc)
+bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *i_loc)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 10;
@@ -285,19 +285,19 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         pass_not_blanck(s, i);
         loc_tmp.path = s.substr(p, *i - p);
         if (!loc_tmp.path.length())
-            return (error_config_message(s, *line_i, 8) + 1);
+            return (error_config_message(s, *line_i, 9) + 1);
         if (loc_tmp.path[0] != '/')
             loc_tmp.path.insert(0, "/");
         pass_blanck(s, i, line_i);
         if (s[*i] != '{')
-            return (error_config_message(s, *line_i, 9) + 1);
+            return (error_config_message(s, *line_i, 10) + 1);
         *i += 1;
         j_loc = 1;
-        for (bool c = 0, d = 0; *i <= s.length() && s[*i] != '}';)
-            if (get_server_line(s, i, line_i, &loc_tmp, &c, &d, calling_lvl + 1, &j_loc))
+        for (bool b = 0; *i <= s.length() && s[*i] != '}';)
+            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc))
                 return 1;
         if (*i <= s.length() && s[*i] != '}')
-            return (error_config_message(s, *line_i, 10) + 1);
+            return (error_config_message(s, *line_i, 11) + 1);
         *i += 1;
         pass_blanck(s, i, line_i);
         loc_tmp.id = *i_loc;
@@ -314,16 +314,16 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             {
                 *i += serv_type[o].length();
                 if (*i >= s.length() || !is_blanck(s[*i]))
-                    return (error_config_message(s, *line_i, 11) + 1);
+                    return (error_config_message(s, *line_i, 12) + 1);
                 pass_blanck(s, i, line_i);
                 if (s.length() <= *i)
-                    return (error_config_message(s, *line_i, 12) + 1);
+                    return (error_config_message(s, *line_i, 13) + 1);
                 o -= (o == 8 ? 1 : 0);
                 switch (o)
                 {
                 case (0):
                     if (serv_tmp->host.length())
-                        return (error_config_message(s, *line_i, 13) + 1);
+                        return (error_config_message(s, *line_i, 14) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -338,7 +338,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (2):
                     if (serv_tmp->root.length())
-                        return (error_config_message(s, *line_i, 15) + 1);
+                        return (error_config_message(s, *line_i, 16) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -348,7 +348,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (3):
                     if (serv_tmp->index.length())
-                        return (error_config_message(s, *line_i, 16) + 1);
+                        return (error_config_message(s, *line_i, 17) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -358,7 +358,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (4):
                     if (serv_tmp->client_body_buffer_size.length())
-                        return (error_config_message(s, *line_i, 17) + 1);
+                        return (error_config_message(s, *line_i, 18) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -373,16 +373,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     if (*a || (tmp != "on" && tmp != "off"))
-                        return (error_config_message(s, *line_i, 18) + 1);
+                        return (error_config_message(s, *line_i, 19) + 1);
                     *a = 1;
                     serv_tmp->autoindex = (tmp == "on");
                     break;
                 case (7):
-                    if (*b)
-                        return (error_config_message(s, *line_i, 19) + 1);
                     if (get_methods_line(s, serv_tmp, i, line_i))
                         return 1;
-                    *b = 1;
                     break;
                 case (9):
                     p = *i;
@@ -452,9 +449,9 @@ bool    Config::get_conf(const std::string s)
             return error_config_message(s, line_i, 24) + 1;
         i += 1;
         init_server(&serv_tmp);
-        for (bool a = 0, b = 0; i < s.length() && s[i] != '}';)
+        for (bool a = 0; i < s.length() && s[i] != '}';)
         {
-            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, &b, 0, &i_loc))
+            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc))
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
