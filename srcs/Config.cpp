@@ -2,8 +2,7 @@
 #include "server.hpp"
 
 Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
-, path(""), client()
-{
+, path(""), client(){
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
@@ -11,8 +10,7 @@ Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), clien
 
 Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
 , error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
-,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), vp(src.vp)
-{
+,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
@@ -20,14 +18,12 @@ Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host
 
 Server::~Server() {}
 
-Server& Server::operator=(const Server &src)
-{
+Server& Server::operator=(const Server &src){
     id = src.id;
     ip = src.ip;
     port = src.port;
     cgi = src.cgi;
     host = src.host;
-    vp = src.vp;
     root = src.root;
     index = src.index;
     error_page = src.error_page;
@@ -71,7 +67,6 @@ void    Config::init_server(Server *s)
     s->ip = "";
     s->port = "";
     s->host = "";
-    s->vp.clear();
     s->root = "";
     s->index = "";
     s->error_page.clear();
@@ -161,37 +156,34 @@ char     Config::check_port_line(const std::string s)
     return 0;
 }
 
-char    Config::get_listen_line(const std::string tmp, Server *serv_tmp)
+char    Config::get_listen_line(const std::string tmp, std::vector<std::pair<std::string, std::string> >*vp)
 {
     char a = 0;
+    std::string ip, port;
     if (!tmp.length())
         return (1);
-    std::pair<std::string, std::string> pairTmp;
     if (tmp.find(':') == std::string::npos && tmp.find('.') == std::string::npos)
     {
         if ((a = check_port_line(tmp)))
             return a;
-        pairTmp.first = "0.0.0.0";
-// std::cout << "PROUT" << tmp << std::endl;
-        pairTmp.second = tmp;
+        vp->push_back(std::make_pair("0.0.0.0", tmp));
     }
     else if (tmp.find(':') == std::string::npos && tmp.find('.') != std::string::npos)
     {
-        if ((a = check_port_line(tmp)))
+        if ((a = check_ip_line(tmp)))
             return a;
-        pairTmp.first = tmp;
-        pairTmp.second = "80";
+        vp->push_back(std::make_pair(tmp, "80"));
     }
     else
     {
-        pairTmp.first = tmp.substr(0, tmp.find(':'));
-        pairTmp.second = tmp.substr(tmp.find(':') + 1, tmp.length());
-        if ((a = check_ip_line(pairTmp.first)))
+        // pairTmp.first = tmp.substr(0, tmp.find(':'));
+        // pairTmp.second = tmp.substr(tmp.find(':') + 1, tmp.length() - (tmp.find(':') + 1));
+        if ((a = check_ip_line(tmp.substr(0, tmp.find(':')))))
             return a;
-        if ((a = check_port_line(pairTmp.second)))
+        if ((a = check_port_line(tmp.substr(tmp.find(':') + 1, tmp.length() - (tmp.find(':') + 1)))))
             return a;
+        vp->push_back(std::make_pair(tmp.substr(0, tmp.find(':')), tmp.substr(tmp.find(':') + 1, tmp.length() - (tmp.find(':') + 1))));
     }
-    serv_tmp->vp.push_back(pairTmp);
     return 0;
 }
 
@@ -270,7 +262,8 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
     return 0;
 }
 
-bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *i_loc)
+bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp
+, bool *a, size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 11;
@@ -281,6 +274,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     std::string tmp, tmp1;
     Server      loc_tmp;
     size_t      j_loc;
+    char        c;
     pass_blanck(s, i, line_i);
     if (s_a_have_b(s, *i, "location"))
     {
@@ -299,7 +293,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         *i += 1;
         j_loc = 1;
         for (bool b = 0; *i <= s.length() && s[*i] != '}';)
-            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc))
+            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc, NULL))
                 return 1;
         if (*i <= s.length() && s[*i] != '}')
             return (error_config_message(s, *line_i, 11) + 1);
@@ -335,11 +329,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     serv_tmp->host = tmp;
                     break;
                 case (1):
+                    if (calling_lvl)
+                        return (error_config_message(s, *line_i, 15) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
-                    if (get_listen_line(tmp, serv_tmp))
-                        return 1;
+                    if ((c = get_listen_line(tmp, vp)))
+                        return (error_config_message(s, *line_i, 16 + c) + 1);
                     break;
                 case (2):
                     if (serv_tmp->root.length())
@@ -473,6 +469,7 @@ bool    Config::check_server(Server* s)
 bool    Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
+    std::vector<std::pair<std::string, std::string> >   vp;
     Server serv_tmp;
     if (s.empty())
         return error_msg("Error: Empty config file.") + 1;
@@ -491,7 +488,7 @@ bool    Config::get_conf(const std::string s)
         init_server(&serv_tmp);
         for (bool a = 0; i < s.length() && s[i] != '}';)
         {
-            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc))
+            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp))
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
@@ -501,7 +498,7 @@ bool    Config::get_conf(const std::string s)
         i_serv++;
         if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
-        if (serv_tmp.vp.empty())
+        if (vp.empty())
         {
             serv_tmp.ip = "0.0.0.0";
             serv_tmp.port = "80";
@@ -509,15 +506,14 @@ bool    Config::get_conf(const std::string s)
         }
         else
         {
-            for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < serv_tmp.vp.size(); i++)
+            for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < vp.size(); i++)
             {
-                serv_tmp.ip = serv_tmp.vp[i].first;
-                serv_tmp.port = serv_tmp.vp[i].second;
+                serv_tmp.ip = vp[i].first;
+                serv_tmp.port = vp[i].second;
                 server.push_back(serv_tmp);
             }
-            for (std::vector<Server>::size_type i = 0; i < server.size(); i++)
-                server[i].vp.clear();
-        } 
+        }
+        vp.clear(); 
         i_loc = 1;
         pass_blanck(s, &i, &line_i);
         if (s.length() == i)

@@ -34,7 +34,7 @@ class Server
     size_t                                              lvl; // if > 0, it's a location
     std::string                                         path; // location path
     std::vector<Client>                                 client;
-    std::vector<std::pair<std::string, std::string> >   vp;
+    // std::vector<std::pair<std::string, std::string> >   vp;
 };
 
 class Config
@@ -61,11 +61,12 @@ class Config
     bool    get_methods_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
     char    check_ip_line(const std::string s);
     char    check_port_line(const std::string s);
-    char    get_listen_line(const std::string tmp, Server *serv_tmp);
+    // char    get_listen_line(const std::string tmp, Server *serv_tmp);
+    char    get_listen_line(const std::string tmp, std::vector<std::pair<std::string, std::string> >*vp);
     bool    error_config_message(const std::string s, const std::string::size_type i, const int a) const;
     bool    get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
-    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *loc_i);
+    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *loc_i, std::vector<std::pair<std::string, std::string> >*vp);
     bool    get_conf(const std::string s);
     bool    check_server(Server* s);
 };
