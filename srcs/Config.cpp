@@ -11,7 +11,7 @@ Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), clien
 
 Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
 , error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
-, valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), vp(src.vp)
+,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), vp(src.vp)
 {
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -33,6 +33,7 @@ Server& Server::operator=(const Server &src)
     error_page = src.error_page;
     client_body_buffer_size = src.client_body_buffer_size;
     autoindex = src.autoindex;
+    redirect = src.redirect;
     valid = src.valid;
     client = src.client;
     methods[0] = src.methods[0];
@@ -81,6 +82,7 @@ void    Config::init_server(Server *s)
     s->methods[2] = 0;
     s->autoindex = 0;
     s->loc.clear();
+    s->redirect.clear();
     s->valid = 0;
     s->lvl = 0;
     s->path = "";
@@ -271,12 +273,12 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *i_loc)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 10;
+    const int               nb_serv_types = 11;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_body_buffer_size", "error_page"
                                                         , "autoindex", "allow_methods", "limit_except"
-                                                        , "cgi_pass"};
-    std::string tmp;
+                                                        , "cgi_pass", "rewrite"};
+    std::string tmp, tmp1;
     Server      loc_tmp;
     size_t      j_loc;
     pass_blanck(s, i, line_i);
@@ -389,6 +391,22 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     serv_tmp->cgi.push_back(tmp);
+                    break;
+                case (10):
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp = s.substr(p, *i - p);
+                    if (!tmp.size())
+                        return (error_config_message(s, *line_i, 20) + 1);
+                    if (*i >= s.length() || !is_space(s[*i]))
+                        return (error_config_message(s, *line_i, 21) + 1);
+                    pass_blanck(s, i, line_i);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp1 = s.substr(p, *i - p);
+                    if (!tmp1.size())
+                        return (error_config_message(s, *line_i, 22) + 1);
+                    serv_tmp->redirect.push_back(std::make_pair(tmp, tmp1));
                     break;
                 }
                 pass_blanck(s, i, line_i);
@@ -556,6 +574,12 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
         for (size_t j = 0; j < src.lvl + 1; j++)
             ostream << "\t";
         ostream << WHITE << "cgi pass: " << RESET << src.cgi[i] << std::endl;
+    }
+    for (std::vector<std::pair<std::string, std::string> >::size_type j = 0; j != src.redirect.size(); j++)
+    {
+        for (size_t k = 0; k < src.lvl + 1; k++)
+            ostream << "\t";
+        ostream << WHITE << "redirection: " << RESET << src.redirect[j].first << " " << src.redirect[j].second << std::endl;
     }
     for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
         ostream << src.loc[i];
