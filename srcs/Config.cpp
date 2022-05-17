@@ -1,14 +1,17 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0), path(""), client()
+Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
+, path(""), client()
 {
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
 }
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), vp(src.vp), root(src.root), index(src.index), error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client)
+Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
+, error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
+, valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), vp(src.vp)
 {
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];

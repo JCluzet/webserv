@@ -20,7 +20,6 @@ class Server
     std::string                 ip; // Server adresse ip
     std::string                 port;
     std::string                 host; // Server hostname
-    std::vector<std::pair<std::string, std::string> >   vp;
     std::string                 root;
     std::string                 index;
     std::map<int, std::string>  error_page;
@@ -34,6 +33,7 @@ class Server
     size_t                      lvl; // if > 0, it's a location
     std::string                 path; // location path
     std::vector<Client>         client;
+    std::vector<std::pair<std::string, std::string> >   vp;
 };
 
 class Config
