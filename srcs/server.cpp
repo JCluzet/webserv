@@ -308,18 +308,25 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 
 		if (client->request->ready())
 		{
-			if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
-			{
-				// PARSER BOUNDARY POUR UPLOAD
-			}
 			if (is_cgi(client->request) == true)
 			{
+        		if(ft_atoi(conf->server[j].client_body_buffer_size.c_str()) < client->request->get_body().length())
+				{
+					client->response->setStatus(413);
+					client->fd_file = client->response->treatRequest();
+					return;
+				}
+				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
+				{
+					// PARSER BOUNDARY POUR UPLOAD
+				}
 				treat_cgi(&conf->server[j], client);
 			}
 			else
 				client->fd_file = client->response->treatRequest();
 		}
 	}
+
 	return;
 }
 

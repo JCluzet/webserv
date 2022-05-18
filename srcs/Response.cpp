@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 21:42:33 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 00:12:09 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,6 +221,8 @@ const std::string Response::error_page_message(const int status)
         return ("Not Found");
     if (status == 500)
         return ("Internal Server Error");
+    if (status == 413)
+        return ("Request Entity Too Large");
     // if (status == 400)
     return ("Bad Request");
 }

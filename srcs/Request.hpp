@@ -189,7 +189,10 @@ private:
             _end = true;
             return true;
         }
-        return true;
+
+        // check if body contain no more characters than client_max_body_size
+
+        return true; 
     }
 
     /*void cut_end(std::string *r)

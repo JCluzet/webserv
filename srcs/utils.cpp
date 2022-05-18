@@ -171,3 +171,16 @@ void output_debug(std::string request, std::string response)
 	std::cout << WHITE << "\nOUR RESPONSE: " << RESET << std::endl
 			  << response << RESET << "<" << WHITE << "INVISIBLE BODY" << RESET << ">" << std::endl;
 }
+
+
+size_t ft_atoi(std::string str)
+{
+    size_t i = 0;
+    size_t n = 0;
+    while (str[i] >= '0' && str[i] <= '9' && i < str.length())
+    {
+        n = n * 10 + (str[i] - '0');
+        i++;
+    }
+    return (n);
+}

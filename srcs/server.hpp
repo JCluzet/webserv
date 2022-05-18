@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 22:06:39 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 00:15:32 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #define CO_MAX 20
 #define BUFFER_SIZE 2048
-#define LOG 0
+#define LOG 1
 
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
@@ -90,6 +90,7 @@ std::string                 set_default_page(std::string filetosearch, std::stri
 std::string                 data_sender(std::string client_data);
 std::vector<std::string>    cgi_env(std::string cmd, std::string cgi_str, Client* client, Server* server);
 //utils
+size_t ft_atoi(std::string str);
 bool            readinFile(std::string filename, std::string *fileContent);
 bool            is_number(char c);
 bool            is_space(const char c);
