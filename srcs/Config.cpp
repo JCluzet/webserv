@@ -406,7 +406,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 }
                 pass_blanck(s, i, line_i);
                 if (*i >= s.length() || s[*i] != ';')
-                    return (error_config_message(s, *line_i, 29) + 1);
+                    return (error_config_message(s, *line_i - 1, 29) + 1);
                 *i += 1;
                 pass_blanck(s, i, line_i);
                 return (0);
@@ -421,6 +421,7 @@ bool    Config::get_conf(const std::string s)
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     std::vector<std::pair<std::string, std::string> >   vp;
     Server serv_tmp;
+    bool    e_ipport = 0;
     if (s.empty())
         return error_msg("Error: Empty config file.") + 1;
     pass_blanck(s, &i, &line_i);
@@ -446,24 +447,54 @@ bool    Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i, 33) + 1;
         i += 1;
-        i_serv++;
         if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
         if (vp.empty())
         {
-            serv_tmp.ip = "0.0.0.0";
-            serv_tmp.port = "80";
+            for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+            {
+                if (server[j].ip == DEFAULT_IP)
+                {
+                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip(" << DEFAULT_IP << ")." << std::endl;
+                    e_ipport = 1;
+                }
+                if (server[j].port == DEFAULT_PORT)
+                {
+                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << DEFAULT_PORT << ")." << std::endl;
+                    e_ipport = 1;
+                }
+                if (e_ipport)
+                    return 1;
+            }
+            serv_tmp.ip = DEFAULT_IP;
+            serv_tmp.port = DEFAULT_PORT;
             server.push_back(serv_tmp);
         }
         else
         {
             for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < vp.size(); i++)
             {
+                for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+                {
+                    if (server[j].ip == vp[i].first)
+                    {
+                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip(" << vp[i].first << ")." << std::endl;
+                        e_ipport = 1;
+                    }
+                    if (server[j].port == vp[i].second)
+                    {
+                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << vp[i].second << ")." << std::endl;
+                        e_ipport = 1;
+                    }
+                    if (e_ipport)
+                        return 1;
+                }
                 serv_tmp.ip = vp[i].first;
                 serv_tmp.port = vp[i].second;
                 server.push_back(serv_tmp);
             }
         }
+        i_serv++;
         vp.clear(); 
         i_loc = 1;
         pass_blanck(s, &i, &line_i);
