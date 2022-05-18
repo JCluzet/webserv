@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 20:17:03 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 21:42:33 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,7 @@ Response &Response::operator=(const Response &src)
 
 std::string Response::getHeader()
 {
-    std::string head = "";
-    head += "HTTP/1.1 " + _status;
+    std::string head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
     head += "\nServer: WebServ/1.0";
     head += "\nDate : " + getDate();
     if (_request->get_header("Connection") == "close")
