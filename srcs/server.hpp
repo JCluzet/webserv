@@ -6,13 +6,13 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 20:10:45 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 20:47:26 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#define CO_MAX 200
+#define CO_MAX 20
 
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
