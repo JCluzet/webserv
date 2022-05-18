@@ -3,7 +3,7 @@
 map <path, Server*> location
 condition hostname a definir
 -ip
-client_max_body_size
+default body size int max
 
 --------INDEX_GENERATOR-------
 corriger 1st line

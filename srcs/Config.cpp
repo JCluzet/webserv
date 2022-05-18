@@ -10,7 +10,7 @@ Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), clie
 
 Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
 , error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
-,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client){
+,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
@@ -40,6 +40,7 @@ Server& Server::operator=(const Server &src){
     path = src.path;
     loc = src.loc;
     client = src.client;
+    locations = src.locations;
     return *this;
 }
 
@@ -84,6 +85,7 @@ void    Config::init_server(Server *s)
     s->lvl = 0;
     s->path = "";
     s->client.clear();
+    s->locations.clear();
 }
 
 bool    Config::init(const std::string filename)
@@ -261,7 +263,8 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 }
 
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp
-, bool *a, size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp)
+, bool *a, size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp
+, std::map<std::string, Server*> *locations)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 11;
@@ -285,6 +288,9 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             return (error_config_message(s, *line_i, 9) + 1);
         if (loc_tmp.path[0] != '/')
             loc_tmp.path.insert(0, "/");
+        for (std::vector<Server>::const_iterator it = serv_tmp->loc.begin(); it != serv_tmp->loc.end(); it++)
+            if (it->path == loc_tmp.path)
+                return (error_config_message(s, *line_i, 10) + 1);
         pass_blanck(s, i, line_i);
         loc_tmp.id = *i_loc;
         loc_tmp.loc_id =  serv_tmp->loc_id + "." + intToStr(*i_loc);
@@ -293,7 +299,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         *i += 1;
         j_loc = 1;
         for (bool b = 0; *i <= s.length() && s[*i] != '}';)
-            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc, NULL))
+            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc, NULL, locations))
                 return 1;
         if (*i <= s.length() && s[*i] != '}')
             return (error_config_message(s, *line_i, 11) + 1);
@@ -302,6 +308,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         *i_loc += 1;
         loc_tmp.lvl = calling_lvl + 1;
         serv_tmp->loc.push_back(loc_tmp);
+        locations->insert(std::make_pair(serv_tmp->loc[serv_tmp->loc.size() - 1].path, &serv_tmp->loc[serv_tmp->loc.size() - 1]));
         return 0;
     }
     else
@@ -426,6 +433,7 @@ bool    Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     std::vector<std::pair<std::string, std::string> >   vp;
+    std::map<std::string, Server*>                      locations;
     Server serv_tmp;
     bool    e_ipport = 0;
     if (s.empty())
@@ -447,7 +455,7 @@ bool    Config::get_conf(const std::string s)
         serv_tmp.loc_id = intToStr(i_serv);
         for (bool a = 0; i < s.length() && s[i] != '}';)
         {
-            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp))
+            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp, &locations))
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
@@ -500,6 +508,8 @@ bool    Config::get_conf(const std::string s)
                 server.push_back(serv_tmp);
             }
         }
+        server[server.size() - 1].locations = locations;
+        locations.clear();
         i_serv++;
         vp.clear(); 
         i_loc = 1;
@@ -699,6 +709,13 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     }
     for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
         ostream << src.loc[i];
+
+    for (std::map<std::string, Server*>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
+    {
+        for (size_t i = 0; i < src.lvl + 1; i++)
+            ostream << "\t";
+        ostream << WHITE << (it == src.locations.begin() ? "location map: " : "              ") << RESET << it->first << std::endl;
+    }
     return ostream;
 }
 
