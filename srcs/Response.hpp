@@ -12,7 +12,6 @@ class Response
 private:
     Server*     _conf;
     Request*    _request;
-    std::string _status;
     int _is_waiting;
     std::string _header;
     std::string _content_type;

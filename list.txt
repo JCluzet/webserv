@@ -14,6 +14,20 @@ TO DO LIST:
 - client_max_body_size a gerer 
 - gerer les redirections 
 
+CODE ERREUR :
+
+201  -> Ressource created (post)
+
+CONFIG LINK :
+
+Relier les locations 
+Relier les limit_except
+Relier le max_body_size
+Relier le client_body_buffer_size
+Relier server name(dans la reponse a la place de WebServ 1.0)
+
+REGLER LES UPLOAD/RECUP DE FICHIER
+
 
 - ALEX :
 
