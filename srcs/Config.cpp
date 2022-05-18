@@ -149,10 +149,10 @@ char     Config::check_ip_line(const std::string s)
 char     Config::check_port_line(const std::string s)
 {
     if (s.length() > 4 || s.empty())
-        return 1;
+        return 5;
     for (std::string::size_type i = 0; i < s.length(); i++)
         if (!isdigit(s[i]))
-            return 2;
+            return 6;
     return 0;
 }
 
@@ -176,8 +176,6 @@ char    Config::get_listen_line(const std::string tmp, std::vector<std::pair<std
     }
     else
     {
-        // pairTmp.first = tmp.substr(0, tmp.find(':'));
-        // pairTmp.second = tmp.substr(tmp.find(':') + 1, tmp.length() - (tmp.find(':') + 1));
         if ((a = check_ip_line(tmp.substr(0, tmp.find(':')))))
             return a;
         if ((a = check_port_line(tmp.substr(tmp.find(':') + 1, tmp.length() - (tmp.find(':') + 1)))))
@@ -216,8 +214,6 @@ bool    Config::get_error_page_line(const std::string s, Server *serv_tmp, std::
     }
     if (!path.length())
         return (error_config_message(s, *line_i, 3) + 1);
-    if (path[0] != '/')
-        path.insert(0, "/");
     serv_tmp->error_page[n] = path;
     return 0;
 }
@@ -335,11 +331,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     if ((c = get_listen_line(tmp, vp)))
-                        return (error_config_message(s, *line_i, 16 + c) + 1);
+                        return (error_config_message(s, *line_i, 15 + c) + 1);
                     break;
                 case (2):
                     if (serv_tmp->root.length())
-                        return (error_config_message(s, *line_i, 16) + 1);
+                        return (error_config_message(s, *line_i, 22) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -349,7 +345,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (3):
                     if (serv_tmp->index.length())
-                        return (error_config_message(s, *line_i, 17) + 1);
+                        return (error_config_message(s, *line_i, 23) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -359,7 +355,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     break;
                 case (4):
                     if (serv_tmp->client_body_buffer_size.length())
-                        return (error_config_message(s, *line_i, 18) + 1);
+                        return (error_config_message(s, *line_i, 24) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -374,7 +370,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     if (*a || (tmp != "on" && tmp != "off"))
-                        return (error_config_message(s, *line_i, 19) + 1);
+                        return (error_config_message(s, *line_i, 25) + 1);
                     *a = 1;
                     serv_tmp->autoindex = (tmp == "on");
                     break;
@@ -393,32 +389,33 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     if (!tmp.size())
-                        return (error_config_message(s, *line_i, 20) + 1);
+                        return (error_config_message(s, *line_i, 26) + 1);
                     if (*i >= s.length() || !is_space(s[*i]))
-                        return (error_config_message(s, *line_i, 21) + 1);
+                        return (error_config_message(s, *line_i, 27) + 1);
                     pass_blanck(s, i, line_i);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp1 = s.substr(p, *i - p);
                     if (!tmp1.size())
-                        return (error_config_message(s, *line_i, 22) + 1);
+                        return (error_config_message(s, *line_i, 28) + 1);
                     serv_tmp->redirect.push_back(std::make_pair(tmp, tmp1));
                     break;
                 }
                 pass_blanck(s, i, line_i);
                 if (*i >= s.length() || s[*i] != ';')
-                    return (error_config_message(s, *line_i, 21) + 1);
+                    return (error_config_message(s, *line_i, 29) + 1);
                 *i += 1;
                 pass_blanck(s, i, line_i);
                 return (0);
             }
         }
-        return error_config_message(s, *line_i, 22) + 1;
+        return error_config_message(s, *line_i, 30) + 1;
     }
 }
 
 bool    Config::check_server(Server* s)
 {
+    bool r = 0;
     if (s->root.empty())
     {
         std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
@@ -436,15 +433,15 @@ bool    Config::check_server(Server* s)
     }
 /*?*/if (s->index.size() && !is_file(s->root + s->index))
     {
-        std::cerr << "Error config: server " << s->lvl << "." << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
-        return 1;
+        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
+        r = 1;
     }
     for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
     {
         if (!is_file(s->root + it->second))
         {
             std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
-            return 1;
+            r = 1;
         }
     }
     for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
@@ -452,7 +449,7 @@ bool    Config::check_server(Server* s)
         if (!is_directory(s->root + s->cgi[i]))
         {
             std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
-            return 1;
+            r = 1;
         }
     }
     for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
@@ -460,10 +457,10 @@ bool    Config::check_server(Server* s)
         if (!is_directory(s->root + s->loc[i].path))
         {
             std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
-            return 1;
+            r = 1;
         }
     }
-    return 0;
+    return r;
 }
 
 bool    Config::get_conf(const std::string s)
@@ -477,13 +474,13 @@ bool    Config::get_conf(const std::string s)
     if (s.length() <= i)
         return error_msg("Error: Empty config file") + 1;
     if (!s_a_have_b(s, i, "server"))
-        return error_config_message(s, line_i, 23) + 1;
+        return error_config_message(s, line_i, 31) + 1;
     while (1)
     {
         i += 6;
         pass_blanck(s, &i, &line_i);
         if (s.length() <= i || s[i] != '{')
-            return error_config_message(s, line_i, 24) + 1;
+            return error_config_message(s, line_i, 32) + 1;
         i += 1;
         init_server(&serv_tmp);
         for (bool a = 0; i < s.length() && s[i] != '}';)
@@ -492,7 +489,7 @@ bool    Config::get_conf(const std::string s)
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
-            return error_config_message(s, line_i, 25) + 1;
+            return error_config_message(s, line_i, 33) + 1;
         i += 1;
         serv_tmp.id = i_serv;
         i_serv++;
@@ -519,7 +516,7 @@ bool    Config::get_conf(const std::string s)
         if (s.length() == i)
             break;
         if (!s_a_have_b(s, i, "server"))
-            return error_config_message(s, line_i, 26) + 1;
+            return error_config_message(s, line_i, 34) + 1;
     }
     valid = 1;
 

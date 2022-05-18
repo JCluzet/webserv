@@ -1,5 +1,4 @@
 ---------CONF_PARSING---------
 check paths inside locations
 id server++
-virer vp
 ------------------------------
