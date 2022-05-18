@@ -22,7 +22,7 @@ class Server
     std::string                                         port;
     std::string                                         host; // Server hostname
     std::string                                         root;
-    std::string                                         index;
+    std::vector<std::string>                            index;
     std::map<int, std::string>                          error_page;
     std::string                                         client_body_buffer_size;
     bool                                                methods[3]; // [0] = GET, [1] = POST, [2] = DELETE

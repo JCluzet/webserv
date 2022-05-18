@@ -1,10 +1,10 @@
 
 ---------CONF_PARSING---------
-pas de serveurs qui partagent un port
-default root
 map <path, Server*> location
 condition hostname a definir
 +multi index
+-ip
+client_max_body_size
 
 --------INDEX_GENERATOR-------
 corriger 1st line
