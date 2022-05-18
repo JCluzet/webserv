@@ -1,19 +1,24 @@
 #pragma once
 
-#define NB_HEADERS 24
+#include "server.hpp"
+
+#define NB_HEADERS 23
 #define NL "\r\n"
 #define NLSIZE 2
+
+std::string chunked(std::string str);
+
 
 class Request
 {
 public:
     // constructors
-    Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line("")
+    Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line(""), _chunked(false)
     {
         init_header_map();
     }
 
-    Request(std::string new_request) : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line("")
+    Request(std::string new_request) : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(false), _body(""), _line(""), _chunked(false)
     {
         init_header_map();
         addp(new_request);
@@ -38,6 +43,7 @@ public:
             _valid = src._valid;
             _body = src._body;
             _line = src._line;
+            _chunked = src._chunked;
         }
         return *this;
     }
@@ -67,6 +73,22 @@ public:
         {
             clear();
             _end = true;
+            return ;
+        }
+        if (_valid == true && _end == true && _method == "POST")
+        {
+
+            if (_m["Content-Type"] == "")
+            {
+                _m["Content-Type"] = "text/plain";
+            }
+            if (_m["Content-Type"] != "text/plain" && (_m["Content-Type"].find(";") == std::string::npos
+                    || _m["Content-Type"].substr(0, _m["Content-Type"].find(";")) != "multipart/form-data")
+                && _m["Content-Type"] != "application/x-www-form-urlencoded")
+            {
+                _valid = false;
+                clear();
+            }
         }
     }
 
@@ -81,6 +103,7 @@ public:
         _end = false;
         _valid = false;
         _line = "";
+        _chunked = false;
         init_header_map();
     }
     //modifier
@@ -95,6 +118,7 @@ private:
     bool    _valid;
     std::string _body;
     std::string _line;
+    bool        _chunked;
 
     bool addp(std::string r)
     {
@@ -104,6 +128,8 @@ private:
             return true;
         if (_line == "" && (r == "" || r.substr(0, 1) == " "))
             return false;
+        if (_chunked == true)
+            r = chunked(r);
         r = _line + r;
         if (r.find(NL) != std::string::npos && r.find_last_of(NL) + 1 < r.length())
             _line = r.substr(r.find_last_of(NL) + 1, r.length());
@@ -118,13 +144,17 @@ private:
                 if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
                     return false;
             }
-            else if (r == NL && _line == "")
+            else if (r[0] == '\r' && r[1] == '\n' && _line == "")
             {
                 if (_method == "GET" || _method == "DELETE")
                 {    
                     _request += r;
                     _end = true;
                     return true;
+                }
+                if (_method == "POST" && (_m["Content-Length"] == "" || _m["Transfer-Encoding"] == "chunked"))
+                {
+                    _chunked = true;
                 }
                 if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
                         return false;
@@ -275,15 +305,14 @@ private:
         _header[12] = "Location";
         _header[13] = "Referer";
         _header[14] = "Retry-After";
-        _header[15] = "Server"; // Pas dans la requete ?
-        _header[16] = "Transfer-Encoding";
-        _header[17] = "User-Agent";
-        _header[18] = "Www-Authenticate"; // Pas utile ?
-        _header[19] = "Connection";
-        _header[20] = "Accept";
-        _header[21] = "Cookie";
-        _header[22] = "Accept-Encoding";
-        _header[23] = "From";
+        _header[15] = "Transfer-Encoding";
+        _header[16] = "User-Agent";
+        _header[17] = "Www-Authenticate"; // Pas utile ?
+        _header[18] = "Connection";
+        _header[19] = "Accept";
+        _header[20] = "Cookie";
+        _header[21] = "Accept-Encoding";
+        _header[22] = "From";
         _m["Accept-Charsets"] = "";
         _m["Accept-Language"] = "";
         _m["Allow"] = "";
@@ -299,11 +328,10 @@ private:
         _m["Location"] = "";
         _m["Referer"] = "";
         _m["Retry-After"] = "";
-        _m["Server"] = "";
         _m["Transfer-Encoding"] = "";
         _m["User-Agent"] = "";
         _m["Www-Authenticate"] = "";
-        _m["Connection"] = "Keep-Alive";
+        _m["Connection"] = "keep-alive";
         _m["Accept"] = "";
         _m["Cookie"] = "";
         _m["Accept-Encoding"] = "";

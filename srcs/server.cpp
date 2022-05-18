@@ -42,10 +42,10 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 		perror("In socket");
 		std::cout << std::endl
 				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-			exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	fcntl(*listen_sock, F_SETFL, O_NONBLOCK);
-		int reuse = 1;
+	int reuse = 1;
 	if (setsockopt(*listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
 	{
 		perror("set sockopt");
@@ -79,11 +79,11 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 	return (address);
 }
 
-int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
+int build_fd_set(int *listen_sock, Config *conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
 {
 	size_t i;
 	size_t j;
-	int	high_sock = -1;
+	int high_sock = -1;
 	(void)except_fds;
 
 	FD_ZERO(read_fds);
@@ -98,7 +98,7 @@ int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write
 			if (conf->server[j].client[i].pipe_cgi_out[0] != -1)
 				FD_SET(conf->server[j].client[i].pipe_cgi_out[0], read_fds);
 			if (conf->server[j].client[i].fd_file != -1)
-				FD_SET(conf->server[j].client[i].fd_file, read_fds);	
+				FD_SET(conf->server[j].client[i].fd_file, read_fds);
 		}
 	}
 	FD_ZERO(write_fds);
@@ -128,7 +128,7 @@ int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write
 				high_sock = conf->server[j].client[i].pipe_cgi_in[1];
 			if (high_sock < conf->server[j].client[i].pipe_cgi_out[0])
 				high_sock = conf->server[j].client[i].pipe_cgi_out[0];
-			if (high_sock <conf->server[j].client[i].fd_file)
+			if (high_sock < conf->server[j].client[i].fd_file)
 				high_sock = conf->server[j].client[i].fd_file;
 		}
 	}
@@ -137,10 +137,10 @@ int build_fd_set(int *listen_sock, Config* conf, fd_set *read_fds, fd_set *write
 
 #define BUFFER_SIZE 1024
 
-void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
+void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 {
-	int	valwrite;
-	
+	int valwrite;
+
 	if (client->response->writing == false)
 	{
 		client->response->makeResponse();
@@ -151,7 +151,7 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
 		client->response->writing = false;
-		//std::cout << client->response->transfer << std::endl;
+		// std::cout << client->response->transfer << std::endl;
 	}
 	else
 	{
@@ -164,13 +164,13 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
-		return ;
+		return;
 	}
 	else if (valwrite == 0)
 	{
 	} // ???
-	//std::cout << valwrite << " " << client->response->get_response().length();
-	if (client->response->getstat() == 400 || client->response->getstat() == 500)
+	// std::cout << valwrite << " " << client->response->get_response().length();
+	if (client->response->writing == false && (client->response->getstat() == 400 || client->response->getstat() == 500 || client->request->get_header("Connection") == "close"))
 	{
 		std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
@@ -180,21 +180,21 @@ void	WriteResponse(Config* conf, Client* client, size_t j, size_t i)
 	else if (client->response->writing == false)
 	{
 		output_log(client->response->getstat(), client->response->get_pathfile());
-	if (conf->get_debug() == true)
+		if (conf->get_debug() == true)
 			output_debug(client->request->get_request(), client->response->getHeader());
 		client->response->clear();
 		client->request->clear();
 	}
-	return ;
+	return;
 }
 
-void	ReadFile(Client *client)
+void ReadFile(Client *client)
 {
 	int valread;
 	char data[BUFFER_SIZE + 1];
 
 	if ((valread = read(client->fd_file, data, BUFFER_SIZE)) < 0)
-    {
+	{
 		std::cout << strerror(errno) << std::endl;
 		// std::cout << "valeur retour" << close(client->fd_file) << std::endl; // error 500
 		std::cout << strerror(errno) << std::endl;
@@ -204,7 +204,7 @@ void	ReadFile(Client *client)
 		// std::cout << "!!!!!!!!!!!!!!!!1" << std::endl;
 		client->fd_file = client->response->openFile();
 		client->response->transfer = "";
-    }
+	}
 	else if (valread == 0)
 	{
 		// std::cout << "HERE" << client->fd_file << std::endl;
@@ -214,18 +214,18 @@ void	ReadFile(Client *client)
 	else
 	{
 		data[valread] = '\0';
-		client->response->transfer += data;
+		client->response->transfer += std::string(data, valread);
 	}
-	return ;
+	return;
 }
 
-void	ReadCGI(Client* client)
+void ReadCGI(Client *client)
 {
 	int valread;
 	char data[BUFFER_SIZE + 1];
 
 	if ((valread = read(client->pipe_cgi_out[0], data, BUFFER_SIZE)) < 0)
-    {
+	{
 		client->response->setStatus(500);
 		// std::cout << "!!!!!!!!!!!!!!!!2" << std::endl;
 		client->fd_file = client->response->openFile();
@@ -233,7 +233,7 @@ void	ReadCGI(Client* client)
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
 		client->response->transfer = "";
-    }
+	}
 	else if (valread == 0)
 	{
 		close(client->pipe_cgi_out[0]);
@@ -245,10 +245,10 @@ void	ReadCGI(Client* client)
 		data[valread] = '\0';
 		client->response->transfer += data;
 	}
-	return ;
+	return;
 }
 
-void	WriteCGI(Client* client)
+void WriteCGI(Client *client)
 {
 	int valwrite;
 
@@ -272,10 +272,10 @@ void	WriteCGI(Client* client)
 		client->pipe_cgi_in[1] = -1;
 		client->pipe_cgi_in[0] = -1;
 	}
-	return ;
+	return;
 }
 
-void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
+void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 {
 	int valread;
 	char data[BUFFER_SIZE + 1];
@@ -286,7 +286,7 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
-		return ;
+		return;
 	}
 	else if (valread == 0)
 	{
@@ -294,15 +294,19 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
 		i--;
-		return ;
+		return;
 	}
 	else
 	{
 		data[valread] = '\0';
-	    client->request->add(data);
-	    if (client->request->ready())
-	    {
-			//std::cout << client->request->get_request() << " !" << std::endl;
+		client->request->add(data);
+
+		if (client->request->ready())
+		{
+			if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
+			{
+				// PARSER BOUNDARY POUR UPLOAD
+			}
 			if (is_cgi(client->request) == true)
 			{
 				treat_cgi(&conf->server[j], client);
@@ -311,10 +315,10 @@ void	ReadRequest(Config* conf, Client* client, size_t j, size_t i)
 				client->fd_file = client->response->treatRequest();
 		}
 	}
-	return ;
+	return;
 }
 
-void	NewClients(int* listen_sock, Config* conf, fd_set* read_fds)
+void NewClients(int *listen_sock, Config *conf, fd_set *read_fds)
 {
 	int new_socket;
 	struct sockaddr_in address;
@@ -327,26 +331,26 @@ void	NewClients(int* listen_sock, Config* conf, fd_set* read_fds)
 			if ((new_socket = accept(listen_sock[j], (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
 			{
 				// pas grave (?)
-				return ;
+				return;
 			}
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
 			conf->server[j].client.push_back(Client(new_socket, address, &conf->server[j]));
 			std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf->server[j].port << RESET << std::endl;
 		}
 	}
-	return ;
+	return;
 }
 
 int run_server(Config conf)
 {
-	Client*	client;
-	int		high_sock;
-	fd_set	read_fds;
-	fd_set	write_fds;
-	int		listen_sock[conf.server.size()];
+	Client *client;
+	int high_sock;
+	fd_set read_fds;
+	fd_set write_fds;
+	int listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
 		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
-	
+
 	while (1)
 	{
 		high_sock = build_fd_set(&listen_sock[0], &conf, &read_fds, &write_fds, NULL);
@@ -373,23 +377,20 @@ int run_server(Config conf)
 				{
 					ReadRequest(&conf, client, j, i);
 				}
-				else if (client->request->ready() == true && client->request->get_method() == "POST"
-					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) //write cgi
+				else if (client->request->ready() == true && client->request->get_method() == "POST" && client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) // write cgi
 				{
 					WriteCGI(client);
 				}
-				else if (client->request->ready() == true && is_cgi(client->request) && client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1
-					&& FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
+				else if (client->request->ready() == true && is_cgi(client->request) && client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
 				{
 					ReadCGI(client);
 				}
-				else if (client->request->ready() == true// && is_cgi(client->request) == false //&& client->request->get_method() == "GET"
-					&& client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds))
+				else if (client->request->ready() == true // && is_cgi(client->request) == false //&& client->request->get_method() == "GET"
+						 && client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds))
 				{
 					ReadFile(client);
 				}
-				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1
-					&& client->fd_file == -1 && FD_ISSET(client->socket, &write_fds)) // write client
+				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1 && client->fd_file == -1 && FD_ISSET(client->socket, &write_fds)) // write client
 				{
 					WriteResponse(&conf, client, j, i);
 				}
@@ -398,7 +399,6 @@ int run_server(Config conf)
 	}
 	return 0;
 }
-
 
 void quit_sig(int sig)
 {

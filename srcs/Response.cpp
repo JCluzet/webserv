@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/17 00:31:58 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 20:17:03 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,10 @@ std::string Response::getHeader()
     head += "HTTP/1.1 " + _status;
     head += "\nServer: WebServ/1.0";
     head += "\nDate : " + getDate();
+    if (_request->get_header("Connection") == "close")
+        head += "\r\nConnection: close";
+    else
+        head += "\r\nConnection: keep-alive";
     head += "\nContent-Type: " + _content_type;
     head += "\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\r\n\r\n";
@@ -227,7 +231,6 @@ int Response::openFile()
     int fd_file = -1;
     if (_stat_rd == 0)
     {
-        // std::cout << _filepath << std::endl;
         if (!fileExist(_filepath))
             _stat_rd = 404;
         if (_stat_rd == 0) // le fichier existe
