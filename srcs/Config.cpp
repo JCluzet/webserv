@@ -591,12 +591,15 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "location " << src.loc_id << ": " << RESET << src.path << std::endl;
     }
-    for (size_t i = 0; i < src.lvl + 1; i++)
-        ostream << "\t";
-    ostream << WHITE << "port: " << RESET << src.port << std::endl;
-    for (size_t i = 0; i < src.lvl + 1; i++)
-        ostream << "\t";
-    ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
+    if (!src.lvl)
+    {
+        for (size_t i = 0; i < src.lvl + 1; i++)
+            ostream << "\t";
+        ostream << WHITE << "port: " << RESET << src.port << std::endl;
+        for (size_t i = 0; i < src.lvl + 1; i++)
+            ostream << "\t";
+        ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
+    }
     if (src.host.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
