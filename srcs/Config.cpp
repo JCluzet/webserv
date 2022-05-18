@@ -1,7 +1,7 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
+Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_max_body_size(""), autoindex(0), valid(0), lvl(0)
 , path(""), client(CO_MAX){
     methods[0] = 0;
     methods[1] = 0;
@@ -9,7 +9,7 @@ Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), clie
 }
 
 Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
-, error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
+, error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
 ,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -28,7 +28,7 @@ Server& Server::operator=(const Server &src){
     root = src.root;
     index = src.index;
     error_page = src.error_page;
-    client_body_buffer_size = src.client_body_buffer_size;
+    client_max_body_size = src.client_max_body_size;
     autoindex = src.autoindex;
     redirect = src.redirect;
     valid = src.valid;
@@ -72,7 +72,7 @@ void    Config::init_server(Server *s)
     s->root = "";
     s->index.clear();
     s->error_page.clear();
-    s->client_body_buffer_size = "";
+    s->client_max_body_size = "";
     s->cgi.clear();
     s->methods[0] = 0;
     s->methods[1] = 0;
@@ -266,7 +266,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     std::string::size_type  p;
     const int               nb_serv_types = 11;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
-                                                        , "client_body_buffer_size", "error_page"
+                                                        , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "limit_except"
                                                         , "cgi_pass", "rewrite"};
     std::string tmp, tmp1;
@@ -362,13 +362,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         pass_blanck(s, i, line_i);
                     }
                     break;
-                case (4): //client_body_buffer_size
-                    if (serv_tmp->client_body_buffer_size.length())
+                case (4): //client_max_body_size
+                    if (serv_tmp->client_max_body_size.length())
                         return (error_config_message(s, *line_i, 24) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->client_body_buffer_size = tmp;
+                    serv_tmp->client_max_body_size = tmp;
                     break;
                 case (5): //error_page
                     if (get_error_page_line(s, serv_tmp, i, line_i))
@@ -667,11 +667,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << (*it).first << (it == src.error_page.begin() ? "page: " : "      ") << RESET << (*it).second << std::endl;
     }
-    if (src.client_body_buffer_size.length())
+    if (src.client_max_body_size.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "client body size buffer : " << RESET << src.client_body_buffer_size << std::endl;
+        ostream << WHITE << "client body size buffer : " << RESET << src.client_max_body_size << std::endl;
     }
     if (src.autoindex)
     {

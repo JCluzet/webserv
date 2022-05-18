@@ -24,7 +24,7 @@ class Server
     std::string                                         root;
     std::vector<std::string>                            index;
     std::map<int, std::string>                          error_page;
-    std::string                                         client_body_buffer_size;
+    std::string                                         client_max_body_size;
     bool                                                methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
     std::vector<std::string>                            cgi;
     std::vector<Server>                                 loc; // locations

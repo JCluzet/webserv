@@ -2,7 +2,6 @@
 ---------CONF_PARSING---------
 map <path, Server*> location
 condition hostname a definir
-+multi index
 -ip
 client_max_body_size
 
