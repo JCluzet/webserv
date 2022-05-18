@@ -191,7 +191,6 @@ private:
         }
 
         // check if body contain no more characters than client_max_body_size
-
         return true; 
     }
 

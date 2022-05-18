@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 00:12:09 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 01:11:44 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,15 +121,24 @@ void Response::makeResponse()
         if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
             _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
         else
+        {
             _content_type = "text/html";
+
+        }
         if (transfer.find("\r\n\r\n") != std::string::npos)
             transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
     }
     else
+    {
+        
         get_content_type();
+    
+    }
     if (transfer != "")
         _filecontent = transfer;
+
     _response = getHeader() + _filecontent + "\r\n\r\n";
+    // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
     // std::cout << _filecontent.length() << std::endl;
     return;
 }
@@ -179,7 +188,7 @@ int Response::get_content_type()
 {
     _content_type = "text/html";
 
-    if (_request->get_path() != "")
+    if (_request->get_path() != "" && _filepath.length() >= 4)
     {
         if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
             _content_type = "image/svg+xml";
@@ -223,7 +232,10 @@ const std::string Response::error_page_message(const int status)
         return ("Internal Server Error");
     if (status == 413)
         return ("Request Entity Too Large");
-    // if (status == 400)
+    if (status == 405)
+        return ("Method Not Allowed");
+    if (status == 502)
+        return ("Bad Gateway");
     return ("Bad Request");
 }
 
@@ -243,8 +255,6 @@ int Response::openFile()
             else
                 _stat_rd = 200; // le fichier est lisible
         }
-        // std::cout << "stat_rd = " << _stat_rd << std::endl;
-		// std::cout << fd_file << std::endl;
 
     }
     if (_stat_rd != 200)
@@ -254,7 +264,6 @@ int Response::openFile()
         else
         {
             _filepath =  _conf->root + _conf->error_page[_stat_rd];
-            // std::cout << "fileexist: " << _filepath << std::endl;
             if (!fileExist( _filepath))
             {
                 _stat_rd = 404;
@@ -271,7 +280,5 @@ int Response::openFile()
             }
         }
     }
-    _status = intToStr(_stat_rd);
-    _status += " " + error_page_message(_stat_rd);
     return (fd_file);
 }
