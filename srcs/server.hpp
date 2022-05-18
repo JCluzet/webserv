@@ -20,6 +20,8 @@
 #define YELLOW  "\033[1;33m"
 #define BLUE    "\033[1;34m"
 #define RESET   "\033[0m"
+#define DEFAULT_PORT "80"
+#define DEFAULT_IP "0.0.0.0"
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>

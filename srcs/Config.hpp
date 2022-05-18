@@ -17,6 +17,7 @@ class Server
     bool	operator==(const Server &c) const;
   
     int                                                 id; // Server id
+    std::string                                         loc_id; // Location id
     std::string                                         ip; // Server adresse ip
     std::string                                         port;
     std::string                                         host; // Server hostname
@@ -34,7 +35,6 @@ class Server
     size_t                                              lvl; // if > 0, it's a location
     std::string                                         path; // location path
     std::vector<Client>                                 client;
-    // std::vector<std::pair<std::string, std::string> >   vp;
 };
 
 class Config

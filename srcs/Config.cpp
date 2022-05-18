@@ -1,14 +1,14 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
+Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
 , path(""), client(){
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
 }
 
-Server::Server(const Server &src) : id(src.id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
+Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
 , error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
 ,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client){
     methods[0] = src.methods[0];
@@ -20,6 +20,7 @@ Server::~Server() {}
 
 Server& Server::operator=(const Server &src){
     id = src.id;
+    loc_id = src.loc_id;
     ip = src.ip;
     port = src.port;
     cgi = src.cgi;
@@ -64,6 +65,7 @@ Config& Config::operator=(const Config &src)
 void    Config::init_server(Server *s)
 {
     s->id = 0;
+    s->loc_id = "";
     s->ip = "";
     s->port = "";
     s->host = "";
@@ -101,7 +103,7 @@ bool    Config::init(const std::string filename)
         a = data.find('#');
     }
     for (std::string::size_type i = 0; i < data.length(); i++)
-        if ((data[i] == ';' || data[i] == '}') && i != 0 && !is_blanck(data[i - 1]))
+        if ((data[i] == ';' || data[i] == '{' || data[i] == '}') && i != 0 && !is_blanck(data[i - 1]))
             data.insert(i, " ");
     return get_conf(data);
 }
@@ -284,6 +286,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         if (loc_tmp.path[0] != '/')
             loc_tmp.path.insert(0, "/");
         pass_blanck(s, i, line_i);
+        loc_tmp.id = *i_loc;
+        loc_tmp.loc_id =  serv_tmp->loc_id + "." + intToStr(*i_loc);
         if (s[*i] != '{')
             return (error_config_message(s, *line_i, 10) + 1);
         *i += 1;
@@ -295,7 +299,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             return (error_config_message(s, *line_i, 11) + 1);
         *i += 1;
         pass_blanck(s, i, line_i);
-        loc_tmp.id = *i_loc;
         *i_loc += 1;
         loc_tmp.lvl = calling_lvl + 1;
         serv_tmp->loc.push_back(loc_tmp);
@@ -413,110 +416,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     }
 }
 
-bool    Config::check_server(Server* s)
-{
-    bool r = 0;
-    if (s->root.empty())
-    {
-        std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
-        return 1;
-    }
-    if (s->root[0] != '/')
-    {
-        std::cerr << "Error config: server " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
-        return 1;
-    }
-    if (!is_directory(s->root))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
-        return 1;
-    }
-/*?*/if (s->index.size() && !is_file(s->root + s->index))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
-        r = 1;
-    }
-    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
-    {
-        if (!is_file(s->root + it->second))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
-    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
-    {
-        if (!is_directory(s->root + s->cgi[i]))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
-            r = 1;
-        }
-    }
-    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
-    {
-        if (!is_directory(s->root + s->loc[i].path))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
-            r = 1;
-        }
-        if (!check_location(&s->loc[i], s->root))
-            r = 1;
-    }
-    return r;
-}
-
-bool    Config::check_location(Server* s, const std::string calling_root)
-{
-    bool r = 0;
-    if (s->root.empty())
-        s->root = calling_root;
-    else
-    {
-        if (s->root[0] != '/')
-        {
-            std::cerr << "Error config: location " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
-            return 1;
-        }
-        if (!is_directory(s->root))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
-            return 1;
-        }
-    }
-/*?*/if (s->index.size() && !is_file(s->root + s->index))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
-        r = 1;
-    }
-    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
-    {
-        if (!is_file(s->root + it->second))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
-    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
-    {
-        if (!is_directory(s->root + s->cgi[i]))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
-            r = 1;
-        }
-    }
-    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
-    {
-        if (!is_directory(s->root + s->loc[i].path))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
-            r = 1;
-        }
-        if (!check_location(&s->loc[i], s->root))
-            r = 1;
-    }
-    return r;
-}
-
 bool    Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
@@ -537,6 +436,8 @@ bool    Config::get_conf(const std::string s)
             return error_config_message(s, line_i, 32) + 1;
         i += 1;
         init_server(&serv_tmp);
+        serv_tmp.id = i_serv;
+        serv_tmp.loc_id = intToStr(i_serv);
         for (bool a = 0; i < s.length() && s[i] != '}';)
         {
             if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp))
@@ -545,7 +446,6 @@ bool    Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i, 33) + 1;
         i += 1;
-        serv_tmp.id = i_serv;
         i_serv++;
         if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
@@ -577,6 +477,110 @@ bool    Config::get_conf(const std::string s)
     return 0;
 }
 
+bool    Config::check_server(Server* s)
+{
+    bool r = 0;
+    if (s->root.empty())
+    {
+        std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
+        return 1;
+    }
+    if (s->root[0] != '/')
+    {
+        std::cerr << "Error config: server " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
+        return 1;
+    }
+    if (!is_directory(s->root))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
+        return 1;
+    }
+    if (s->index.size() && !is_file(s->root + s->index))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
+        r = 1;
+    }
+    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
+    {
+        if (!is_file(s->root + it->second))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    {
+        if (!is_directory(s->root + s->cgi[i]))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
+    {
+        if (!is_directory(s->root + s->loc[i].path))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
+            r = 1;
+        }
+        if (check_location(&s->loc[i], s->root))
+            r = 1;
+    }
+    return r;
+}
+
+bool    Config::check_location(Server* s, const std::string calling_root)
+{
+    bool r = 0;
+    if (s->root.empty())
+        s->root = calling_root;
+    else
+    {
+        if (s->root[0] != '/')
+        {
+            std::cerr << "Error config: location " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
+            return 1;
+        }
+        if (!is_directory(s->root))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
+            return 1;
+        }
+    }
+    if (s->index.size() && !is_file(s->root + s->index))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
+        r = 1;
+    }
+    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
+    {
+        if (!is_file(s->root + it->second))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    {
+        if (!is_directory(s->root + s->cgi[i]))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
+    {
+        if (!is_directory(s->root + s->loc[i].path))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
+            r = 1;
+        }
+        if (check_location(&s->loc[i], s->root))
+            r = 1;
+    }
+    return r;
+}
+
 std::ostream&	operator<<(std::ostream& ostream, const Server& src)
 {
     if (!src.lvl)
@@ -585,7 +589,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     {
         for (size_t i = 0; i < src.lvl; i++)
             ostream << "\t";
-        ostream << WHITE << "location : " << RESET << src.path << std::endl;
+        ostream << WHITE << "location " << src.loc_id << ": " << RESET << src.path << std::endl;
     }
     for (size_t i = 0; i < src.lvl + 1; i++)
         ostream << "\t";

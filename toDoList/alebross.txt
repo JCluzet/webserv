@@ -1,4 +1,6 @@
+
 ---------CONF_PARSING---------
-check paths inside locations
-id server++
-------------------------------
+check paths inside && root locations
+
+--------INDEX_GENERATOR-------
+corriger 1st line
