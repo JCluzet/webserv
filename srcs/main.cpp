@@ -49,7 +49,7 @@ int main(int argc, char const *argv[])
 
 	std::cout << "                     ";
 	for (size_t j = 0; j < conf.server.size(); j++)
-		std::cout << RED << "⊛" << WHITE << conf.server[j].port[0] << "  ";
+		std::cout << RED << "⊛" << WHITE << conf.server[j].port << "  ";
 	std::cout << RESET << std::endl
 			  << std::endl;
     if (run_server(conf) == -1)

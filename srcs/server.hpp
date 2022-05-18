@@ -6,13 +6,13 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 23:35:03 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 20:10:45 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#define CO_MAX 20
+#define CO_MAX 200
 
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
@@ -66,6 +66,7 @@ struct server_data {
 
 class Config;
 
+std::string chunked(std::string str);
 void                        output_debug(std::string request, std::string response);
 void                        treat_cgi(Server* server, Client* client);
 void	                    quit_sig(int sig);

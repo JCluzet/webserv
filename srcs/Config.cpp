@@ -2,7 +2,7 @@
 #include "server.hpp"
 
 Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
-, path(""), client(){
+, path(""), client(CO_MAX){
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
