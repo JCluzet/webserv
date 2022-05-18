@@ -12,7 +12,7 @@
 
 #include "server.hpp"
 
-// send a chunk of data ( must begin by hexadecimal number, then a \r\n, then data, then a \r\n)\
+// send a chunk of data ( must begin by hexadecimal number, then a \r\n, then data, then a \r\n)
 // return data sent without hexadecimal number and \r\n
 // return empty string if error
 
