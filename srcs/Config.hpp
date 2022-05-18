@@ -69,6 +69,7 @@ class Config
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, bool *a, size_t calling_lvl, size_t *loc_i, std::vector<std::pair<std::string, std::string> >*vp);
     bool    get_conf(const std::string s);
     bool    check_server(Server* s);
+    bool    check_location(Server* s, const std::string calling_root);
 };
 
 std::ostream&	operator<<(std::ostream& ostream, const Server& src);

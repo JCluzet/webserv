@@ -459,6 +459,60 @@ bool    Config::check_server(Server* s)
             std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
             r = 1;
         }
+        if (!check_location(&s->loc[i], s->root))
+            r = 1;
+    }
+    return r;
+}
+
+bool    Config::check_location(Server* s, const std::string calling_root)
+{
+    bool r = 0;
+    if (s->root.empty())
+        s->root = calling_root;
+    else
+    {
+        if (s->root[0] != '/')
+        {
+            std::cerr << "Error config: location " << s->id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
+            return 1;
+        }
+        if (!is_directory(s->root))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
+            return 1;
+        }
+    }
+/*?*/if (s->index.size() && !is_file(s->root + s->index))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
+        r = 1;
+    }
+    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
+    {
+        if (!is_file(s->root + it->second))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    {
+        if (!is_directory(s->root + s->cgi[i]))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            r = 1;
+        }
+    }
+    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
+    {
+        if (!is_directory(s->root + s->loc[i].path))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
+            r = 1;
+        }
+        if (!check_location(&s->loc[i], s->root))
+            r = 1;
     }
     return r;
 }
