@@ -1,8 +1,9 @@
 
 ---------CONF_PARSING---------
-check paths inside && root locations
-pas de serveurs qui partagent un port
-default root
+map <path, Server*> location
+condition hostname a definir
+-ip
+client_max_body_size
 
 --------INDEX_GENERATOR-------
 corriger 1st line

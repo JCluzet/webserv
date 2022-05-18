@@ -11,7 +11,7 @@ TO DO LIST:
 - Gerer l'erreur 406 si le content-type n'est pas accept par le navigateur
 - Gerer l'erreur 500 -> serveur qui crash      ✅
 - max_body_size pour les post a Gerer 
-- client_body_buffer_size a gerer 
+- client_max_body_size a gerer 
 - gerer les redirections 
 
 CODE ERREUR :

@@ -1,7 +1,7 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), index(""), client_body_buffer_size(""), autoindex(0), valid(0), lvl(0)
+Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_max_body_size(""), autoindex(0), valid(0), lvl(0)
 , path(""), client(CO_MAX){
     methods[0] = 0;
     methods[1] = 0;
@@ -9,7 +9,7 @@ Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), inde
 }
 
 Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
-, error_page(src.error_page), client_body_buffer_size(src.client_body_buffer_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
+, error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
 ,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -28,7 +28,7 @@ Server& Server::operator=(const Server &src){
     root = src.root;
     index = src.index;
     error_page = src.error_page;
-    client_body_buffer_size = src.client_body_buffer_size;
+    client_max_body_size = src.client_max_body_size;
     autoindex = src.autoindex;
     redirect = src.redirect;
     valid = src.valid;
@@ -70,9 +70,9 @@ void    Config::init_server(Server *s)
     s->port = "";
     s->host = "";
     s->root = "";
-    s->index = "";
+    s->index.clear();
     s->error_page.clear();
-    s->client_body_buffer_size = "";
+    s->client_max_body_size = "";
     s->cgi.clear();
     s->methods[0] = 0;
     s->methods[1] = 0;
@@ -266,7 +266,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     std::string::size_type  p;
     const int               nb_serv_types = 11;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
-                                                        , "client_body_buffer_size", "error_page"
+                                                        , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "limit_except"
                                                         , "cgi_pass", "rewrite"};
     std::string tmp, tmp1;
@@ -319,7 +319,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 o -= (o == 8 ? 1 : 0);
                 switch (o)
                 {
-                case (0):
+                case (0): //server_name
                     if (serv_tmp->host.length())
                         return (error_config_message(s, *line_i, 14) + 1);
                     p = *i;
@@ -327,7 +327,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp = s.substr(p, *i - p);
                     serv_tmp->host = tmp;
                     break;
-                case (1):
+                case (1): //listen
                     if (calling_lvl)
                         return (error_config_message(s, *line_i, 15) + 1);
                     p = *i;
@@ -336,7 +336,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if ((c = get_listen_line(tmp, vp)))
                         return (error_config_message(s, *line_i, 15 + c) + 1);
                     break;
-                case (2):
+                case (2): //root
                     if (serv_tmp->root.length())
                         return (error_config_message(s, *line_i, 22) + 1);
                     p = *i;
@@ -346,29 +346,35 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (serv_tmp->root[serv_tmp->root.length() - 1] == '/')
                         serv_tmp->root.erase(serv_tmp->root.length() - 1);
                     break;
-                case (3):
-                    if (serv_tmp->index.length())
+                case (3): //index
+                    if (*i >= s.length() || s[*i] == ';')
                         return (error_config_message(s, *line_i, 23) + 1);
-                    p = *i;
-                    pass_not_blanck(s, i);
-                    tmp = s.substr(p, *i - p);
-                    serv_tmp->index = tmp;
-                    if (serv_tmp->index[0] != '/')
-                        serv_tmp->index.insert(0, "/");
+                    while (*i < s.length() && s[*i] != ';')
+                    {
+                        p = *i;
+                        pass_not_blanck(s, i);
+                        if (p == *i)
+                            return (error_config_message(s, *line_i, 23) + 1);
+                        tmp = s.substr(p, *i - p);
+                        if (tmp[0] != '/')
+                            tmp.insert(0, "/");
+                        serv_tmp->index.push_back(tmp);
+                        pass_blanck(s, i, line_i);
+                    }
                     break;
-                case (4):
-                    if (serv_tmp->client_body_buffer_size.length())
+                case (4): //client_max_body_size
+                    if (serv_tmp->client_max_body_size.length())
                         return (error_config_message(s, *line_i, 24) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->client_body_buffer_size = tmp;
+                    serv_tmp->client_max_body_size = tmp;
                     break;
-                case (5):
+                case (5): //error_page
                     if (get_error_page_line(s, serv_tmp, i, line_i))
                         return 1;
                     break;
-                case (6):
+                case (6): //autoindex
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -377,17 +383,17 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     *a = 1;
                     serv_tmp->autoindex = (tmp == "on");
                     break;
-                case (7):
+                case (7): //allow_methods/limit_except
                     if (get_methods_line(s, serv_tmp, i, line_i))
                         return 1;
                     break;
-                case (9):
+                case (9): //cgi_pass
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
                     serv_tmp->cgi.push_back(tmp);
                     break;
-                case (10):
+                case (10): //rewrite
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -406,7 +412,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 }
                 pass_blanck(s, i, line_i);
                 if (*i >= s.length() || s[*i] != ';')
-                    return (error_config_message(s, *line_i, 29) + 1);
+                    return (error_config_message(s, *line_i - 1, 29) + 1);
                 *i += 1;
                 pass_blanck(s, i, line_i);
                 return (0);
@@ -421,6 +427,7 @@ bool    Config::get_conf(const std::string s)
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     std::vector<std::pair<std::string, std::string> >   vp;
     Server serv_tmp;
+    bool    e_ipport = 0;
     if (s.empty())
         return error_msg("Error: Empty config file.") + 1;
     pass_blanck(s, &i, &line_i);
@@ -446,24 +453,54 @@ bool    Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i, 33) + 1;
         i += 1;
-        i_serv++;
         if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
             return 1;
         if (vp.empty())
         {
-            serv_tmp.ip = "0.0.0.0";
-            serv_tmp.port = "80";
+            for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+            {
+                if (server[j].ip == DEFAULT_IP)
+                {
+                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip(" << DEFAULT_IP << ")." << std::endl;
+                    e_ipport = 1;
+                }
+                if (server[j].port == DEFAULT_PORT)
+                {
+                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << DEFAULT_PORT << ")." << std::endl;
+                    e_ipport = 1;
+                }
+                if (e_ipport)
+                    return 1;
+            }
+            serv_tmp.ip = DEFAULT_IP;
+            serv_tmp.port = DEFAULT_PORT;
             server.push_back(serv_tmp);
         }
         else
         {
             for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < vp.size(); i++)
             {
+                for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+                {
+                    if (server[j].ip == vp[i].first)
+                    {
+                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip(" << vp[i].first << ")." << std::endl;
+                        e_ipport = 1;
+                    }
+                    if (server[j].port == vp[i].second)
+                    {
+                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << vp[i].second << ")." << std::endl;
+                        e_ipport = 1;
+                    }
+                    if (e_ipport)
+                        return 1;
+                }
                 serv_tmp.ip = vp[i].first;
                 serv_tmp.port = vp[i].second;
                 server.push_back(serv_tmp);
             }
         }
+        i_serv++;
         vp.clear(); 
         i_loc = 1;
         pass_blanck(s, &i, &line_i);
@@ -495,10 +532,13 @@ bool    Config::check_server(Server* s)
         std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    if (s->index.size() && !is_file(s->root + s->index))
+    for (std::vector<std::string>::iterator it = s->index.begin(); it != s->index.end(); it++)
     {
-        std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << s->index << std::endl;
-        r = 1;
+        if (!is_file(s->root + *it))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << *it << std::endl;
+            r = 1;
+        }
     }
     for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
     {
@@ -547,10 +587,13 @@ bool    Config::check_location(Server* s, const std::string calling_root)
             return 1;
         }
     }
-    if (s->index.size() && !is_file(s->root + s->index))
+    for (std::vector<std::string>::iterator it = s->index.begin(); it != s->index.end(); it++)
     {
-        std::cerr << "Error config: location " << s->loc_id << ": can't open index file path.(" << s->root << s->index << std::endl;
-        r = 1;
+        if (!is_file(s->root + *it))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << *it << std::endl;
+            r = 1;
+        }
     }
     for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
     {
@@ -606,11 +649,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "host: " << RESET << src.host << std::endl;
     }
-    if (src.index.length())
+    for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "index : " << RESET << src.index << std::endl;
+        ostream << WHITE << (it == src.index.begin() ? "index : " : "        ") << RESET << *it << std::endl;
     }
     if (src.root.length())
     {
@@ -622,13 +665,13 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << (*it).first << "page: " << RESET << (*it).second << std::endl;
+        ostream << WHITE << (*it).first << (it == src.error_page.begin() ? "page: " : "      ") << RESET << (*it).second << std::endl;
     }
-    if (src.client_body_buffer_size.length())
+    if (src.client_max_body_size.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "client body size buffer : " << RESET << src.client_body_buffer_size << std::endl;
+        ostream << WHITE << "client body size buffer : " << RESET << src.client_max_body_size << std::endl;
     }
     if (src.autoindex)
     {
@@ -642,17 +685,17 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "allow methods: " << RESET << (src.methods[0] ? "GET " : "") << (src.methods[1] ? "POST " : "") << (src.methods[2] ? "DELETE " : "") << std::endl;
     }
-    for (std::vector<std::string>::size_type i = 0; i < src.cgi.size(); i++)
+    for (std::vector<std::string>::const_iterator it = src.cgi.begin(); it < src.cgi.end(); it++)
     {
         for (size_t j = 0; j < src.lvl + 1; j++)
             ostream << "\t";
-        ostream << WHITE << "cgi pass: " << RESET << src.cgi[i] << std::endl;
+        ostream << WHITE << (it == src.cgi.begin() ? "cgi pass: " : "          ") << RESET << *it << std::endl;
     }
-    for (std::vector<std::pair<std::string, std::string> >::size_type j = 0; j != src.redirect.size(); j++)
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = src.redirect.begin(); it != src.redirect.end(); it++)
     {
         for (size_t k = 0; k < src.lvl + 1; k++)
             ostream << "\t";
-        ostream << WHITE << "redirection: " << RESET << src.redirect[j].first << " " << src.redirect[j].second << std::endl;
+        ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->first << " " << it->second << std::endl;
     }
     for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
         ostream << src.loc[i];
