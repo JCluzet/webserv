@@ -6,13 +6,15 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 21:46:14 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 22:06:39 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #define CO_MAX 20
+#define BUFFER_SIZE 2048
+#define LOG 0
 
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
