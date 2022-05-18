@@ -6,13 +6,13 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/16 20:07:13 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/16 20:53:35 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/18 20:32:54 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
 
-// send a chunk of data ( must begin by hexadecimal number, then a \r\n, then data, then a \r\n)\
+// send a chunk of data ( must begin by hexadecimal number, then a \r\n, then data, then a \r\n)
 // return data sent without hexadecimal number and \r\n
 // return empty string if error
 
