@@ -52,6 +52,7 @@ public:
 
     bool is_waiting() { return (_is_waiting); }
     void get_filepath();
+    std::string c_type() { return (_content_type); }
 
     int  treatRequest();
     void makeResponse();

@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 01:22:13 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 01:48:28 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,6 +240,8 @@ const std::string Response::error_page_message(const int status)
         return("Length Required");
     if (status == 501)
         return("Not Implemented");
+    if (status == 406)
+        return("Not Acceptable");
     return ("Bad Request");
 }
 

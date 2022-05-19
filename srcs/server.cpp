@@ -144,6 +144,17 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	if (client->response->writing == false)
 	{
 		client->response->makeResponse();
+		// std::cout << client->request->get_header("Accept") << " " << client->response->c_type() << "?" << std::endl;
+		// if (client->request->get_header("Accept").find(client->response->c_type()) == std::string::npos && (client->response->getstat() == 0 || client->response->getstat() == 200)
+		// ) // && client->request->get_header("Accept") != "")
+		// {
+		// 	// std::cout << client->request->get_header("Accept") << "?" << std::endl;
+		// 	// std::cout << client->response->c_type()<< "?" << std::endl;
+		// 	client->response->clear();
+		// 	client->response->setStatus(406);
+		// 	client->fd_file = client->response->openFile();
+		// 	return;
+		// }
 		client->response->transfer = client->response->get_response();
 		client->response->writing = true;
 	}
