@@ -107,17 +107,8 @@ div.text a:hover {
             <?php
 echo "Hello " . $_POST["lname"] . " " . $_POST["fname"] . " !";
 ?>
-    <br><br>
-    <div class="submit">
-    <form enctype="multipart/form-data" action="http://localhost:9943/" method="POST">
-        Choose a file to upload <input name="uploadedfile"type="file" /><br />
-        <input type="submit"></a>
-        <!-- <input type="submit" value="Upload File" /><br> -->
-    </form>
 </div>
-    <br><br>
-    <a href="/webservsujet.pdf" download>Download File</a>
-    <a href="/webservsujet.pdf">Visualize PDF</a>
+        
 </section>
 </body>
 

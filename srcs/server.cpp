@@ -248,6 +248,7 @@ void ReadCGI(Client *client)
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
+		client->response->setStatus(200);
 	}
 	else
 	{
