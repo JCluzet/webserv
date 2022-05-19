@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 20:34:01 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 22:38:36 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,11 @@ Response &Response::operator=(const Response &src)
 
 std::string Response::getHeader()
 {
-    std::string head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
+    std::string head = "";
+    if(_stat_rd == 0)
+        head = "HTTP/1.1 400 " + error_page_message(_stat_rd);
+    else
+        head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
     head += "\r\nServer: WebServ/1.0";
     head += "\r\nDate: " + getDate();
     if (_request->get_header("Connection") == "close")
@@ -132,24 +136,53 @@ int Response::treatRequest()
     return (fd_file);
 }
 
+// void Response::makeResponse()
+// {
+//     if (((_request->get_method() == "POST" && ((_request->get_path().find(".php") != std::string::npos) || (_request->get_path().find(".sh") != std::string::npos))) || (_request->get_method() == "GET" && ((_request->get_path().find(".php?") != std::string::npos) || (_request->get_path().find(".sh?") != std::string::npos)))) && (_stat_rd == 0 || _stat_rd == 200))
+//     {
+//         if (_request->get_method() == "GET")
+//         {
+//             if (_filepath.find(".php?") != std::string::npos)
+//                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+//             if (_filepath.find(".sh") != std::string::npos)
+//                 _filepath = _filepath.substr(0, _filepath.find(".sh?") + 3);
+//         }
+//         if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
+//         {
+//             _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
+//             if (_content_type.find(";") != std::string::npos)
+//                 _content_type = _content_type.substr(0, _content_type.find(";"));
+//         }
+//         else
+//         {
+//             if (_request->get_method() == "GET")
+//                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+//             if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
+//                 _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
+//             else
+//             {
+//                 _content_type = "text/html";
+
+//             }
+//             if (transfer.find("\r\n\r\n") != std::string::npos)
+//                 transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
+//         }
+//         else
+//             get_content_type();
+//         if (transfer != "")
+//             _filecontent = transfer;
+//     }
+//     _response = getHeader() + _filecontent + "\r\n";
+//     // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
+//     // std::cout << _filecontent.length() << std::endl;
+//     return;
+// }
 void Response::makeResponse()
 {
-    if (((_request->get_method() == "POST" && ((_request->get_path().find(".php") != std::string::npos) || (_request->get_path().find(".sh") != std::string::npos))) || (_request->get_method() == "GET" && ((_request->get_path().find(".php?") != std::string::npos) || (_request->get_path().find(".sh?") != std::string::npos)))) && (_stat_rd == 0 || _stat_rd == 200))
+    if (_stat_rd != 301 && _stat_rd != 302)
     {
-        if (_request->get_method() == "GET")
-        {
-            if (_filepath.find(".php?") != std::string::npos)
-                _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-            if (_filepath.find(".sh") != std::string::npos)
-                _filepath = _filepath.substr(0, _filepath.find(".sh?") + 3);
-        }
-        if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
-        {
-            _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
-            if (_content_type.find(";") != std::string::npos)
-                _content_type = _content_type.substr(0, _content_type.find(";"));
-        }
-        else
+        if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
+            && (_stat_rd == 0 || _stat_rd == 200))
         {
             if (_request->get_method() == "GET")
                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
@@ -228,6 +261,8 @@ int Response::get_content_type()
         else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
             _content_type = "image/webp";
         else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
+            _content_type = "text/css";
+        else if (_filepath.substr(_filepath.length() - 5, 5) == ".scss")
             _content_type = "text/css";
     }
     return (0);

@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 00:15:32 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 21:55:38 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ struct server_data {
 #endif
 
 class Config;
-class Redirect;
+// class Redirect;
 
 std::string chunked(std::string str);
 void                        output_debug(std::string request, std::string response);
