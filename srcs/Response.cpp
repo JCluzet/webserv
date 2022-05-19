@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 01:48:28 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/19 04:22:17 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,12 +114,21 @@ int Response::treatRequest()
 
 void Response::makeResponse()
 {
-    if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
+    if (((_request->get_method() == "POST" && ((_request->get_path().find(".php") != std::string::npos) || (_request->get_path().find(".sh") != std::string::npos))) || (_request->get_method() == "GET" && ((_request->get_path().find(".php?") != std::string::npos) || (_request->get_path().find(".sh?") != std::string::npos)))) && (_stat_rd == 0 || _stat_rd == 200))
     {
         if (_request->get_method() == "GET")
-            _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+        {
+            if (_filepath.find(".php?") != std::string::npos)
+                _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+            if (_filepath.find(".sh") != std::string::npos)
+                _filepath = _filepath.substr(0, _filepath.find(".sh?") + 3);
+        }
         if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
+        {
             _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
+            if (_content_type.find(";") != std::string::npos)
+                _content_type = _content_type.substr(0, _content_type.find(";"));
+        }
         else
         {
             _content_type = "text/html";
