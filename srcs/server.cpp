@@ -315,7 +315,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 
 		if (client->request->ready())
 		{
-			std::cout << client->request->get_request() << std::endl;
+			// std::cout << client->request->get_request() << std::endl;
 			if ((client->request->get_method() == "POST" && !conf->server[j].methods[1]) || (client->request->get_method() == "GET" && !conf->server[j].methods[0]) || (client->request->get_method() == "DELETE" && !conf->server[j].methods[2])) // check error 405 Method not allowed
 			{
 				client->response->setStatus(405);
