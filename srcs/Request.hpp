@@ -35,6 +35,7 @@ public:
         if (this != &src)
         {
             init_header_map();
+            _m = src._m;
             _request = src._request;
             _path = src._path;
             _method = src._method;
@@ -104,6 +105,8 @@ public:
         _valid = false;
         _line = "";
         _chunked = false;
+        _body = "";
+
         init_header_map();
     }
     //modifier
