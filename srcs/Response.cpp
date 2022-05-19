@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 01:22:45 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 01:31:35 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,10 +111,10 @@ int Response::treatRequest()
 
     // if the filepath is a directory and does not end with a / then redirect to the directory with a / at the end of the path
 
-    std::cout << "_Filepath: " << _conf->root + _filepath << std::endl;
+    // std::cout << "_Filepath: " << _conf->root + _filepath << std::endl;
     if (_filepath != "" && is_directory(_conf->root + _filepath) == true && _filepath[_filepath.length() - 1] != '/')
     {
-        std::cout << "yeah" << std::endl;
+        // std::cout << "yeah" << std::endl;
         _stat_rd = 301;
         transfer = _filepath + "/";
         if(LOG == 1)
