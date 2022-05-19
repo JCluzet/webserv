@@ -242,29 +242,57 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
     return;
 }
 
+bool cgi_file(std::string str)
+{
+    std::string str_tmp = str;
+    if ((str_tmp.find(".php")) != std::string::npos)
+        return (true);
+    if ((str_tmp.find(".sh")) != std::string::npos)
+        return(true);
+    return (false);
+}
+
 void treat_cgi(Server *server, Client *client)
 {
     char buffer[1024];
     std::string str;
     getcwd(buffer, 1024);
-    std::string cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi";
+    std::string cmd_cgi;
     std::string cmd_path = server->root + client->request->get_path();
     std::vector<std::string> cmd(2);
+    if (MAC)
+    {
+        cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi";
+        if (cmd_path.find(".sh") != std::string::npos)
+            cmd_cgi = std::string(buffer) + "/cgi-bin/bash-cgi";
+    }
+    else
+    {
+        cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi_ubuntu";
+        if (cmd_path.find(".sh") != std::string::npos)
+            cmd_cgi = std::string(buffer) + "/cgi-bin/bash-cgi_ubuntu";
+    }
     if (client->request->get_method() == "POST")
     {
-        if (client->request->get_path().find(".php") != std::string::npos)
+        if (cgi_file(client->request->get_path()))
         {
             cmd[0] = cmd_cgi;
             cmd[1] = cmd_path;
         }
         cgi_exec(cmd, cgi_env(cmd_cgi, "", client, server), client);
     }
-    if (client->request->get_method() == "GET" && client->request->get_path().find(".php?") != std::string::npos)
+    if (client->request->get_method() == "GET" && cgi_file(client->request->get_path()))
     {
-        cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
+        if (cmd_path.find(".php?") != std::string::npos)
+            cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
+        if (cmd_path.find(".sh") != std::string::npos)
+            cmd_path = cmd_path.substr(0, cmd_path.find(".sh?") + 3);
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        str = client->request->get_path().substr(client->request->get_path().find(".php?") + 5, client->request->get_path().length());
+        if (client->request->get_path().find(".php?") != std::string::npos)
+            str = client->request->get_path().substr(client->request->get_path().find(".php?") + 5, client->request->get_path().length());
+        if (client->request->get_path().find(".sh?") != std::string::npos)
+            str = client->request->get_path().substr(client->request->get_path().find(".sh?") + 4, client->request->get_path().length());
         cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server), client);
     }
     return;
