@@ -44,6 +44,21 @@ Server& Server::operator=(const Server &src){
     return *this;
 }
 
+Server*     Server::location(const std::string s)
+{
+    for (std::vector<Server>::iterator it = loc.begin(); it != loc.end(); ++it)
+    {
+        // std::cout << "(" << root << it->path << "), " << it->loc_id << " ? (" << s << "), " << std::endl;
+        if (root + it->path == s)
+        {
+            return &(*it);
+        }
+        else
+            return it->location(s);
+    }
+    return NULL;
+}
+
 // CONFIG
 Config::Config() : valid(0), _debug(0) {}
 
@@ -263,8 +278,7 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 }
 
 bool    Config::get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp
-, bool *a, size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp
-, std::map<std::string, Server*> *locations)
+, bool *a, size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp)
 {
     std::string::size_type  p;
     const int               nb_serv_types = 11;
@@ -272,7 +286,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                                                         , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "limit_except"
                                                         , "cgi_pass", "rewrite"};
-    std::string tmp, tmp1;
+    std::string tmp, tmp1, tmp2;
     Server      loc_tmp;
     size_t      j_loc;
     char        c;
@@ -288,9 +302,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             return (error_config_message(s, *line_i, 9) + 1);
         if (loc_tmp.path[0] != '/')
             loc_tmp.path.insert(0, "/");
-        for (std::vector<Server>::const_iterator it = serv_tmp->loc.begin(); it != serv_tmp->loc.end(); it++)
-            if (it->path == loc_tmp.path)
-                return (error_config_message(s, *line_i, 10) + 1);
         pass_blanck(s, i, line_i);
         loc_tmp.id = *i_loc;
         loc_tmp.loc_id =  serv_tmp->loc_id + "." + intToStr(*i_loc);
@@ -299,7 +310,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         *i += 1;
         j_loc = 1;
         for (bool b = 0; *i <= s.length() && s[*i] != '}';)
-            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc, NULL, locations))
+            if (get_server_line(s, i, line_i, &loc_tmp, &b, calling_lvl + 1, &j_loc, NULL))
                 return 1;
         if (*i <= s.length() && s[*i] != '}')
             return (error_config_message(s, *line_i, 11) + 1);
@@ -308,7 +319,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         *i_loc += 1;
         loc_tmp.lvl = calling_lvl + 1;
         serv_tmp->loc.push_back(loc_tmp);
-        locations->insert(std::make_pair(serv_tmp->loc[serv_tmp->loc.size() - 1].path, &serv_tmp->loc[serv_tmp->loc.size() - 1]));
         return 0;
     }
     else
@@ -344,7 +354,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         return (error_config_message(s, *line_i, 15 + c) + 1);
                     break;
                 case (2): //root
-                    if (serv_tmp->root.length())
+                    if (serv_tmp->root.length() && !calling_lvl)
                         return (error_config_message(s, *line_i, 22) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
@@ -414,7 +424,17 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp1 = s.substr(p, *i - p);
                     if (!tmp1.size())
                         return (error_config_message(s, *line_i, 28) + 1);
-                    serv_tmp->redirect.push_back(Redirect(tmp, tmp1, false));
+                    if (*i >= s.length() || !is_blanck(s[*i]))
+                        return (error_config_message(s, *line_i, 29) + 1);
+                    pass_blanck(s, i, line_i);
+                    if (*i >= s.length() || s[*i] == ';')
+                        return (error_config_message(s, *line_i, 30) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    tmp2 = s.substr(p, *i - p);
+                    if (!tmp2.size() || (tmp2 != "redirect" && tmp2 != "permanent"))
+                        return (error_config_message(s, *line_i, 31) + 1);
+                    serv_tmp->redirect.push_back(Redirect(tmp, tmp1, tmp2 == "permanent" ? 1 : 0));
                     break;
                 }
                 pass_blanck(s, i, line_i);
@@ -433,7 +453,6 @@ bool    Config::get_conf(const std::string s)
 {
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     std::vector<std::pair<std::string, std::string> >   vp;
-    std::map<std::string, Server*>                      locations;
     Server serv_tmp;
     bool    e_ipport = 0;
     if (s.empty())
@@ -455,7 +474,7 @@ bool    Config::get_conf(const std::string s)
         serv_tmp.loc_id = intToStr(i_serv);
         for (bool a = 0; i < s.length() && s[i] != '}';)
         {
-            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp, &locations))
+            if (get_server_line(s, &i, &line_i, &serv_tmp, &a, 0, &i_loc, &vp))
                 return (1);
         }
         if (i >= s.length() || s[i] != '}')
@@ -508,8 +527,6 @@ bool    Config::get_conf(const std::string s)
                 server.push_back(serv_tmp);
             }
         }
-        server[server.size() - 1].locations = locations;
-        locations.clear();
         i_serv++;
         vp.clear(); 
         i_loc = 1;
@@ -566,38 +583,83 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
-    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
+    for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
-        if (!is_directory(s->root + s->loc[i].path))
+        if (!is_directory(s->root + it->path))
         {
-            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
-            r = 1;
+            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << it->path << ")." << std::endl;
+            return 1;
         }
-        if (check_location(&s->loc[i], s->root))
-            r = 1;
+        init_loc_tmp(&(*it), *s);
+        if (s->locations.find(s->root + it->path) != s->locations.end())
+        {
+            std::cerr << "Error config: server " << s->id << ": location directory path (" << s->root << it->path << ") is already used." << std::endl;
+            return 1;
+        }
+        s->locations[s->root + it->path] = *it;
     }
+    for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
+        if (check_location(&(*it), *s, s))
+            return 1;
     return r;
 }
 
-bool    Config::check_location(Server* s, const std::string calling_root)
+void    Config::init_loc_tmp(Server *dst, Server src)
+{
+    bool b = 0;
+    dst->root = dst->root.length() ? dst->root : src.root;
+    dst->host = dst->host.length() ? dst->host : src.host;
+    dst->index = dst->index.size() ? dst->index : src.index;
+    for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
+        if (dst->error_page.find(it->first) == dst->error_page.end())
+            dst->error_page.insert(std::make_pair(it->first, it->second));
+    dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
+    //METHOD PROBLEME
+    for (std::vector<std::string>::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
+    {
+        for (std::vector<std::string>::const_iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
+        {
+            if (*dst_it == *src_it)
+            {
+                b = 1;
+                break;
+            }
+        }
+        if (!b)
+            dst->cgi.push_back(*src_it);
+        b = 0;
+    }
+    //AUTOINDEX PROBLEME
+    for (std::vector<Redirect>::const_iterator src_it = src.redirect.begin(); src_it != src.redirect.end(); src_it++)
+    {
+        for (std::vector<Redirect>::const_iterator dst_it = dst->redirect.begin(); dst_it != dst->redirect.end(); dst_it++)
+        {
+            if (dst_it->redirect1 == src_it->redirect1)
+            {
+                b = 1;
+                break;
+            }
+        }
+        if (!b)
+            dst->redirect.push_back(*src_it);
+        b = 0;
+    }
+}
+
+bool    Config::check_location(Server *s, Server parent, Server *original)
 {
     bool r = 0;
-    if (s->root.empty())
-        s->root = calling_root;
-    else
+    if (s->root[0] != '/')
     {
-        if (s->root[0] != '/')
-        {
-            std::cerr << "Error config: location " << s->loc_id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
-            return 1;
-        }
-        if (!is_directory(s->root))
-        {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open root directory path.(" << s->root << ")" << std::endl;
-            return 1;
-        }
+        std::cerr << "Error config: location " << s->loc_id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
+        return 1;
     }
-    for (std::vector<std::string>::iterator it = s->index.begin(); it != s->index.end(); it++)
+    if (!is_directory(s->root))
+    {
+        std::cerr << "Error config: location " << s->loc_id << ": can't open root directory path.(" << s->root << ")" << std::endl;
+        return 1;
+    }
+    for (std::vector<std::string>::const_iterator it = s->index.begin(); it != s->index.end(); it++)
     {
         if (!is_file(s->root + *it))
         {
@@ -613,24 +675,32 @@ bool    Config::check_location(Server* s, const std::string calling_root)
             r = 1;
         }
     }
-    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    for (std::vector<std::string>::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
     {
-        if (!is_directory(s->root + s->cgi[i]))
+        if (!is_directory(s->root + *it))
         {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << *it << ")." << std::endl;
             r = 1;
         }
     }
-    for (std::vector<Server>::size_type i = 0; i < s->loc.size(); i++)
+    for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
-        if (!is_directory(s->root + s->loc[i].path))
+        if (!is_directory(s->root + it->path))
         {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open location directory path (" << s->root << s->loc[i].path << ")." << std::endl;
-            r = 1;
+            std::cerr << "Error config: location " << s->loc_id << ": can't open location directory path (" << s->root << it->path << ")." << std::endl;
+            return 1;
         }
-        if (check_location(&s->loc[i], s->root))
-            r = 1;
+        init_loc_tmp(&(*it), parent);
+        if (original->locations.find(s->root + it->path) != original->locations.end())
+        {
+            std::cerr << "Error config: server " << s->id << ": location directory path (" << s->root << it->path << ") is already used." << std::endl;
+            return 1;
+        }
+        original->locations[s->root + it->path] = *it;
     }
+    for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
+        if (check_location(&(*it), *s, original))
+            return 1;
     return r;
 }
 
@@ -705,16 +775,17 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     {
         for (size_t k = 0; k < src.lvl + 1; k++)
             ostream << "\t";
-        ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->redirect1 << " " << it->redirect2 << std::endl;
+        ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->redirect1 << " " << it->redirect2 << (it->permanent ? " permanent" : " redirect") << std::endl;
     }
-    for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
-        ostream << src.loc[i];
-
-    for (std::map<std::string, Server*>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
+    // for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
+        // ostream << src.loc[i];
+// 
+    for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
     {
-        for (size_t i = 0; i < src.lvl + 1; i++)
-            ostream << "\t";
-        ostream << WHITE << (it == src.locations.begin() ? "location map: " : "              ") << RESET << it->first << std::endl;
+        // for (size_t i = 0; i < src.lvl + 1; i++)
+        //     ostream << "\t";
+        // ostream << WHITE << (it == src.locations.begin() ? "location map: " : "              ") << RESET << it->first << "  ::::: " << it->second.root << std::endl;
+        ostream << it->second;
     }
     return ostream;
 }
