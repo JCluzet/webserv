@@ -414,7 +414,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp1 = s.substr(p, *i - p);
                     if (!tmp1.size())
                         return (error_config_message(s, *line_i, 28) + 1);
-                    serv_tmp->redirect.push_back(std::make_pair(tmp, tmp1));
+                    serv_tmp->redirect.push_back(Redirect(tmp, tmp1, false));
                     break;
                 }
                 pass_blanck(s, i, line_i);
@@ -701,11 +701,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << (it == src.cgi.begin() ? "cgi pass: " : "          ") << RESET << *it << std::endl;
     }
-    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = src.redirect.begin(); it != src.redirect.end(); it++)
+    for (std::vector<Redirect>::const_iterator it = src.redirect.begin(); it != src.redirect.end(); it++)
     {
         for (size_t k = 0; k < src.lvl + 1; k++)
             ostream << "\t";
-        ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->first << " " << it->second << std::endl;
+        ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->redirect1 << " " << it->redirect2 << std::endl;
     }
     for (std::vector<Server>::size_type i = 0; i < src.loc.size(); i++)
         ostream << src.loc[i];

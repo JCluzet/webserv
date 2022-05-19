@@ -147,6 +147,8 @@ bool fileExist(const std::string s)
         filep = tmp.substr(i + 1, tmp.length() - (i + 1));
     }
     dir = opendir(dirp.c_str());
+    if (dir == NULL)
+      return (0);
     while ((ent = readdir(dir)))
         if (ent->d_name == filep){
             b = 1;

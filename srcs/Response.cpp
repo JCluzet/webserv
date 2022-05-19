@@ -65,14 +65,20 @@ Response &Response::operator=(const Response &src)
 std::string Response::getHeader()
 {
     std::string head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
-    head += "\nServer: WebServ/1.0";
-    head += "\nDate : " + getDate();
+    head += "\r\nServer: WebServ/1.0";
+    head += "\r\nDate: " + getDate();
     if (_request->get_header("Connection") == "close")
         head += "\r\nConnection: close";
     else
         head += "\r\nConnection: keep-alive";
-    head += "\nContent-Type: " + _content_type;
-    head += "\nContent-Length: " + sizetToStr(_filecontent.length());
+    if (_stat_rd == 301 || _stat_rd == 302)
+    {
+        head += "\r\nLocation: " + transfer;
+        head += "\r\n\r\n";
+        return (head);
+    }
+    head += "\r\nContent-Type: " + _content_type;
+    head += "\r\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\r\n\r\n";
     return (head);
 }
@@ -81,7 +87,21 @@ int Response::treatRequest()
 {
     int fd_file = -1;
     std::string method = _request->get_method();
+    std::vector<Redirect>::iterator it = _conf->redirect.begin();
 
+    _filepath = _request->get_path();
+    while (it != _conf->redirect.end())
+    {
+        if (it->redirect1 == _filepath)
+        {
+            if (it->permanent == true)
+                _stat_rd = 301;
+            else
+                _stat_rd = 302;
+            transfer = it->redirect2;
+        }
+        it++;
+    }
     get_filepath();
     if (_filepath == "")
     {
@@ -114,30 +134,29 @@ int Response::treatRequest()
 
 void Response::makeResponse()
 {
-    if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
+    if (_stat_rd != 301 && _stat_rd != 302)
     {
-        if (_request->get_method() == "GET")
-            _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-        if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
-            _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
-        else
+        if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
+            && (_stat_rd == 0 || _stat_rd == 200))
         {
-            _content_type = "text/html";
+            if (_request->get_method() == "GET")
+                _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+            if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
+                _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
+            else
+            {
+                _content_type = "text/html";
 
+            }
+            if (transfer.find("\r\n\r\n") != std::string::npos)
+                transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
         }
-        if (transfer.find("\r\n\r\n") != std::string::npos)
-            transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
+        else
+            get_content_type();
+        if (transfer != "")
+            _filecontent = transfer;
     }
-    else
-    {
-        
-        get_content_type();
-    
-    }
-    if (transfer != "")
-        _filecontent = transfer;
-
-    _response = getHeader() + _filecontent + "\r\n\r\n";
+    _response = getHeader() + _filecontent + "\r\n";
     // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
     // std::cout << _filecontent.length() << std::endl;
     return;
@@ -242,6 +261,10 @@ const std::string Response::error_page_message(const int status)
         return("Not Implemented");
     if (status == 406)
         return("Not Acceptable");
+    if (status == 301)
+        return("Move Permanently");
+    if (status == 302)
+        return("Found");
     return ("Bad Request");
 }
 
@@ -263,7 +286,7 @@ int Response::openFile()
         }
 
     }
-    if (_stat_rd != 200)
+    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302)
     {
         if (!_conf->error_page.count(_stat_rd))
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";

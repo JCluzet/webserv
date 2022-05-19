@@ -149,7 +149,6 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		 && client->request->get_header("Accept") != "" && client->request->get_header("Accept") != "*/*")
 		{
 			// std::cout << client->request->get_header("Accept") << "?" << std::endl;
-			// std::cout << client->response->c_type()<< "?" << std::endl;
 			client->response->clear();
 			client->response->setStatus(406);
 			client->fd_file = client->response->openFile();
@@ -178,7 +177,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		i--;
 		return;
 	}
-	else if (valwrite == 0)
+	else if (valwrite == 0) ///fghjklmù
 	{
 	} // ???
 	// std::cout << valwrite << " " << client->response->get_response().length();
@@ -195,7 +194,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		if(LOG == 1)
 			output_log(client->response->getstat(), client->response->get_pathfile());
 		if (conf->get_debug() == true)
-			output_debug(client->request->get_request(), client->response->getHeader());
+			output_debug(client->request->get_request(), client->response->get_response()); //PAS REFAIRE GETHEADER
 		client->response->clear();
 		client->request->clear();
 	}
@@ -209,10 +208,6 @@ void ReadFile(Client *client)
 
 	if ((valread = read(client->fd_file, data, BUFFER_SIZE)) < 0)
 	{
-		std::cout << strerror(errno) << std::endl;
-		// std::cout << "valeur retour" << close(client->fd_file) << std::endl; // error 500
-		std::cout << strerror(errno) << std::endl;
-		std::cout << client->fd_file << std::endl;
 		client->fd_file = -1;
 		client->response->setStatus(500);
 		// std::cout << "!!!!!!!!!!!!!!!!1" << std::endl;

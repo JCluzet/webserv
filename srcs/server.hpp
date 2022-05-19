@@ -67,6 +67,7 @@ struct server_data {
 #endif
 
 class Config;
+class Redirect;
 
 std::string chunked(std::string str);
 void                        output_debug(std::string request, std::string response);

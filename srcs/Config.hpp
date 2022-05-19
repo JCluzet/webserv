@@ -5,6 +5,21 @@
 
 class Client;
 
+struct  Redirect
+{
+  public:
+    std::string   redirect1;
+    std::string   redirect2;
+    bool          permanent;
+
+    Redirect() : redirect1(""), redirect2(""), permanent(false) {};
+    Redirect(std::string red1, std::string red2, bool perm) : redirect1(red1), redirect2(red2), permanent(perm) {};
+    Redirect(const Redirect &src) : redirect1(src.redirect1), redirect2(src.redirect2), permanent(src.permanent) {};
+    ~Redirect() {};
+
+    Redirect& operator=(const Redirect &src) { redirect1 = src.redirect1; redirect2 = src.redirect2; permanent = src.permanent; return (*this); }; 
+};
+
 class Server 
 {
   public :
@@ -29,7 +44,7 @@ class Server
     std::vector<std::string>                            cgi;
     std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
-    std::vector<std::pair<std::string, std::string> >   redirect;
+    std::vector<Redirect>                               redirect;
     bool                                                valid;
     //---------\/-------------\/---------\/-------------ONLY FOR LOCATIONS                          
     size_t                                              lvl; // if > 0, it's a location
