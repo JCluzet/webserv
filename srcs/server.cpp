@@ -144,9 +144,9 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	if (client->response->writing == false)
 	{
 		client->response->makeResponse();
-		// std::cout << client->request->get_header("Accept") << " " << client->response->c_type() << "?" << std::endl;
+		// std::cout << client->request->get_header("Accept") << ">>> " << client->response->c_type() << "<<<" << "?" << std::endl;
 		if (client->request->get_header("Accept").find(client->response->c_type()) == std::string::npos && (client->response->getstat() == 0 || client->response->getstat() == 200) // error 406 not acceptable
-		 && client->request->get_header("Accept") != "" && client->request->get_header("Accept") != "*/*")
+		 && client->request->get_header("Accept") != "" && client->request->get_header("Accept").find("*/*") == std::string::npos)
 		{
 			// std::cout << client->request->get_header("Accept") << "?" << std::endl;
 			client->response->clear();
