@@ -2,7 +2,7 @@
 
 #include "server.hpp"
 
-#define NB_HEADERS 24
+#define NB_HEADERS 23
 #define NL "\r\n"
 #define NLSIZE 2
 
@@ -315,7 +315,7 @@ private:
         _header[20] = "Cookie";
         _header[21] = "Accept-Encoding";
         _header[22] = "From";
-        _header[23] = "Accept";
+        // _header[23] = "Accept";
         _m["Accept-Charsets"] = "";
         _m["Accept-Language"] = "";
         _m["Allow"] = "";
@@ -335,7 +335,7 @@ private:
         _m["User-Agent"] = "";
         _m["Www-Authenticate"] = "";
         _m["Connection"] = "keep-alive";
-        _m["Accept"] = "";
+        // _m["Accept"] = "";
         _m["Cookie"] = "";
         _m["Accept-Encoding"] = "";
         _m["From"] = "";
