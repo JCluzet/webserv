@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-bool    is_cgi(Request* request)
+bool is_cgi(Request *request)
 {
     if (request->get_method() == "POST")
         return true;
@@ -50,7 +50,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str = "AUTH_TYPE="; // The authentication method used to validate a user. See REMOTE_IDENT and REMOTE_USER.
     str += "Basic";
     env[6] = str;
-    str = "REMOTE_ADDR=";                               // The remote IP address from which the user is making the client->request.
+    str = "REMOTE_ADDR=";                        // The remote IP address from which the user is making the client->request.
     str += inet_ntoa(client->sockaddr.sin_addr); // A CHANGER
     env[7] = str;
     str = "REMOTE_PORT="; // The remote IP address from which the user is making the client->request.
@@ -137,7 +137,7 @@ void afficher_env(char **env)
     return;
 }
 
-void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
+void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
 {
     pid_t pid;
 
@@ -155,13 +155,19 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
         env_execve[i] = std::strcpy(env_execve[i], env[i].c_str());
     }
     env_execve[env.size()] = NULL;
-    //afficher_env(env_execve);
-    if (pipe(client->pipe_cgi_out) < 0 )
+    // afficher_env(env_execve);
+    if (pipe(client->pipe_cgi_out) < 0)
     {
         client->pipe_cgi_out[0] = -1;
         client->pipe_cgi_out[1] = -1;
-		client->response->setStatus(500);
-		client->fd_file = client->response->openFile();
+        client->response->setStatus(500);
+        client->fd_file = client->response->openFile();
+        for (size_t k = 0; k < env.size(); k++)
+            delete[] env_execve[k];
+        delete[] env_execve;
+        for (size_t k = 0; k < cmd.size(); k++)
+            delete[] cmd_execve[k];
+        delete[] cmd_execve;
         return;
     }
     if (client->request->get_method() == "POST" && pipe(client->pipe_cgi_in) < 0)
@@ -172,8 +178,14 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
         client->pipe_cgi_out[1] = -1;
         client->pipe_cgi_in[0] = -1;
         client->pipe_cgi_in[1] = -1;
-		client->response->setStatus(500);
-		client->fd_file = client->response->openFile();
+        client->response->setStatus(500);
+        client->fd_file = client->response->openFile();
+        for (size_t k = 0; k < env.size(); k++)
+            delete[] env_execve[k];
+        delete[] env_execve;
+        for (size_t k = 0; k < cmd.size(); k++)
+            delete[] cmd_execve[k];
+        delete[] cmd_execve;
         return;
     }
     if ((pid = fork()) < 0)
@@ -186,8 +198,14 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
         client->pipe_cgi_in[1] = -1;
         client->pipe_cgi_out[0] = -1;
         client->pipe_cgi_out[1] = -1;
-		client->response->setStatus(500);
-		client->fd_file = client->response->openFile();
+        client->response->setStatus(500);
+        client->fd_file = client->response->openFile();
+        for (size_t k = 0; k < env.size(); k++)
+            delete[] env_execve[k];
+        delete[] env_execve;
+        for (size_t k = 0; k < cmd.size(); k++)
+            delete[] cmd_execve[k];
+        delete[] cmd_execve;
         return;
     }
     if (pid == 0)
@@ -200,11 +218,11 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
         if (execve(cmd[0].c_str(), cmd_execve, env_execve) < 0)
         {
             for (size_t k = 0; k < env.size(); k++)
-                delete [] env_execve[k];
-            delete [] env_execve;
+                delete[] env_execve[k];
+            delete[] env_execve;
             for (size_t k = 0; k < cmd.size(); k++)
-                delete [] cmd_execve[k];
-            delete [] cmd_execve;
+                delete[] cmd_execve[k];
+            delete[] cmd_execve;
             close(client->pipe_cgi_out[1]);
         }
         exit(1);
@@ -214,19 +232,19 @@ void    cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Cli
         close(client->pipe_cgi_in[0]);
         close(client->pipe_cgi_out[1]);
         for (size_t k = 0; k < env.size(); k++)
-            delete [] env_execve[k];
-        delete [] env_execve;
+            delete[] env_execve[k];
+        delete[] env_execve;
         for (size_t k = 0; k < cmd.size(); k++)
-            delete [] cmd_execve[k];
-        delete [] cmd_execve;
-        //wait(&status);
+            delete[] cmd_execve[k];
+        delete[] cmd_execve;
+        // wait(&status);
     }
-    return ;
+    return;
 }
 
-void    treat_cgi(Server* server, Client* client)
+void treat_cgi(Server *server, Client *client)
 {
-    char    buffer[1024];
+    char buffer[1024];
     std::string str;
     getcwd(buffer, 1024);
     std::string cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi";
@@ -249,5 +267,5 @@ void    treat_cgi(Server* server, Client* client)
         str = client->request->get_path().substr(client->request->get_path().find(".php?") + 5, client->request->get_path().length());
         cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server), client);
     }
-    return ;
+    return;
 }
