@@ -103,7 +103,6 @@ void            pass_not_blanck(const std::string s, std::string::size_type *i);
 bool            s_a_have_b(const std::string a, const std::string::size_type i, const std::string b);
 bool            error_msg(const std::string msg);
 bool            is_directory(const std::string path);
-bool            is_file(const std::string path);
 bool			fileExist(const std::string s);
 std::string     intToStr(int n);
 std::string     sizetToStr(size_t n);
