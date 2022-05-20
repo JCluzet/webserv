@@ -38,7 +38,7 @@ class Server
     std::string                                         loc_id; // Location id
     std::string                                         ip; // Server adresse ip
     std::string                                         port;
-    std::string                                         hostname; // Server hostname
+    std::vector<std::string>                            hostname; // Server hostname
     std::string                                         root;
     std::string                                         o_root;
     std::vector<std::string>                            index;

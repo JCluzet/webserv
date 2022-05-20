@@ -1,11 +1,14 @@
 
 ---------CONF_PARSING---------
 
-map <path, Server*> location - vector2
 
-upload
+
 
 multi hostname
+corriger file exist
+upload
 
+map <path, Server*> location - vector2
 --------INDEX_GENERATOR-------
 corriger 1st line
+

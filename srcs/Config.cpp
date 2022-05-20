@@ -1,7 +1,7 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), hostname(""), root(""), o_root(""), index(), error_page(), client_max_body_size("")
+Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), hostname(), root(""), o_root(""), index(), error_page(), client_max_body_size("")
 , cgi(), cgi_bin(""), loc(), autoindex(0), redirect(), alias(false), lvl(0), path(""), client(), locations(){
     methods[0] = false;
     methods[1] = false;
@@ -87,7 +87,7 @@ void    Config::init_server(Server *s)
     s->loc_id = "";
     s->ip = "";
     s->port = "";
-    s->hostname = "";
+    s->hostname.clear();
     s->root = "";
     s->o_root = "";
     s->index.clear();
@@ -341,14 +341,21 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0): //server_name
-                    if (serv_tmp->hostname.length() || calling_lvl)
+                    if (calling_lvl)
                         return (error_config_message(s, *line_i, 14) + 1);
-                    p = *i;
-                    pass_not_blanck(s, i);
-                    if (*i == p)
-                        return (error_config_message(s, *line_i, 22) + 1);
-                    tmp = s.substr(p, *i - p);
-                    serv_tmp->hostname = tmp;
+                    while (*i < s.length() && s[*i] != ';')
+                    {
+                        p = *i;
+                        pass_not_blanck(s, i);
+                        if (*i == p)
+                            return (error_config_message(s, *line_i, 22) + 1);
+                        tmp = s.substr(p, *i - p);
+                        for (std::vector<std::string>::const_iterator it = serv_tmp->hostname.begin(); it != serv_tmp->hostname.end(); ++it)
+                            if (*it == tmp)
+                                return (error_config_message(s, *line_i, 15) + 1);
+                        serv_tmp->hostname.push_back(tmp);
+                        pass_blanck(s, i, line_i);
+                    }
                     break;
                 case (1): //listen
                     if (calling_lvl)
@@ -639,7 +646,7 @@ bool    Config::check_server(Server* s)
         }
     }
     if (s->hostname.empty())
-        s->hostname = DEFAULT_HOSTNAME;
+        s->hostname.push_back(DEFAULT_HOSTNAME);
     if (s->client_max_body_size.empty())
         s->client_max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
@@ -775,11 +782,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
-    if (src.hostname.length())
+    for (std::vector<std::string>::const_iterator it = src.hostname.begin(); it != src.hostname.end(); it++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "hostname: " << RESET << src.hostname << std::endl;
+        ostream << WHITE << (it == src.hostname.begin() ? "hostname: " : "          ") << RESET << *it << std::endl;
     }
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
