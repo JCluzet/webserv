@@ -44,8 +44,8 @@ class Server
     std::map<int, std::string>                          error_page;
     std::string                                         client_max_body_size;
     bool                                                methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
-    std::vector<std::pair<std::string, std::string> >   cgi; // first = extension, second = path
-    std::string                                         cgi_bin;  
+    std::vector<std::pair<std::string, std::string> >   cgi; // first = extension, second = cgi filename
+    std::string                                         cgi_bin; // cgi path  
     std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
     std::vector<Redirect>                               redirect;

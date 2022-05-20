@@ -252,6 +252,8 @@ bool    Config::get_methods_line(const std::string s, Server* serv_tmp, std::str
 {
     std::string tmp;
     std::string::size_type k = 0;
+    if (s[*i] == ';')
+        return error_config_message(s, *line_i, 4) + 1;
     for (char j = 0; j < 3; j++)
     {
         pass_blanck(s, i, line_i);
@@ -328,9 +330,10 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     {
         for (int o = 0; o < nb_serv_types; o++)
         {
-            if (s_a_have_b(s, *i, serv_type[o]))
+            if (s_a_have_b(s, *i, serv_type[o]) && is_space(s[*i + serv_type[o].length()]))
             {
                 *i += serv_type[o].length();
+    // std::cout <<"***" << s.substr(*i, s.length() - *i) << std::endl;
                 if (*i >= s.length() || !is_blanck(s[*i]))
                     return (error_config_message(s, *line_i, 12) + 1);
                 pass_blanck(s, i, line_i);
@@ -420,7 +423,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (p == *i)
                         return (error_config_message(s, *line_i, 26) + 1);
                     tmp = s.substr(p, *i - p);
-                    if (!is_blanck(s[*i]))
+                    if (*i >= s.length() || !is_blanck(s[*i]))
                         return (error_config_message(s, *line_i, 26) + 1);
                     pass_blanck(s, i, line_i);
                     if (*i >= s.length() || s[*i] == ';')
@@ -430,6 +433,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (p == *i)
                         return (error_config_message(s, *line_i, 28) + 1);
                     tmp1 = s.substr(p, *i - p);
+                    if (tmp1[0] != '/')
+                        tmp1.insert(0, "/");
                     serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
                 case (10): //cgi_bin
@@ -444,6 +449,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (calling_lvl)
                         serv_tmp->cb = 1;
                     serv_tmp->cgi_bin = s.substr(p, *i - p);
+                    if (serv_tmp->cgi_bin[serv_tmp->cgi_bin.length() - 1] == '/')
+                        serv_tmp->cgi_bin.erase(serv_tmp->cgi_bin.length() - 1);
                     break;
                 case (11): //rewrite
                     p = *i;
@@ -579,6 +586,7 @@ bool    Config::get_conf(const std::string s)
 bool    Config::check_server(Server* s)
 {
     bool r = 0;
+    std::string tmp;
     if (s->root.empty())
     {
         std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
@@ -594,23 +602,24 @@ bool    Config::check_server(Server* s)
         std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
+    if (s->cgi_bin.length() && !is_directory(s->cgi_bin))
     {
-        if (!is_directory(s->root + it->second))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
-    if (s->cgi_bin.length() && access(s->cgi_bin.c_str(), X_OK))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't execute cgi_bin (" << s->cgi_bin << ")." << std::endl;
+        std::cerr << "Error config: server " << s->id << ": can't open cgi_bin (" << s->cgi_bin << ")." << std::endl;
         r = 1;
     }
     if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
     {
         std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
         r = 1;
+    }
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
+    {
+        tmp = s->cgi_bin + it->second;
+        if (access(tmp.c_str(), X_OK))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't execute cgi (" << tmp << ")." << std::endl;
+            r = 1;
+        }
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
@@ -644,19 +653,23 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             dst->error_page.insert(std::make_pair(it->first, it->second));
     dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
     //METHOD gerer en amont
+    std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin();
     for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
     {
-        for (std::vector<std::pair<std::string, std::string> >::const_iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
+        dst_it = dst->cgi.begin();
+        for (std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
         {
-            if (dst_it->second == src_it->second)
+            if (dst_it->first == src_it->first)
             {
                 b = 1;
                 break;
             }
         }
-        if (!b)
-            dst->cgi.push_back(*src_it);
+        if (b)
+            dst_it->second = src_it->second; ;   
+        dst->cgi.push_back(*src_it);
         b = 0;
+        dst_it += 1;
     }
     if (src.cgi_bin.length() && dst->cgi_bin.empty())
         dst->cgi_bin = src.cgi_bin;
@@ -680,6 +693,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
 bool    Config::check_location(Server *s, Server parent, Server *original)
 {
     bool r = 0;
+    std::string tmp;
     if (s->root[0] != '/')
     {
         std::cerr << "Error config: location " << s->loc_id << ": root must be absolut directory path.(" << s->root << ") is invalid." << std::endl;
@@ -690,23 +704,24 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
         std::cerr << "Error config: location " << s->loc_id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
+    if (s->cgi_bin.length() && !is_directory(s->cgi_bin))
     {
-        if (!is_directory(s->root + it->second))
-        {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
-    if (s->cgi_bin.length() && access(s->cgi_bin.c_str(), X_OK))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't execute cgi binaire (" << s->cgi_bin << ")." << std::endl;
+        std::cerr << "Error config: server " << s->id << ": can't open cgi_bin (" << s->cgi_bin << ")." << std::endl;
         r = 1;
     }
     if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
     {
         std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
         r = 1;
+    }
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
+    {
+        tmp = s->cgi_bin + it->second;
+        if (access(tmp.c_str(), X_OK))
+        {
+            std::cerr << "Error config: server " << s->id << ": can't execute cgi (" << tmp << ")." << std::endl;
+            r = 1;
+        }
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
