@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 03:30:38 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 19:24:24 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,7 +252,11 @@ void Response::get_filepath()
                 if ((fd = open(std::string(_filepath + _conf->index[i]).c_str(), O_RDONLY)) >= 0)
                 {
                     close(fd);
+                    // if (_filepath[_filepath.length() - 1] == '/')
+                    //     _filepath = _filepath.substr(0, _filepath.length() - 1);
                     _filepath += _conf->index[i];
+                // std::cout << _conf->index[i] << std::endl;
+                    
                 }
             }
         }

@@ -320,7 +320,9 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			Server*	conf_local;
 			std::string	location;
 			
+			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
+			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
 			{

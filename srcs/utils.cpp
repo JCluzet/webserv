@@ -4,15 +4,17 @@ std::string apply_location(std::string path, Server* conf, Server** dest)
 {
   std::string tmp = path;
 
-  while (tmp.size() != 0)
+  while (tmp.length() != 0)
   {
-    if (conf->locations.find(path) != conf->locations.end())
+    if (conf->locations.find(tmp) != conf->locations.end() || conf->locations.find(tmp + "/") != conf->locations.end())
     {
+      if (LOG == 1)
+            std::cout << YELLOW << "[⊛ LOCATION]        => " << WHITE << tmp << RESET << std::endl;
       *dest = &conf->locations[tmp];
       return (tmp);
     }
     if (tmp.find_last_of("/") != std::string::npos)
-      tmp.erase(tmp.find_last_of("/"), tmp.length());  
+      tmp.erase(tmp.find_last_of("/"), tmp.length());
   }
   *dest = conf;
   return (path);
@@ -169,7 +171,7 @@ void output_log(int ans, std::string filetosearch)
     if (ans == 200)
         std::cout << GREEN << "[⊛ 200]        => " << WHITE << filetosearch << RESET << std::endl;
     if (ans == 404)
-        std::cout << RED << "[⊛ 404]        => " << YELLOW << "Redirect to 404 page: " << WHITE << filetosearch << RESET << std::endl;
+        std::cout << RED << "[⊛ 404]        => " << YELLOW << "Not Found: " << WHITE << filetosearch << RESET << std::endl;
 }
 
 void output_debug(std::string request, std::string response)
