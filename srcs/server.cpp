@@ -170,7 +170,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	}
 	if (valwrite < 0)
 	{
-		if(LOG == 1)
+		if(CONNEXION_LOG == 1)
 			std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
@@ -183,7 +183,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	// std::cout << valwrite << " " << client->response->get_response().length();
 	if (client->response->writing == false && (client->response->getstat() == 400 || client->response->getstat() == 500 || client->request->get_header("Connection") == "close"))
 	{
-		if(LOG == 1)
+		if(CONNEXION_LOG == 1)
 			std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
@@ -249,8 +249,8 @@ void ReadCGI(Client *client)
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
 		client->response->setStatus(200);
-
-        std::cout << client->response->transfer << std::endl;
+        std::cout << GREEN << "[⊛ POST]       => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
+        // std::cout << client->response->transfer << std::endl;
 	}
 	else
 	{
@@ -294,7 +294,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 
 	if ((valread = read(client->socket, data, BUFFER_SIZE)) < 0)
 	{
-		if(LOG == 1)
+		if(CONNEXION_LOG == 1)
 			std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
@@ -303,7 +303,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 	}
 	else if (valread == 0)
 	{
-		if(LOG == 1)
+		if(CONNEXION_LOG == 1)
 			std::cout << RED << "[⊛ DISCONNECT] => " << RESET << inet_ntoa(client->sockaddr.sin_addr) << WHITE << ":" << RESET << ntohs(client->sockaddr.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << RED << conf->server[j].port << RESET << std::endl;
 		close(client->socket);
 		conf->server[j].client.erase(conf->server[j].client.begin() + i);
@@ -377,7 +377,7 @@ void NewClients(int *listen_sock, Config *conf, fd_set *read_fds)
 			}
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
 			conf->server[j].client.push_back(Client(new_socket, address));
-			if(LOG == 1)
+			if(CONNEXION_LOG == 1)
 				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf->server[j].port << RESET << std::endl;
 		}
 	}
