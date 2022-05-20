@@ -279,7 +279,8 @@ void treat_cgi(Server *server, Client *client)
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
         // attention longueur path original
-        str = client->request->get_path().substr(client->request->get_path().find(("." + server->cgi[i].first + "?")) + std::string("." + server->cgi[i].first).length(), client->request->get_path().length());
+        str = client->request->get_path().substr(client->request->get_path().find(("." + server->cgi[i].first + "?")) + std::string(server->cgi[i].first).length() + 2, client->request->get_path().length());
+        std::cout << str << std::endl;
         cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server, server->cgi[i].first), client);
     }
     return;
