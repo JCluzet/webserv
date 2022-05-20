@@ -38,7 +38,7 @@ class Server
     std::string                                         loc_id; // Location id
     std::string                                         ip; // Server adresse ip
     std::string                                         port;
-    std::vector<std::string>                            hostname; // Server hostname
+    std::vector<std::string>                            server_name; // Serverserver_name 
     std::string                                         root;
     std::string                                         o_root;
     std::vector<std::string>                            index;
@@ -50,8 +50,9 @@ class Server
     std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
     std::vector<Redirect>                               redirect;
-    bool                                                alias;
+    std::string                                         upload;
     //---------\/-------------\/---------\/-------------ONLY FOR LOCATIONS                          
+    bool                                                alias;
     size_t                                              lvl; // if > 0, it's a location
     std::string                                         path; // location path
     std::vector<Client>                                 client;
