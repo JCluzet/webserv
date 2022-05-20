@@ -33,7 +33,7 @@ void launch_browser(int port)
 			  << RESET;
 }
 
-sockaddr_in ListenSocketAssign(int port, int *listen_sock)
+sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
 {
 	struct sockaddr_in address;
 
@@ -52,8 +52,14 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 		exit(EXIT_FAILURE);
 	}
 
-	address.sin_family = AF_INET;
+	if (ip == "0.0.0.0")
+		address.sin_addr.s_addr = INADDR_ANY;
+	else if (ip == "127.0.0.1")
+		address.sin_addr.s_addr = INADDR_LOOPBACK;
+	else
+		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"	
 	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
 
 	memset(address.sin_zero, '\0', sizeof address.sin_zero);
@@ -70,7 +76,7 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 		// }
 		// std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
 	}
-	if (listen(*listen_sock, 3) < 0)
+	if (listen(*listen_sock, 10) < 0)
 	{
 		perror("In listen");
 		std::cout << std::endl
@@ -320,9 +326,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			Server*	conf_local;
 			std::string	location;
 			
-			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
-			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
 			{
@@ -333,6 +337,23 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
 			{
 				client->response->setStatus(405);
+				client->fd_file = client->response->openFile();
+				return;
+			}
+			if (client->request->get_header("Host") != conf_local->ip + ":" + conf_local->port)
+			{
+				for (size_t i = 0; i < conf->server_name.size(); i++)
+				{
+					if (conf->server_name[i] == client->request->get_header("Host"))
+						break ;
+					else if (i + 1 == conf->server_name.size())
+					{
+						client->response->setStatus(400);				
+						client->fd_file = client->response->openFile();
+						return;
+					}
+				}
+				client->response->setStatus(400);
 				client->fd_file = client->response->openFile();
 				return;
 			}
@@ -347,7 +368,6 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
 				{
 					client->response->setStatus(201);
-					// PARSER BO
 				}
 				treat_cgi(conf_local, client);
 			}
@@ -392,7 +412,7 @@ int run_server(Config conf)
 	fd_set write_fds;
 	int listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
-		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
+		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i], conf.server[i].ip);
 
 	while (1)
 	{

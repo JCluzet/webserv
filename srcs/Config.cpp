@@ -1,14 +1,18 @@
 #include "Config.hpp"
 #include "server.hpp"
 
+<<<<<<< HEAD
+Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), server_name(""), root(""), o_root(""), index(), error_page(), client_max_body_size("")
+=======
 Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), hostname(), root(""), o_root(""), index(), error_page(), client_max_body_size("")
+>>>>>>> 086c29b0c7f7ac8c49d6b174da8e7b7a931e7e58
 , cgi(), cgi_bin(""), loc(), autoindex(0), redirect(), alias(false), lvl(0), path(""), client(), locations(){
     methods[0] = false;
     methods[1] = false;
     methods[2] = false;
 }
 
-Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), hostname(src.hostname), root(src.root)
+Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), server_name(src.server_name), root(src.root)
 , o_root(src.o_root), index(src.index), error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), cgi_bin(src.cgi_bin)
 , loc(src.loc), autoindex(src.autoindex),redirect(src.redirect), alias(src.alias), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
     methods[0] = src.methods[0];
@@ -26,7 +30,7 @@ Server& Server::operator=(const Server &src){
     port = src.port;
     cgi = src.cgi;
     cgi_bin = src.cgi_bin;
-    hostname = src.hostname;
+    server_name = src.server_name;
     root = src.root;
     o_root = src.o_root;
     index = src.index;
@@ -87,7 +91,11 @@ void    Config::init_server(Server *s)
     s->loc_id = "";
     s->ip = "";
     s->port = "";
+<<<<<<< HEAD
+    s->server_name = "";
+=======
     s->hostname.clear();
+>>>>>>> 086c29b0c7f7ac8c49d6b174da8e7b7a931e7e58
     s->root = "";
     s->o_root = "";
     s->index.clear();
@@ -341,6 +349,16 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0): //server_name
+<<<<<<< HEAD
+                    if (serv_tmp->server_name.length() || calling_lvl)
+                        return (error_config_message(s, *line_i, 14) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    if (*i == p)
+                        return (error_config_message(s, *line_i, 22) + 1);
+                    tmp = s.substr(p, *i - p);
+                    serv_tmp->server_name = tmp;
+=======
                     if (calling_lvl)
                         return (error_config_message(s, *line_i, 14) + 1);
                     while (*i < s.length() && s[*i] != ';')
@@ -356,6 +374,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         serv_tmp->hostname.push_back(tmp);
                         pass_blanck(s, i, line_i);
                     }
+>>>>>>> 086c29b0c7f7ac8c49d6b174da8e7b7a931e7e58
                     break;
                 case (1): //listen
                     if (calling_lvl)
@@ -645,8 +664,13 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
+<<<<<<< HEAD
+    if (s->server_name.empty())
+        s->server_name = DEFAULT_server_name;
+=======
     if (s->hostname.empty())
         s->hostname.push_back(DEFAULT_HOSTNAME);
+>>>>>>> 086c29b0c7f7ac8c49d6b174da8e7b7a931e7e58
     if (s->client_max_body_size.empty())
         s->client_max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
@@ -670,7 +694,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
     bool b = 0;
     dst->root = src.o_root;
     dst->o_root = src.o_root;
-    dst->hostname = src.hostname;
+    dst->server_name = src.server_name;
     dst->index = dst->index.size() ? dst->index : src.index;
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
         if (dst->error_page.find(it->first) == dst->error_page.end())
@@ -782,11 +806,19 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
+<<<<<<< HEAD
+    if (src.server_name.length())
+    {
+        for (size_t i = 0; i < src.lvl + 1; i++)
+            ostream << "\t";
+        ostream << WHITE << "server_name: " << RESET << src.server_name << std::endl;
+=======
     for (std::vector<std::string>::const_iterator it = src.hostname.begin(); it != src.hostname.end(); it++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
         ostream << WHITE << (it == src.hostname.begin() ? "hostname: " : "          ") << RESET << *it << std::endl;
+>>>>>>> 086c29b0c7f7ac8c49d6b174da8e7b7a931e7e58
     }
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
