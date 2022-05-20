@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 22:38:36 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 01:31:35 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ Response &Response::operator=(const Response &src)
 std::string Response::getHeader()
 {
     std::string head = "";
-    if(_stat_rd == 0)
+    if (_stat_rd == 0)
         head = "HTTP/1.1 400 " + error_page_message(_stat_rd);
     else
         head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
@@ -94,6 +94,7 @@ int Response::treatRequest()
     std::vector<Redirect>::iterator it = _conf->redirect.begin();
 
     _filepath = _request->get_path();
+
     while (it != _conf->redirect.end())
     {
         if (it->redirect1 == _filepath)
@@ -103,35 +104,45 @@ int Response::treatRequest()
             else
                 _stat_rd = 302;
             transfer = it->redirect2;
+            return(fd_file);
         }
         it++;
+    }
+
+    // if the filepath is a directory and does not end with a / then redirect to the directory with a / at the end of the path
+
+    // std::cout << "_Filepath: " << _conf->root + _filepath << std::endl;
+    if (_filepath != "" && is_directory(_conf->root + _filepath) == true && _filepath[_filepath.length() - 1] != '/')
+    {
+        // std::cout << "yeah" << std::endl;
+        _stat_rd = 301;
+        transfer = _filepath + "/";
+        if(LOG == 1)
+            std::cout << YELLOW << "[⊛ REDIRECTION]        => " << WHITE << _filepath + "/" << RESET << std::endl;
+        return (fd_file);
     }
     get_filepath();
     if (_filepath == "")
     {
+        std::cout << "404" << std::endl;
         _stat_rd = 400;
-        //    return (-1);
+        fd_file = openFile();
+        return (fd_file);
     }
     if (is_directory(_filepath))
     {
         if (method != "GET")
-        {
             _stat_rd = 400;
-            //        return (-1);
-        }
         if (_conf->autoindex)
         {
             indexGenerator(&_filecontent, _filepath);
             _stat_rd = 200;
         }
+        fd_file = openFile();
+        return (fd_file);
     }
     if (method == "DELETE")
-    {
         _stat_rd = method_delete();
-        //    if (_stat_rd != 200)
-        //        return (-1);
-    }
-    // std::cout << _stat_rd << std::endl;
     fd_file = openFile();
     return (fd_file);
 }
@@ -181,8 +192,7 @@ void Response::makeResponse()
 {
     if (_stat_rd != 301 && _stat_rd != 302)
     {
-        if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos))
-            && (_stat_rd == 0 || _stat_rd == 200))
+        if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
         {
             if (_request->get_method() == "GET")
                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
@@ -191,7 +201,6 @@ void Response::makeResponse()
             else
             {
                 _content_type = "text/html";
-
             }
             if (transfer.find("\r\n\r\n") != std::string::npos)
                 transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
@@ -303,19 +312,19 @@ const std::string Response::error_page_message(const int status)
     if (status == 502)
         return ("Bad Gateway");
     if (status == 411)
-        return("Length Required");
+        return ("Length Required");
     if (status == 301)
-        return("Move Permanently");
+        return ("Move Permanently");
     if (status == 302)
-        return("Found");
+        return ("Found");
     if (status == 501)
-        return("Not Implemented");
+        return ("Not Implemented");
     if (status == 406)
-        return("Not Acceptable");
+        return ("Not Acceptable");
     if (status == 301)
-        return("Move Permanently");
+        return ("Move Permanently");
     if (status == 302)
-        return("Found");
+        return ("Found");
     return ("Bad Request");
 }
 
@@ -330,12 +339,11 @@ int Response::openFile()
         {
             char buf[1];
             fd_file = open(_filepath.c_str(), O_RDONLY);
-            if (fd_file < 0 || read(fd_file,buf, 0) < 0) // le fichier exite mais n'as pas les droits
+            if (fd_file < 0 || read(fd_file, buf, 0) < 0) // le fichier exite mais n'as pas les droits
                 _stat_rd = 403;
             else
                 _stat_rd = 200; // le fichier est lisible
         }
-
     }
     if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302)
     {
@@ -343,8 +351,8 @@ int Response::openFile()
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
         else
         {
-            _filepath =  _conf->root + _conf->error_page[_stat_rd];
-            if (!fileExist( _filepath))
+            _filepath = _conf->root + _conf->error_page[_stat_rd];
+            if (!fileExist(_filepath))
             {
                 _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
