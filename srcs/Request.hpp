@@ -2,7 +2,7 @@
 
 #include "server.hpp"
 
-#define NB_HEADERS 23
+#define NB_HEADERS 22
 #define NL "\r\n"
 #define NLSIZE 2
 
@@ -293,31 +293,28 @@ public:
         {
             _header[0] = "Accept-Charsets";
             _header[1] = "Accept-Language";
-            _header[2] = "Allow"; // Pas dans la requete ?
-            _header[3] = "Auth-Scheme";
-            _header[4] = "Authorization";
-            _header[5] = "Content-Language";
-            _header[6] = "Content-Length";
-            _header[7] = "Content-Location";
-            _header[8] = "Content-Type";
-            _header[9] = "Date";
-            _header[10] = "Host";
-            _header[11] = "Last-Modified";
-            _header[12] = "Location";
-            _header[13] = "Referer";
-            _header[14] = "Retry-After";
-            _header[15] = "Transfer-Encoding";
-            _header[16] = "User-Agent";
-            _header[17] = "Www-Authenticate"; // Pas utile ?
-            _header[18] = "Connection";
-            _header[19] = "Accept";
-            _header[20] = "Cookie";
-            _header[21] = "Accept-Encoding";
-            _header[22] = "From";
-            // _header[23] = "Accept";
+            _header[2] = "Auth-Scheme";
+            _header[3] = "Authorization";
+            _header[4] = "Content-Language";
+            _header[5] = "Content-Length";
+            _header[6] = "Content-Location";
+            _header[7] = "Content-Type";
+            _header[8] = "Date";
+            _header[9] = "Host";
+            _header[10] = "Last-Modified";
+            _header[11] = "Location";
+            _header[12] = "Referer";
+            _header[13] = "Retry-After";
+            _header[14] = "Transfer-Encoding";
+            _header[15] = "User-Agent";
+            _header[16] = "Www-Authenticate"; // Pas utile ?
+            _header[17] = "Connection";
+            _header[18] = "Accept";
+            _header[19] = "Cookie";
+            _header[20] = "Accept-Encoding";
+            _header[21] = "From";
             _m["Accept-Charsets"] = "";
             _m["Accept-Language"] = "";
-            _m["Allow"] = "";
             _m["Auth-Scheme"] = "";
             _m["Authorization"] = "";
             _m["Content-Language"] = "";
@@ -334,7 +331,6 @@ public:
             _m["User-Agent"] = "";
             _m["Www-Authenticate"] = "";
             _m["Connection"] = "keep-alive";
-            // _m["Accept"] = "";
             _m["Cookie"] = "";
             _m["Accept-Encoding"] = "";
             _m["From"] = "";

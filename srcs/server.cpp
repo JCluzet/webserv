@@ -183,7 +183,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		i--;
 		return;
 	}
-	else if (valwrite == 0) ///fghjklmù
+	else if (valwrite == 0)
 	{
 	} // ???
 	// std::cout << valwrite << " " << client->response->get_response().length();
@@ -344,7 +344,8 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			{
 				for (size_t i = 0; i < conf_local->server_name.size(); i++)
 				{
-					if (conf_local->server_name[i] == client->request->get_header("Host"))
+					if (conf_local->server_name[i] == client->request->get_header("Host")
+						|| conf_local->server_name[i] + ":" + conf_local->port == client->request->get_header("Host"))
 						break ;
 					else if (i + 1 == conf_local->server_name.size())
 					{
@@ -353,9 +354,6 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 						return;
 					}
 				}
-				client->response->setStatus(400);
-				client->fd_file = client->response->openFile();
-				return;
 			}
 			if (is_cgi(client->request, conf_local) == true)
 			{
