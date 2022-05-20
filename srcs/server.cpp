@@ -346,7 +346,8 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				}
 				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
 				{
-					// PARSER BOUNDARY POUR UPLOAD
+					client->response->setStatus(201);
+					// PARSER BO
 				}
 				treat_cgi(conf_local, client);
 			}
