@@ -136,36 +136,6 @@ bool is_directory(const std::string path)
   return 1;
 }
 
-bool fileExist(const std::string s)
-{
-    DIR* dir;
-    bool b = 0;
-    struct dirent* ent;
-    std::string dirp, filep, tmp = s;
-    std::string::size_type i;
-    i = (tmp.find_last_of('/'));
-    if (i == std::string::npos)
-    {
-        dirp = "./";
-        filep = tmp;
-    }
-    else
-    {
-        dirp = tmp.substr(0, i);
-        filep = tmp.substr(i + 1, tmp.length() - (i + 1));
-    }
-    dir = opendir(dirp.c_str());
-    if (dir == NULL)
-      return (0);
-    while ((ent = readdir(dir)))
-        if (ent->d_name == filep){
-            b = 1;
-            break;
-        }
-    closedir(dir);
-    return b;
-}
-
 void output_log(int ans, std::string filetosearch)
 {
     if (ans == 200)

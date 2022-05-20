@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 20:34:11 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 23:01:11 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,7 +311,7 @@ int Response::openFile()
     int fd_file = -1;
     if (_stat_rd == 0)
     {
-        if (!fileExist(_filepath))
+        if (access(_filepath.c_str(), F_OK))
             _stat_rd = 404;
         if (_stat_rd == 0) // le fichier existe
         {
@@ -330,7 +330,7 @@ int Response::openFile()
         else
         {
             _filepath = _conf->root + _conf->error_page[_stat_rd];
-            if (!fileExist(_filepath))
+            if (access(_filepath.c_str(), F_OK))
             {
                 _stat_rd = 404;
                 _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
