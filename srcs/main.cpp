@@ -47,9 +47,9 @@ int main(int argc, char const *argv[])
 	if (argc > 2 && !strcmp(argv[2], "--confdebug"))
 		std::cout << conf << std::endl;
 
-	std::cout << "                     ";
+	std::cout << "             ";
 	for (size_t j = 0; j < conf.server.size(); j++)
-		std::cout << RED << "⊛" << WHITE << conf.server[j].port << "  ";
+		std::cout << RED << "⊛" << WHITE << "localhost:" + conf.server[j].port << "  ";
 	std::cout << RESET << std::endl
 			  << std::endl;
     if (run_server(conf) == -1)
