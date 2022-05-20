@@ -1,7 +1,8 @@
 
 ---------CONF_PARSING---------
-map <path, Server*> location
+map <path, Server*> location - vector2
 condition hostname a definir
+multi hostname
 -ip
 default body size int max
 
