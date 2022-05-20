@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 01:31:35 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 03:30:38 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -313,16 +313,12 @@ const std::string Response::error_page_message(const int status)
         return ("Bad Gateway");
     if (status == 411)
         return ("Length Required");
-    if (status == 301)
-        return ("Move Permanently");
-    if (status == 302)
-        return ("Found");
     if (status == 501)
         return ("Not Implemented");
     if (status == 406)
         return ("Not Acceptable");
     if (status == 301)
-        return ("Move Permanently");
+        return ("Moved Permanently");
     if (status == 302)
         return ("Found");
     return ("Bad Request");

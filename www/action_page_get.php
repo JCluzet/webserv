@@ -95,42 +95,20 @@ div.text a:hover {
             </style>
 		<!-- <link href="style.css" rel="stylesheet"> -->
         <div class="text">
-            <h1>HomePage</h1>
+            <h1><a href="/">HomePage</a></h1>
             <h3>WEBSERV 1.0</h3>
         <div class="img">
             <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/>
             <!-- <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/> -->
             <br><br>
-            <!-- <br><br>
+            <br><br>
             <br><br>
             
-            <form action="/action_page.php" method="POST">
-                <label for="fname">First name:</label>
-                <input type="text" id="fname" name="fname"><br><br>
-        <label for="lname">Last name:</label>
-        <input type="text" id="lname" name="lname"><br><br>
-        <input type="submit" value="Envoyer">
-    </form>
-    <br><br>
-    <div class="submit">
-    <form enctype="multipart/form-data" action="http://localhost:9943/" method="POST">
-        Choose a file to upload <input name="uploadedfile"type="file" /><br />
-        <input type="submit"></a>
-        <input type="submit" value="Upload File" /><br> -->
-    </form>
+            <?php
+echo "Hello " . $_GET["lname"] . " " . $_GET["fname"] . " !";
+?>
 </div>
-    <br><br>
-    <a href="testget.html">TEST GET </a> <br><br>
-    <a href="testpost.html">TEST POST </a> <br><br>
-    <a href="testupload.html">TEST UPLOAD </a> <br><br>
-    <a href="testpdf.html">TEST PDF </a> <br><br><br><br>
-    <a href="/GradeMe/index.html">LOAD GRADEME INDEX</a><br><br>
-    <a href="/Link/index.html">LOAD LINK INDEX</a>
-    <br><br><br><br>
-    <a href="/blabla">ERROR REDIRECT 404</a>
-    <br><br><br><br>
-    <br><br><br><br>
-    <h3>AMANCHON JCLUZET ALEBROSS</h3>
+        
 </section>
 </body>
 
