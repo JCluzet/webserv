@@ -11,7 +11,8 @@ std::string apply_location(std::string path, Server* conf, Server** dest)
       *dest = &conf->locations[tmp];
       return (tmp);
     }
-    path.erase(path.find_last_of("/"), path.length());
+    if (tmp.find_last_of("/") != std::string::npos)
+      tmp.erase(tmp.find_last_of("/"), tmp.length());  
   }
   *dest = conf;
   return (path);

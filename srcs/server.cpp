@@ -349,7 +349,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				treat_cgi(conf_local, client);
 			}
 			else
-				client->fd_file = client->response->treatRequest();
+				client->fd_file = client->response->treatRequest();	
 		}
 	}
 

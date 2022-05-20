@@ -657,7 +657,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
     for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
     {
         dst_it = dst->cgi.begin();
-        for (std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
+        for (; dst_it != dst->cgi.end(); dst_it++)
         {
             if (dst_it->first == src_it->first)
             {
@@ -666,7 +666,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             }
         }
         if (b)
-            dst_it->second = src_it->second; ;   
+            dst_it->second = src_it->second;  
         dst->cgi.push_back(*src_it);
         b = 0;
         dst_it += 1;
