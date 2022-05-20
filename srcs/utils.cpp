@@ -116,18 +116,6 @@ bool is_directory(const std::string path)
   return 1;
 }
 
-bool is_file(const std::string path)
-{
-  std::ifstream ifs;
-
-  ifs.open(path.c_str());
-  if (!ifs)
-    return 0;
-  else
-    ifs.close();
-  return 1;
-}
-
 bool fileExist(const std::string s)
 {
     DIR* dir;

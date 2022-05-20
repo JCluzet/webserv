@@ -32,6 +32,8 @@ class Server
     bool	operator==(const Server &c) const;
     Server*     location(const std::string s);
   
+    bool cb;
+
     int                                                 id; // Server id
     std::string                                         loc_id; // Location id
     std::string                                         ip; // Server adresse ip
@@ -43,6 +45,7 @@ class Server
     std::string                                         client_max_body_size;
     bool                                                methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
     std::vector<std::pair<std::string, std::string> >   cgi; // first = extension, second = path
+    std::string                                         cgi_bin;  
     std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
     std::vector<Redirect>                               redirect;

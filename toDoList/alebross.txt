@@ -13,5 +13,9 @@ cgi-bin : cgi-bin folder_path; (default ./cgi-bin)
 
 defines a folder where to search CGI binaries.
 
+controle--
+
+upload
+
 --------INDEX_GENERATOR-------
 corriger 1st line

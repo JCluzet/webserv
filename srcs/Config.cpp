@@ -1,15 +1,15 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_max_body_size(""), autoindex(0), valid(0), lvl(0)
+Server::Server() : cb(0), id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_max_body_size(""), cgi_bin(""), autoindex(0), valid(0), lvl(0)
 , path(""), client(CO_MAX){
     methods[0] = 0;
     methods[1] = 0;
     methods[2] = 0;
 }
 
-Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
-, error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), loc(src.loc), autoindex(src.autoindex)
+Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
+, error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), cgi_bin(src.cgi_bin), loc(src.loc), autoindex(src.autoindex)
 ,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -19,11 +19,13 @@ Server::Server(const Server &src) : id(src.id), loc_id(src.loc_id), ip(src.ip), 
 Server::~Server() {}
 
 Server& Server::operator=(const Server &src){
+    cb = src.cb;
     id = src.id;
     loc_id = src.loc_id;
     ip = src.ip;
     port = src.port;
     cgi = src.cgi;
+    cgi_bin = src.cgi_bin;
     host = src.host;
     root = src.root;
     index = src.index;
@@ -80,6 +82,7 @@ Config& Config::operator=(const Config &src)
 
 void    Config::init_server(Server *s)
 {
+    s->cb = 0;
     s->id = 0;
     s->loc_id = "";
     s->ip = "";
@@ -90,6 +93,7 @@ void    Config::init_server(Server *s)
     s->error_page.clear();
     s->client_max_body_size = "";
     s->cgi.clear();
+    s->cgi_bin = "";
     s->methods[0] = 0;
     s->methods[1] = 0;
     s->methods[2] = 0;
@@ -276,11 +280,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 , size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 11;
+    const int               nb_serv_types = 12;
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "prohibit_methods"
-                                                        , "cgi", "rewrite"};
+                                                        , "cgi", "cgi_bin", "rewrite"};
     std::string tmp, tmp1, tmp2;
     Server      loc_tmp;
     size_t      j_loc;
@@ -382,6 +386,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         return (error_config_message(s, *line_i, 24) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 23) + 1);
                     tmp = s.substr(p, *i - p);
                     serv_tmp->client_max_body_size = tmp;
                     break;
@@ -426,7 +432,20 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp1 = s.substr(p, *i - p);
                     serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
-                case (10): //rewrite
+                case (10): //cgi_bin
+                    if ((!calling_lvl && serv_tmp->cgi_bin.length()) || (calling_lvl && serv_tmp->cb))
+                        return (error_config_message(s, *line_i, 29) + 1);
+                    if (*i >= s.length() || s[*i] == ';')
+                        return (error_config_message(s, *line_i, 30) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 31) + 1);
+                    if (calling_lvl)
+                        serv_tmp->cb = 1;
+                    serv_tmp->cgi_bin = s.substr(p, *i - p);
+                    break;
+                case (11): //rewrite
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -575,22 +594,6 @@ bool    Config::check_server(Server* s)
         std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    for (std::vector<std::string>::iterator it = s->index.begin(); it != s->index.end(); it++)
-    {
-        if (!is_file(s->root + *it))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << *it << std::endl;
-            r = 1;
-        }
-    }
-    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
-    {
-        if (!is_file(s->root + it->second))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
     for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
     {
         if (!is_directory(s->root + it->second))
@@ -598,6 +601,16 @@ bool    Config::check_server(Server* s)
             std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
             r = 1;
         }
+    }
+    if (s->cgi_bin.length() && access(s->cgi_bin.c_str(), X_OK))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't execute cgi_bin (" << s->cgi_bin << ")." << std::endl;
+        r = 1;
+    }
+    if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
+        r = 1;
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
@@ -645,6 +658,8 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             dst->cgi.push_back(*src_it);
         b = 0;
     }
+    if (src.cgi_bin.length() && dst->cgi_bin.empty())
+        dst->cgi_bin = src.cgi_bin;
     //AUTOINDEX gerer en amont
     for (std::vector<Redirect>::const_iterator src_it = src.redirect.begin(); src_it != src.redirect.end(); src_it++)
     {
@@ -675,22 +690,6 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
         std::cerr << "Error config: location " << s->loc_id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
-    for (std::vector<std::string>::const_iterator it = s->index.begin(); it != s->index.end(); it++)
-    {
-        if (!is_file(s->root + *it))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open index file path.(" << s->root << *it << std::endl;
-            r = 1;
-        }
-    }
-    for (std::map<int, std::string>::const_iterator it = s->error_page.begin(); it != s->error_page.end(); it++)
-    {
-        if (!is_file(s->root + it->second))
-        {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open error " << it->first << " page file path.(" << s->root << it->second << ")." << std::endl;
-            r = 1;
-        }
-    }
     for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
     {
         if (!is_directory(s->root + it->second))
@@ -698,6 +697,16 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
             std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
             r = 1;
         }
+    }
+    if (s->cgi_bin.length() && access(s->cgi_bin.c_str(), X_OK))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't execute cgi binaire (" << s->cgi_bin << ")." << std::endl;
+        r = 1;
+    }
+    if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
+        r = 1;
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
@@ -761,7 +770,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << (*it).first << (it == src.error_page.begin() ? "page: " : "      ") << RESET << (*it).second << std::endl;
+        ostream << WHITE << (*it).first << "-page: " << RESET << (*it).second << std::endl;
     }
     if (src.client_max_body_size.length())
     {
@@ -786,6 +795,12 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
         for (size_t j = 0; j < src.lvl + 1; j++)
             ostream << "\t";
         ostream << WHITE << (it == src.cgi.begin() ? "cgi: " : "     ") << RESET << it->first << " " << it->second << std::endl;
+    }
+    if (src.cgi_bin.length())
+    {
+        for (size_t j = 0; j < src.lvl + 1; j++)
+            ostream << "\t";
+        ostream << WHITE << "cgi-bin: " << RESET << src.cgi_bin << std::endl;
     }
     for (std::vector<Redirect>::const_iterator it = src.redirect.begin(); it != src.redirect.end(); it++)
     {
