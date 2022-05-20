@@ -134,7 +134,7 @@ int Response::treatRequest()
             _stat_rd = 200;
         }
         else
-            _stat_rd = 400;
+            _stat_rd = 403;
 
     }
     else if (method == "DELETE")
