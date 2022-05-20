@@ -97,7 +97,7 @@ int Response::treatRequest()
 
     while (it != _conf->redirect.end())
     {
-        if (it->redirect1 == _filepath)
+        if (it->redirect1.length() <= _filepath.length() && it->redirect1 == _filepath.substr(0, it->redirect1.length()))
         {
             if (it->permanent == true)
                 _stat_rd = 301;
