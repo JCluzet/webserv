@@ -3,13 +3,9 @@
 
 map <path, Server*> location - vector2
 
--ip
-
 upload
 
-default body size int max
 multi hostname
-default servername localhost
 
 --------INDEX_GENERATOR-------
 corriger 1st line
