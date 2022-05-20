@@ -6,5 +6,12 @@ multi hostname
 -ip
 default body size int max
 
+cgi : cgi extension cgi_path;
+
+defines a CGI binary that will be executed for the given extension.
+cgi-bin : cgi-bin folder_path; (default ./cgi-bin)
+
+defines a folder where to search CGI binaries.
+
 --------INDEX_GENERATOR-------
 corriger 1st line

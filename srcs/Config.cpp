@@ -280,7 +280,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "prohibit_methods"
-                                                        , "cgi_pass", "rewrite"};
+                                                        , "cgi", "rewrite"};
     std::string tmp, tmp1, tmp2;
     Server      loc_tmp;
     size_t      j_loc;
@@ -408,11 +408,23 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (get_methods_line(s, serv_tmp, i, line_i, 0))
                         return 1;
                     break;
-                case (9): //cgi_pass
+                case (9): //cgi
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 26) + 1);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->cgi.push_back(tmp);
+                    if (!is_blanck(s[*i]))
+                        return (error_config_message(s, *line_i, 26) + 1);
+                    pass_blanck(s, i, line_i);
+                    if (*i >= s.length() || s[*i] == ';')
+                        return (error_config_message(s, *line_i, 27) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 28) + 1);
+                    tmp1 = s.substr(p, *i - p);
+                    serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
                 case (10): //rewrite
                     p = *i;
@@ -579,11 +591,11 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
-    for (std::vector<std::string>::size_type i = 0; i < s->cgi.size(); i++)
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
     {
-        if (!is_directory(s->root + s->cgi[i]))
+        if (!is_directory(s->root + it->second))
         {
-            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << s->cgi[i] << ")." << std::endl;
+            std::cerr << "Error config: server " << s->id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
             r = 1;
         }
     }
@@ -619,11 +631,11 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             dst->error_page.insert(std::make_pair(it->first, it->second));
     dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
     //METHOD gerer en amont
-    for (std::vector<std::string>::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
     {
-        for (std::vector<std::string>::const_iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator dst_it = dst->cgi.begin(); dst_it != dst->cgi.end(); dst_it++)
         {
-            if (*dst_it == *src_it)
+            if (dst_it->second == src_it->second)
             {
                 b = 1;
                 break;
@@ -633,7 +645,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             dst->cgi.push_back(*src_it);
         b = 0;
     }
-    //AUTOINDEX PROBLEME
+    //AUTOINDEX gerer en amont
     for (std::vector<Redirect>::const_iterator src_it = src.redirect.begin(); src_it != src.redirect.end(); src_it++)
     {
         for (std::vector<Redirect>::const_iterator dst_it = dst->redirect.begin(); dst_it != dst->redirect.end(); dst_it++)
@@ -679,11 +691,11 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
             r = 1;
         }
     }
-    for (std::vector<std::string>::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
     {
-        if (!is_directory(s->root + *it))
+        if (!is_directory(s->root + it->second))
         {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << *it << ")." << std::endl;
+            std::cerr << "Error config: location " << s->loc_id << ": can't open cgi directory path (" << s->root << it->second << ")." << std::endl;
             r = 1;
         }
     }
@@ -769,11 +781,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "allow methods: " << RESET << (src.methods[0] ? "GET " : "") << (src.methods[1] ? "POST " : "") << (src.methods[2] ? "DELETE " : "") << std::endl;
     }
-    for (std::vector<std::string>::const_iterator it = src.cgi.begin(); it < src.cgi.end(); it++)
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = src.cgi.begin(); it < src.cgi.end(); it++)
     {
         for (size_t j = 0; j < src.lvl + 1; j++)
             ostream << "\t";
-        ostream << WHITE << (it == src.cgi.begin() ? "cgi pass: " : "          ") << RESET << *it << std::endl;
+        ostream << WHITE << (it == src.cgi.begin() ? "cgi: " : "     ") << RESET << it->first << " " << it->second << std::endl;
     }
     for (std::vector<Redirect>::const_iterator it = src.redirect.begin(); it != src.redirect.end(); it++)
     {
