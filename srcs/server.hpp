@@ -6,7 +6,7 @@
 /*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 22:58:30 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/20 23:35:29 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #define DEFAULT_HOSTNAME "localhost"
 #define DEFAULT_PORT "80"
 #define DEFAULT_IP "0.0.0.0"
+#define NB_LINETYPE 14
 
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
