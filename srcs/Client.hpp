@@ -5,7 +5,7 @@ class  Client
 {
   public:
     Client();
-    Client(int new_socket, struct sockaddr_in new_addr, Server* server);
+    Client(int new_socket, struct sockaddr_in new_addr);
     Client(const Client &src);
     ~Client();
 

@@ -69,7 +69,8 @@ struct server_data {
 class Config;
 // class Redirect;
 
-std::string chunked(std::string str);
+Server*						apply_location(std::string path, Server* conf);
+std::string					chunked(std::string str);
 void                        output_debug(std::string request, std::string response);
 void                        treat_cgi(Server* server, Client* client);
 void	                    quit_sig(int sig);

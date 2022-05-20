@@ -1,5 +1,16 @@
 #include "server.hpp"
 
+Server* apply_location(std::string path, Server* conf)
+{
+  while (path.size() != 0)
+  {
+    if (conf->locations.find(path) != conf->locations.end())
+      return (&conf->locations[path]);
+    path.erase(path.find_last_of("/"), path.length());
+  }
+  return (conf);
+}
+
 std::string intToStr(int n){
     std::string s = (n < 0) ? "-" : "";
     n *= (n < 0 ? -1 : 1);

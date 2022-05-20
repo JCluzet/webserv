@@ -249,6 +249,8 @@ void ReadCGI(Client *client)
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
 		client->response->setStatus(200);
+
+        std::cout << client->response->transfer << std::endl;
 	}
 	else
 	{
@@ -315,8 +317,11 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 
 		if (client->request->ready())
 		{
-			// std::cout << client->request->get_request() << std::endl;
-			if ((client->request->get_method() == "POST" && !conf->server[j].methods[1]) || (client->request->get_method() == "GET" && !conf->server[j].methods[0]) || (client->request->get_method() == "DELETE" && !conf->server[j].methods[2])) // check error 405 Method not allowed
+			Server*	conf_local;
+			
+			conf_local = apply_location(client->request->get_path(), &conf->server[j]);
+			client->response->setConf(conf_local);
+			if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
 			{
 				client->response->setStatus(405);
 				client->fd_file = client->response->openFile();
@@ -324,7 +329,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			}
 			if (is_cgi(client->request) == true)
 			{
-        		if(ft_atoi(conf->server[j].client_max_body_size.c_str()) < client->request->get_body().length()) // check max body size error 413
+        		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length()) // check max body size error 413
 				{
 					client->response->setStatus(413);
 					client->fd_file = client->response->openFile();
@@ -334,7 +339,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				{
 					// PARSER BOUNDARY POUR UPLOAD
 				}
-				treat_cgi(&conf->server[j], client);
+				treat_cgi(conf_local, client);
 			}
 			else
 				client->fd_file = client->response->treatRequest();
@@ -361,7 +366,7 @@ void NewClients(int *listen_sock, Config *conf, fd_set *read_fds)
 				return;
 			}
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
-			conf->server[j].client.push_back(Client(new_socket, address, &conf->server[j]));
+			conf->server[j].client.push_back(Client(new_socket, address));
 			if(LOG == 1)
 				std::cout << GREEN << "[⊛ CONNECT]    => " << RESET << inet_ntoa(address.sin_addr) << WHITE << ":" << RESET << ntohs(address.sin_port) << RED << "    ⊛ " << WHITE << "PORT: " << GREEN << conf->server[j].port << RESET << std::endl;
 		}

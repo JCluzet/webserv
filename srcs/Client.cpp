@@ -12,9 +12,9 @@ Client::Client() : request(new Request()), response(new Response())
     return ;
 }
 
-Client::Client(int new_socket, sockaddr_in new_addr, Server *server) : request(new Request())
+Client::Client(int new_socket, sockaddr_in new_addr) : request(new Request())
 {
-    response = new Response(request, server);
+    response = new Response(request);
     socket = new_socket;
     pipe_cgi_in[0] = -1;
     pipe_cgi_in[1] = -1;

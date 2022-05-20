@@ -26,7 +26,7 @@ public:
     std::string transfer;
     bool        writing;
 
-    Response(Request* request, Server* srv);
+    Response(Request* request);
     Response();
     Response(Response const &src);
     ~Response() {};
@@ -43,10 +43,10 @@ public:
     Request*    getRequest() { return (_request); }
     void        setRequest(Request* req) { _request = req; return ; }
     void        setStatus(int new_status);
+    void        setConf(Server *newconf);
 
     const std::string error_page_message(int status);
     int openFile();
-    int set_redirection(std::string cgi_response);
     int getstat() { return (_stat_rd); }
     int get_content_type();
 

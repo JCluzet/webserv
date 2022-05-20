@@ -12,7 +12,7 @@
 
 #include "server.hpp" //  1: CHANGER RESPONSE pour lire en dehors (les erreur) // 2: AJOUTER UPLOAD dans response/request, ecrire en dehors, faire isupload
 
-Response::Response(Request *request, Server *srv) : _conf(srv), _request(request), _header(""), _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
+Response::Response(Request *request) : _conf(NULL), _request(request), _header(""), _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
 {
     transfer = "";
     writing = false;
@@ -289,7 +289,13 @@ void Response::get_filepath()
     }
 }
 
-void Response::setStatus(const int new_status)
+void    Response::setConf(Server *newconf)
+{
+    _conf = newconf;
+    return ;
+}
+
+void    Response::setStatus(const int new_status)
 {
     _stat_rd = new_status;
     return;
@@ -313,16 +319,12 @@ const std::string Response::error_page_message(const int status)
         return ("Bad Gateway");
     if (status == 411)
         return ("Length Required");
-    if (status == 301)
-        return ("Move Permanently");
-    if (status == 302)
-        return ("Found");
     if (status == 501)
         return ("Not Implemented");
     if (status == 406)
         return ("Not Acceptable");
     if (status == 301)
-        return ("Move Permanently");
+        return ("Moved Permanently");
     if (status == 302)
         return ("Found");
     return ("Bad Request");
