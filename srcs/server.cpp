@@ -33,7 +33,7 @@ void launch_browser(int port)
 			  << RESET;
 }
 
-sockaddr_in ListenSocketAssign(int port, int *listen_sock)
+sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
 {
 	struct sockaddr_in address;
 
@@ -52,8 +52,14 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 		exit(EXIT_FAILURE);
 	}
 
-	address.sin_family = AF_INET;
+	if (ip == "0.0.0.0")
+		address.sin_addr.s_addr = INADDR_ANY;
+	else if (ip == "127.0.0.1")
+		address.sin_addr.s_addr = INADDR_LOOPBACK;
+	else
+		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"	
 	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
 
 	memset(address.sin_zero, '\0', sizeof address.sin_zero);
@@ -70,7 +76,7 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock)
 		// }
 		// std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
 	}
-	if (listen(*listen_sock, 3) < 0)
+	if (listen(*listen_sock, 10) < 0)
 	{
 		perror("In listen");
 		std::cout << std::endl
@@ -392,7 +398,7 @@ int run_server(Config conf)
 	fd_set write_fds;
 	int listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
-		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i]);
+		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i], conf.server[i].ip);
 
 	while (1)
 	{
