@@ -3,6 +3,8 @@
 bool is_cgi(Request* request, Server* conf)
 {
     std::string str;
+    if (request->get_path().find("/") == std::string::npos || request->get_path() == "")
+        return false;
     if (request->get_method() == "POST")
         return true;
     for (size_t i = 0; i < conf->cgi.size(); i++)
@@ -278,9 +280,7 @@ void treat_cgi(Server *server, Client *client)
         cmd_path = cmd_path.substr(0, cmd_path.find("." + server->cgi[i].first + "?") + std::string("." + server->cgi[i].first).length());
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        // attention longueur path original
         str = client->request->get_path().substr(client->request->get_path().find(("." + server->cgi[i].first + "?")) + std::string(server->cgi[i].first).length() + 2, client->request->get_path().length());
-        std::cout << str << std::endl;
         cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server, server->cgi[i].first), client);
     }
     return;
