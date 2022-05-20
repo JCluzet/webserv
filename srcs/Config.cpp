@@ -1,16 +1,16 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : cb(0), id(0), loc_id(""), ip(""), port(""), host(""), root(""), client_max_body_size(""), cgi_bin(""), autoindex(0), valid(0), lvl(0)
-, path(""), client(CO_MAX){
-    methods[0] = 0;
-    methods[1] = 0;
-    methods[2] = 0;
+Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), hostname(""), root(""), o_root(""), index(), error_page(), client_max_body_size("")
+, cgi(), cgi_bin(""), loc(), autoindex(0), redirect(), alias(false), lvl(0), path(""), client(), locations(){
+    methods[0] = false;
+    methods[1] = false;
+    methods[2] = false;
 }
 
-Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root), index(src.index)
-, error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), cgi_bin(src.cgi_bin), loc(src.loc), autoindex(src.autoindex)
-,redirect(src.redirect), valid(src.valid), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
+Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), hostname(src.hostname), root(src.root)
+, o_root(src.o_root), index(src.index), error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), cgi_bin(src.cgi_bin)
+, loc(src.loc), autoindex(src.autoindex),redirect(src.redirect), alias(src.alias), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
     methods[2] = src.methods[2];
@@ -26,14 +26,15 @@ Server& Server::operator=(const Server &src){
     port = src.port;
     cgi = src.cgi;
     cgi_bin = src.cgi_bin;
-    host = src.host;
+    hostname = src.hostname;
     root = src.root;
+    o_root = src.o_root;
     index = src.index;
     error_page = src.error_page;
     client_max_body_size = src.client_max_body_size;
     autoindex = src.autoindex;
     redirect = src.redirect;
-    valid = src.valid;
+    alias = src.alias;
     client = src.client;
     methods[0] = src.methods[0];
     methods[1] = src.methods[1];
@@ -62,11 +63,11 @@ Server*     Server::location(const std::string s)
 }
 
 // CONFIG
-Config::Config() : valid(0), _debug(0) {}
+Config::Config() : _debug(0) {}
 
-Config::Config(const std::string filename) : valid(0), _debug(0) { init(filename); }
+Config::Config(const std::string filename) : _debug(0) { init(filename); }
 
-Config::Config(const Config &src) : server(src.server), valid(src.valid), _debug(src._debug) {}
+Config::Config(const Config &src) : server(src.server), _debug(src._debug) {}
 
 Config::~Config() {}
 
@@ -75,7 +76,6 @@ Config& Config::operator=(const Config &src)
     if (server.size())
         server.clear();
     server = src.server;
-    valid = src.valid;
     _debug = src._debug;
     return *this;
 }
@@ -87,8 +87,9 @@ void    Config::init_server(Server *s)
     s->loc_id = "";
     s->ip = "";
     s->port = "";
-    s->host = "";
+    s->hostname = "";
     s->root = "";
+    s->o_root = "";
     s->index.clear();
     s->error_page.clear();
     s->client_max_body_size = "";
@@ -100,7 +101,7 @@ void    Config::init_server(Server *s)
     s->autoindex = 0;
     s->loc.clear();
     s->redirect.clear();
-    s->valid = 0;
+    s->alias = 0;
     s->lvl = 0;
     s->path = "";
     s->client.clear();
@@ -129,10 +130,8 @@ bool    Config::init(const std::string filename)
     if (get_conf(data))
     {
         server.clear();
-        valid = 0;
         return 1;
     }
-    valid = 1;
     return 0;
 }
 
@@ -282,12 +281,10 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
 , size_t calling_lvl, size_t *i_loc, std::vector<std::pair<std::string, std::string> >*vp)
 {
     std::string::size_type  p;
-    const int               nb_serv_types = 12;
-    std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
-                                                        , "client_max_body_size", "error_page"
-                                                        , "autoindex", "allow_methods", "prohibit_methods"
-                                                        , "cgi", "cgi-bin", "rewrite"};
-    std::string tmp, tmp1, tmp2;
+    const int               nb_serv_types = 13; //           0            1        2        3       4              5
+    std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "alias", "index", "client_max_body_size"
+                                                    , "error_page", "autoindex", "allow_methods", "prohibit_methods", "cgi", "cgi-bin", "rewrite"};
+    std::string tmp, tmp1, tmp2;  //                        6            7              8              9               10        11          12 
     Server      loc_tmp;
     size_t      j_loc;
     char        c;
@@ -298,11 +295,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
         pass_blanck(s, i, line_i);
         p = *i;
         pass_not_blanck(s, i);
-        loc_tmp.path = s.substr(p, *i - p);
-        if (!loc_tmp.path.length())
-            return (error_config_message(s, *line_i, 9) + 1);
-        if (loc_tmp.path[0] != '/')
-            loc_tmp.path.insert(0, "/");
+        if (*i == p)
+            return (error_config_message(s, *line_i, 22) + 1);
+        tmp = s.substr(p, *i - p);
+        if (tmp[0] != '/')
+            tmp.insert(0, "/");
+        if (tmp[tmp.length() - 1] == '/')
+            tmp.erase(tmp.length() - 1, 1);
+        loc_tmp.path = serv_tmp->path + tmp;
         pass_blanck(s, i, line_i);
         loc_tmp.id = *i_loc;
         loc_tmp.loc_id =  serv_tmp->loc_id + "." + intToStr(*i_loc);
@@ -333,7 +333,6 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             if (s_a_have_b(s, *i, serv_type[o]) && is_space(s[*i + serv_type[o].length()]))
             {
                 *i += serv_type[o].length();
-    // std::cout <<"***" << s.substr(*i, s.length() - *i) << std::endl;
                 if (*i >= s.length() || !is_blanck(s[*i]))
                     return (error_config_message(s, *line_i, 12) + 1);
                 pass_blanck(s, i, line_i);
@@ -342,33 +341,53 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0): //server_name
-                    if (serv_tmp->host.length())
+                    if (serv_tmp->hostname.length() || calling_lvl)
                         return (error_config_message(s, *line_i, 14) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (*i == p)
+                        return (error_config_message(s, *line_i, 22) + 1);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->host = tmp;
+                    serv_tmp->hostname = tmp;
                     break;
                 case (1): //listen
                     if (calling_lvl)
                         return (error_config_message(s, *line_i, 15) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (*i == p)
+                        return (error_config_message(s, *line_i, 22) + 1);
                     tmp = s.substr(p, *i - p);
                     if ((c = get_listen_line(tmp, vp)))
                         return (error_config_message(s, *line_i, 15 + c) + 1);
                     break;
                 case (2): //root
-                    if (serv_tmp->root.length() && !calling_lvl)
+                    if (serv_tmp->root.length() || calling_lvl)
                         return (error_config_message(s, *line_i, 22) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (*i == p)
+                        return (error_config_message(s, *line_i, 22) + 1);
                     tmp = s.substr(p, *i - p);
                     serv_tmp->root = tmp;
                     if (serv_tmp->root[serv_tmp->root.length() - 1] == '/')
                         serv_tmp->root.erase(serv_tmp->root.length() - 1);
+                    serv_tmp->o_root = serv_tmp->root;
                     break;
-                case (3): //index
+                case (3): //alias
+                    if (!calling_lvl || serv_tmp->alias)
+                        return (error_config_message(s, *line_i, 22) + 1);
+                    p = *i;
+                    pass_not_blanck(s, i);
+                    if (*i == p)
+                        return (error_config_message(s, *line_i, 22) + 1);
+                    tmp = s.substr(p, *i - p);
+                    serv_tmp->root = tmp;
+                    if (serv_tmp->root[serv_tmp->root.length() - 1] == '/')
+                        serv_tmp->root.erase(serv_tmp->root.length() - 1);
+                    serv_tmp->alias = true;
+                    break;
+                case (4): //index
                     if (*i >= s.length() || s[*i] == ';')
                         return (error_config_message(s, *line_i, 23) + 1);
                     while (*i < s.length() && s[*i] != ';')
@@ -378,13 +397,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         if (p == *i)
                             return (error_config_message(s, *line_i, 23) + 1);
                         tmp = s.substr(p, *i - p);
-                        // if (tmp[0] != '/')
-                        //     tmp.insert(0, "/");      // --> Changement (plus de slash a la fin du index.html)
                         serv_tmp->index.push_back(tmp);
                         pass_blanck(s, i, line_i);
                     }
                     break;
-                case (4): //client_max_body_size
+                case (5): //client_max_body_size
                     if (serv_tmp->client_max_body_size.length())
                         return (error_config_message(s, *line_i, 24) + 1);
                     p = *i;
@@ -394,11 +411,11 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp = s.substr(p, *i - p);
                     serv_tmp->client_max_body_size = tmp;
                     break;
-                case (5): //error_page
+                case (6): //error_page
                     if (get_error_page_line(s, serv_tmp, i, line_i))
                         return 1;
                     break;
-                case (6): //autoindex
+                case (7): //autoindex
                     p = *i;
                     pass_not_blanck(s, i);
                     tmp = s.substr(p, *i - p);
@@ -409,15 +426,15 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     else
                         serv_tmp->autoindex = false;
                     break;
-                case (7): //allow_methods
+                case (8): //allow_methods
                     if (get_methods_line(s, serv_tmp, i, line_i, 1))
                         return 1;
                     break;
-                case (8): //prohibit_methods
+                case (9): //prohibit_methods
                     if (get_methods_line(s, serv_tmp, i, line_i, 0))
                         return 1;
                     break;
-                case (9): //cgi
+                case (10)://cgi
                     p = *i;
                     pass_not_blanck(s, i);
                     if (p == *i)
@@ -437,7 +454,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         tmp1.insert(0, "/");
                     serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
-                case (10): //cgi_bin
+                case (11): //cgi_bin
                     if ((!calling_lvl && serv_tmp->cgi_bin.length()) || (calling_lvl && serv_tmp->cb))
                         return (error_config_message(s, *line_i, 29) + 1);
                     if (*i >= s.length() || s[*i] == ';')
@@ -452,20 +469,20 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     if (serv_tmp->cgi_bin[serv_tmp->cgi_bin.length() - 1] == '/')
                         serv_tmp->cgi_bin.erase(serv_tmp->cgi_bin.length() - 1);
                     break;
-                case (11): //rewrite
+                case (12): //rewrite
                     p = *i;
                     pass_not_blanck(s, i);
-                    tmp = s.substr(p, *i - p);
-                    if (!tmp.size())
+                    if (p == *i)
                         return (error_config_message(s, *line_i, 26) + 1);
+                    tmp = s.substr(p, *i - p);
                     if (*i >= s.length() || !is_space(s[*i]))
                         return (error_config_message(s, *line_i, 27) + 1);
                     pass_blanck(s, i, line_i);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 26) + 1);
                     tmp1 = s.substr(p, *i - p);
-                    if (!tmp1.size())
-                        return (error_config_message(s, *line_i, 28) + 1);
                     if (*i >= s.length() || !is_blanck(s[*i]))
                         return (error_config_message(s, *line_i, 29) + 1);
                     pass_blanck(s, i, line_i);
@@ -473,6 +490,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         return (error_config_message(s, *line_i, 30) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
+                    if (p == *i)
+                        return (error_config_message(s, *line_i, 26) + 1);
                     tmp2 = s.substr(p, *i - p);
                     if (!tmp2.size() || (tmp2 != "redirect" && tmp2 != "permanent"))
                         return (error_config_message(s, *line_i, 31) + 1);
@@ -522,7 +541,7 @@ bool    Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i, 33) + 1;
         i += 1;
-        if (!(serv_tmp.valid = (check_server(&serv_tmp) ? 0 : 1)))
+        if (check_server(&serv_tmp))
             return 1;
         if (vp.empty())
         {
@@ -578,8 +597,6 @@ bool    Config::get_conf(const std::string s)
         if (!s_a_have_b(s, i, "server"))
             return error_config_message(s, line_i, 34) + 1;
     }
-    valid = 1;
-
     return 0;
 }
 
@@ -621,15 +638,19 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
+    if (s->hostname.empty())
+        s->hostname = DEFAULT_HOSTNAME;
+    if (s->client_max_body_size.empty())
+        s->client_max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
         init_loc_tmp(&(*it), *s);
-        if (s->locations.find(it->path) != s->locations.end())  // changement --> suppresion du root avant le it->path
+        if (s->locations.find(it->path) != s->locations.end())
         {
             std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
-        s->locations[it->path] = *it; // changement --> suppresion du root avant le it->path
+        s->locations.insert(make_pair(it->path, *it)); 
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
         if (check_location(&(*it), *s, s))
@@ -640,13 +661,14 @@ bool    Config::check_server(Server* s)
 void    Config::init_loc_tmp(Server *dst, Server src)
 {
     bool b = 0;
-    dst->root = src.root;
-    dst->host = dst->host.length() ? dst->host : src.host;
+    dst->root = src.o_root;
+    dst->o_root = src.o_root;
+    dst->hostname = src.hostname;
     dst->index = dst->index.size() ? dst->index : src.index;
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
         if (dst->error_page.find(it->first) == dst->error_page.end())
             dst->error_page.insert(std::make_pair(it->first, it->second));
-    dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
+    dst->client_max_body_size = src.client_max_body_size;
     //METHOD gerer en amont
     std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin();
     for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
@@ -726,7 +748,7 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
             std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
-        original->locations[s->root + it->path] = *it;
+        original->locations.insert(make_pair(it->path, *it));
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
         if (check_location(&(*it), *s, original))
@@ -753,11 +775,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
-    if (src.host.length())
+    if (src.hostname.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "host: " << RESET << src.host << std::endl;
+        ostream << WHITE << "hostname: " << RESET << src.hostname << std::endl;
     }
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
