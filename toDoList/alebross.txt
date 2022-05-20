@@ -5,11 +5,9 @@ map <path, Server*> location - vector2
 
 -ip
 
-default body size int max
-
 upload
 
-condition hostname a definir
+default body size int max
 multi hostname
 default servername localhost
 

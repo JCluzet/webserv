@@ -1,14 +1,14 @@
 #include "Config.hpp"
 #include "server.hpp"
 
-Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), host(""), root(""), o_root(""), index(), error_page(), client_max_body_size("")
+Server::Server() : cb(false), id(0), loc_id(""), ip(""), port(""), hostname(""), root(""), o_root(""), index(), error_page(), client_max_body_size("")
 , cgi(), cgi_bin(""), loc(), autoindex(0), redirect(), alias(false), lvl(0), path(""), client(), locations(){
     methods[0] = false;
     methods[1] = false;
     methods[2] = false;
 }
 
-Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), host(src.host), root(src.root)
+Server::Server(const Server &src) : cb(src.cb), id(src.id), loc_id(src.loc_id), ip(src.ip), port(src.port), hostname(src.hostname), root(src.root)
 , o_root(src.o_root), index(src.index), error_page(src.error_page), client_max_body_size(src.client_max_body_size), cgi(src.cgi), cgi_bin(src.cgi_bin)
 , loc(src.loc), autoindex(src.autoindex),redirect(src.redirect), alias(src.alias), lvl(src.lvl), path(src.path), client(src.client), locations(src.locations){
     methods[0] = src.methods[0];
@@ -26,7 +26,7 @@ Server& Server::operator=(const Server &src){
     port = src.port;
     cgi = src.cgi;
     cgi_bin = src.cgi_bin;
-    host = src.host;
+    hostname = src.hostname;
     root = src.root;
     o_root = src.o_root;
     index = src.index;
@@ -87,7 +87,7 @@ void    Config::init_server(Server *s)
     s->loc_id = "";
     s->ip = "";
     s->port = "";
-    s->host = "";
+    s->hostname = "";
     s->root = "";
     s->o_root = "";
     s->index.clear();
@@ -341,14 +341,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                 switch (o)
                 {
                 case (0): //server_name
-                    if (serv_tmp->host.length())
+                    if (serv_tmp->hostname.length() || calling_lvl)
                         return (error_config_message(s, *line_i, 14) + 1);
                     p = *i;
                     pass_not_blanck(s, i);
                     if (*i == p)
                         return (error_config_message(s, *line_i, 22) + 1);
                     tmp = s.substr(p, *i - p);
-                    serv_tmp->host = tmp;
+                    serv_tmp->hostname = tmp;
                     break;
                 case (1): //listen
                     if (calling_lvl)
@@ -638,6 +638,10 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
+    if (s->hostname.empty())
+        s->hostname = DEFAULT_HOSTNAME;
+    if (s->client_max_body_size.empty())
+        s->client_max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
         init_loc_tmp(&(*it), *s);
@@ -646,7 +650,7 @@ bool    Config::check_server(Server* s)
             std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
-        s->locations[it->path] = *it; 
+        s->locations.insert(make_pair(it->path, *it)); 
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
         if (check_location(&(*it), *s, s))
@@ -659,12 +663,12 @@ void    Config::init_loc_tmp(Server *dst, Server src)
     bool b = 0;
     dst->root = src.o_root;
     dst->o_root = src.o_root;
-    dst->host = dst->host.length() ? dst->host : src.host;
+    dst->hostname = src.hostname;
     dst->index = dst->index.size() ? dst->index : src.index;
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
         if (dst->error_page.find(it->first) == dst->error_page.end())
             dst->error_page.insert(std::make_pair(it->first, it->second));
-    dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
+    dst->client_max_body_size = src.client_max_body_size;
     //METHOD gerer en amont
     std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin();
     for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
@@ -744,7 +748,7 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
             std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
-        original->locations[s->root + it->path] = *it;
+        original->locations.insert(make_pair(it->path, *it));
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
         if (check_location(&(*it), *s, original))
@@ -771,11 +775,11 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
-    if (src.host.length())
+    if (src.hostname.length())
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << "host: " << RESET << src.host << std::endl;
+        ostream << WHITE << "hostname: " << RESET << src.hostname << std::endl;
     }
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {

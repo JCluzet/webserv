@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
+/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/19 21:55:38 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 21:49:56 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,17 @@
 #define BUFFER_SIZE 2048
 #define LOG 1
 
+#define DEFAULT_CLIENT_MAX_BODY_SIZE "8192"
+#define DEFAULT_HOSTNAME "localhost"
+#define DEFAULT_PORT "80"
+#define DEFAULT_IP "0.0.0.0"
+
 #define RED     "\033[1;31m"
 #define GREEN   "\033[1;32m"
 #define WHITE   "\033[1;37m"
 #define YELLOW  "\033[1;33m"
 #define BLUE    "\033[1;34m"
 #define RESET   "\033[0m"
-#define DEFAULT_PORT "80"
-#define DEFAULT_IP "0.0.0.0"
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>
