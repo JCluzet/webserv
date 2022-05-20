@@ -1,15 +1,19 @@
 #include "server.hpp"
 
-bool is_cgi(Request *request)
+bool is_cgi(Request* request, Server* conf)
 {
+    std::string str;
     if (request->get_method() == "POST")
         return true;
-    if (request->get_method() == "GET" && request->get_path().find(".php?") != std::string::npos)
-        return true;
+    for (size_t i = 0; i < conf->cgi.size(); i++)
+    {
+        if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first + "?") != std::string::npos)
+            return true;
+    }
     return false;
 }
 
-std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *client, Server *server)
+std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *client, Server *server, std::string extension)
 {
     std::ostringstream convert;
     std::vector<std::string> env(28);
@@ -31,13 +35,13 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[2] = str;
     str = "PATH_INFO="; // Extra path information passed to a CGI program.
     if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += server->root + client->request->get_path();
     env[3] = str;
     str = "PATH_TRANSLATED="; // The translated version of the path given by the variable PATH_INFO.
     if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += server->root + client->request->get_path();
     env[4] = str;
@@ -68,7 +72,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str += client->request->get_method();
     env[11] = str;
     str = "SCRIPT_NAME="; // The virtual path (e.g., /cgi-bin/program.pl) of the script being executed.
-    str += cmd.substr(cmd.find("/cgi-bin/"), cmd.length());
+    str += cmd.substr(cmd.find("/cgi-bin/"), cmd.length()); //// A CHANGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <<<< !
     env[12] = str;
 
     str = "SERVER_NAME="; // The server's hostname or IP address. Equivalent HTTP_HOST
@@ -105,11 +109,11 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str += client->request->get_header("Accept_Charsets");
     env[23] = str;
     str = "DOCUMENT_ROOT=";                                          // The directory from which web documents are served. //
-    str += "/home/user42/Documents/Projets/webserv/groupe_git/www/"; // --> Besoin du chemin complet
+    str += server->root;
     env[24] = str;
     str = "REQUEST_URI="; // file_path //
     if (client->request->get_method() == "GET")
-        str += client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += client->request->get_path();
     env[25] = str;
@@ -118,7 +122,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[26] = str;
     str = "SCRIPT_FILENAME=";
     if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find(".php?") + 4);
+        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += server->root + client->request->get_path();
     env[27] = str;
@@ -242,58 +246,41 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
     return;
 }
 
-bool cgi_file(std::string str)
-{
-    std::string str_tmp = str;
-    if ((str_tmp.find(".php")) != std::string::npos)
-        return (true);
-    if ((str_tmp.find(".sh")) != std::string::npos)
-        return(true);
-    return (false);
-}
-
 void treat_cgi(Server *server, Client *client)
 {
-    char buffer[1024];
     std::string str;
-    getcwd(buffer, 1024);
     std::string cmd_cgi;
     std::string cmd_path = server->root + client->request->get_path();
     std::vector<std::string> cmd(2);
-    if (MAC)
+    size_t i = 0;
+
+    cmd_cgi = server->cgi_bin;
+    for (; i < server->cgi.size(); i++)
     {
-        cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi";
-        if (cmd_path.find(".sh") != std::string::npos)
-            cmd_cgi = std::string(buffer) + "/cgi-bin/bash-cgi";
-    }
-    else
-    {
-        cmd_cgi = std::string(buffer) + "/cgi-bin/php-cgi_ubuntu";
-        if (cmd_path.find(".sh") != std::string::npos)
-            cmd_cgi = std::string(buffer) + "/cgi-bin/bash-cgi_ubuntu";
+        if (cmd_path.find("." + server->cgi[i].first) != std::string::npos)
+        {
+            if (server->cgi_bin[server->cgi_bin.length() - 1] == '/' && server->cgi[i].second[0] == '/')
+                server->cgi[i].second.erase(0, 1);
+            else if (server->cgi_bin[server->cgi_bin.length() - 1] != '/' && server->cgi[i].second[0] != '/')
+                server->cgi_bin += "/";
+            cmd_cgi = server->cgi_bin + server->cgi[i].second;
+            break;
+        }
     }
     if (client->request->get_method() == "POST")
     {
-        if (cgi_file(client->request->get_path()))
-        {
-            cmd[0] = cmd_cgi;
-            cmd[1] = cmd_path;
-        }
-        cgi_exec(cmd, cgi_env(cmd_cgi, "", client, server), client);
-    }
-    if (client->request->get_method() == "GET" && cgi_file(client->request->get_path()))
-    {
-        if (cmd_path.find(".php?") != std::string::npos)
-            cmd_path = cmd_path.substr(0, cmd_path.find(".php?") + 4);
-        if (cmd_path.find(".sh") != std::string::npos)
-            cmd_path = cmd_path.substr(0, cmd_path.find(".sh?") + 3);
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        if (client->request->get_path().find(".php?") != std::string::npos)
-            str = client->request->get_path().substr(client->request->get_path().find(".php?") + 5, client->request->get_path().length());
-        if (client->request->get_path().find(".sh?") != std::string::npos)
-            str = client->request->get_path().substr(client->request->get_path().find(".sh?") + 4, client->request->get_path().length());
-        cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server), client);
+        cgi_exec(cmd, cgi_env(cmd_cgi, "", client, server, server->cgi[i].first), client);
+    }
+    if (client->request->get_method() == "GET")
+    {
+        cmd_path = cmd_path.substr(0, cmd_path.find("." + server->cgi[i].first + "?") + std::string("." + server->cgi[i].first).length());
+        cmd[0] = cmd_cgi;
+        cmd[1] = cmd_path;
+        // attention longueur path original
+        str = client->request->get_path().substr(client->request->get_path().find(("." + server->cgi[i].first + "?")) + std::string("." + server->cgi[i].first).length(), client->request->get_path().length());
+        cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server, server->cgi[i].first), client);
     }
     return;
 }

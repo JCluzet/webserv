@@ -286,7 +286,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     std::string             serv_type[nb_serv_types] = {"server_name", "listen", "root", "index"
                                                         , "client_max_body_size", "error_page"
                                                         , "autoindex", "allow_methods", "prohibit_methods"
-                                                        , "cgi", "cgi_bin", "rewrite"};
+                                                        , "cgi", "cgi-bin", "rewrite"};
     std::string tmp, tmp1, tmp2;
     Server      loc_tmp;
     size_t      j_loc;
@@ -706,12 +706,12 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
     }
     if (s->cgi_bin.length() && !is_directory(s->cgi_bin))
     {
-        std::cerr << "Error config: server " << s->id << ": can't open cgi_bin (" << s->cgi_bin << ")." << std::endl;
+        std::cerr << "Error config: server " << s->id << ": can't open cgi-bin (" << s->cgi_bin << ")." << std::endl;
         r = 1;
     }
     if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
     {
-        std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
+        std::cerr << "Error config: server " << s->id << ": can't have cgi-bin or cgi withou the other." << std::endl;
         r = 1;
     }
     for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)

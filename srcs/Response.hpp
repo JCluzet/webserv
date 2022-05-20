@@ -44,6 +44,7 @@ public:
     void        setRequest(Request* req) { _request = req; return ; }
     void        setStatus(int new_status);
     void        setConf(Server *newconf);
+    Server*     get_conf();
 
     const std::string error_page_message(int status);
     int openFile();

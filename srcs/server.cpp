@@ -334,7 +334,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				client->fd_file = client->response->openFile();
 				return;
 			}
-			if (is_cgi(client->request) == true)
+			if (is_cgi(client->request, conf_local) == true)
 			{
         		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length()) // check max body size error 413
 				{
@@ -422,7 +422,7 @@ int run_server(Config conf)
 					WriteCGI(client);
 
 				}
-				else if (client->request->ready() == true && is_cgi(client->request) && client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
+				else if (client->request->ready() == true && is_cgi(client->request, client->response->get_conf()) && client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
 				{
 					ReadCGI(client);
 				}

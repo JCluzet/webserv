@@ -128,13 +128,14 @@ int Response::treatRequest()
     }
     else if (is_directory(_filepath))
     {
-        if (method != "GET")
-            _stat_rd = 400;
-        if (_conf->autoindex)
+        if (_conf->autoindex && method == "GET")
         {
             indexGenerator(&_filecontent, _filepath);
             _stat_rd = 200;
         }
+        else
+            _stat_rd = 400;
+
     }
     else if (method == "DELETE")
         _stat_rd = method_delete();
@@ -146,10 +147,10 @@ void Response::makeResponse()
 {
     if (_stat_rd != 301 && _stat_rd != 302)
     {
-        if (((_request->get_method() == "POST" && _request->get_path().find(".php") != std::string::npos) || (_request->get_method() == "GET" && _request->get_path().find(".php?") != std::string::npos)) && (_stat_rd == 0 || _stat_rd == 200))
+        if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200))
         {
             if (_request->get_method() == "GET")
-                _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
+                _filepath = _filepath.substr(0, _filepath.find_last_of("?"));
             if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
                 _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
             else
@@ -181,6 +182,11 @@ void Response::clear()
     _response = "";
     writing = false;
     return;
+}
+
+Server* Response::get_conf()
+{
+    return (_conf);
 }
 
 std::string Response::getDate()
