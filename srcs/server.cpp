@@ -326,9 +326,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			Server*	conf_local;
 			std::string	location;
 			
-			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
-			// std::cout << "1path :" << client->request->get_path() << std::endl;
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
 			{
@@ -339,6 +337,23 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
 			{
 				client->response->setStatus(405);
+				client->fd_file = client->response->openFile();
+				return;
+			}
+			if (client->request->get_header("Host") != conf_local->ip + ":" + conf_local->port)
+			{
+				for (size_t i = 0; i < conf->server_name.size(); i++)
+				{
+					if (conf->server_name[i] == client->request->get_header("Host"))
+						break ;
+					else if (i + 1 == conf->server_name.size())
+					{
+						client->response->setStatus(400);				
+						client->fd_file = client->response->openFile();
+						return;
+					}
+				}
+				client->response->setStatus(400);
 				client->fd_file = client->response->openFile();
 				return;
 			}
@@ -353,7 +368,6 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
 				{
 					client->response->setStatus(201);
-					// PARSER BO
 				}
 				treat_cgi(conf_local, client);
 			}
