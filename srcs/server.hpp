@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 22:58:30 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/20 23:34:33 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #define CO_MAX 20
 #define BUFFER_SIZE 2048
 #define LOG 1
+#define CONNEXION_LOG 0
 
 #define DEFAULT_CLIENT_MAX_BODY_SIZE "8192"
 #define DEFAULT_HOSTNAME "localhost"
