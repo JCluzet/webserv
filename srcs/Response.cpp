@@ -6,7 +6,7 @@
 /*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 23:01:11 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/20 23:23:07 by alebross         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ int Response::treatRequest()
     {
         if (_conf->autoindex && method == "GET")
         {
-            indexGenerator(&_filecontent, _filepath);
+            indexGenerator(&_filecontent, _filepath, _conf->root);
             _stat_rd = 200;
         }
         else
