@@ -40,6 +40,7 @@ class Server
     std::string                                         port;
     std::string                                         host; // Server hostname
     std::string                                         root;
+    std::string                                         o_root;
     std::vector<std::string>                            index;
     std::map<int, std::string>                          error_page;
     std::string                                         client_max_body_size;
@@ -49,7 +50,7 @@ class Server
     std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
     std::vector<Redirect>                               redirect;
-    bool                                                valid;
+    bool                                                alias;
     //---------\/-------------\/---------\/-------------ONLY FOR LOCATIONS                          
     size_t                                              lvl; // if > 0, it's a location
     std::string                                         path; // location path
@@ -62,7 +63,6 @@ class Config
   public:
 
     std::vector<Server> server;
-    bool                  valid;
 
     Config();
     Config(const std::string s);
