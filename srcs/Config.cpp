@@ -378,8 +378,8 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         if (p == *i)
                             return (error_config_message(s, *line_i, 23) + 1);
                         tmp = s.substr(p, *i - p);
-                        if (tmp[0] != '/')
-                            tmp.insert(0, "/");
+                        // if (tmp[0] != '/')
+                        //     tmp.insert(0, "/");      // --> Changement (plus de slash a la fin du index.html)
                         serv_tmp->index.push_back(tmp);
                         pass_blanck(s, i, line_i);
                     }
