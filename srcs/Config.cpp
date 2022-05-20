@@ -629,12 +629,12 @@ bool    Config::check_server(Server* s)
             return 1;
         }
         init_loc_tmp(&(*it), *s);
-        if (s->locations.find(s->root + it->path) != s->locations.end())
+        if (s->locations.find(it->path) != s->locations.end())  // changement --> suppresion du root avant le it->path
         {
             std::cerr << "Error config: server " << s->id << ": location directory path (" << s->root << it->path << ") is already used." << std::endl;
             return 1;
         }
-        s->locations[s->root + it->path] = *it;
+        s->locations[it->path] = *it; // changement --> suppresion du root avant le it->path
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
         if (check_location(&(*it), *s, s))
