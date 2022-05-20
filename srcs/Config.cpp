@@ -623,15 +623,10 @@ bool    Config::check_server(Server* s)
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
-        if (!is_directory(s->root + it->path))
-        {
-            std::cerr << "Error config: server " << s->id << ": can't open location directory path (" << s->root << it->path << ")." << std::endl;
-            return 1;
-        }
         init_loc_tmp(&(*it), *s);
         if (s->locations.find(it->path) != s->locations.end())  // changement --> suppresion du root avant le it->path
         {
-            std::cerr << "Error config: server " << s->id << ": location directory path (" << s->root << it->path << ") is already used." << std::endl;
+            std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
         s->locations[it->path] = *it; // changement --> suppresion du root avant le it->path
@@ -645,7 +640,7 @@ bool    Config::check_server(Server* s)
 void    Config::init_loc_tmp(Server *dst, Server src)
 {
     bool b = 0;
-    dst->root = dst->root.length() ? dst->root : src.root;
+    dst->root = src.root;
     dst->host = dst->host.length() ? dst->host : src.host;
     dst->index = dst->index.size() ? dst->index : src.index;
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
@@ -725,15 +720,10 @@ bool    Config::check_location(Server *s, Server parent, Server *original)
     }
     for (std::vector<Server>::iterator it = s->loc.begin(); it != s->loc.end(); it++)
     {
-        if (!is_directory(s->root + it->path))
-        {
-            std::cerr << "Error config: location " << s->loc_id << ": can't open location directory path (" << s->root << it->path << ")." << std::endl;
-            return 1;
-        }
         init_loc_tmp(&(*it), parent);
-        if (original->locations.find(s->root + it->path) != original->locations.end())
+        if (original->locations.find(it->path) != original->locations.end())
         {
-            std::cerr << "Error config: server " << s->id << ": location directory path (" << s->root << it->path << ") is already used." << std::endl;
+            std::cerr << "Error config: server " << s->id << ": location directory path (" << it->path << ") is already used." << std::endl;
             return 1;
         }
         original->locations[s->root + it->path] = *it;

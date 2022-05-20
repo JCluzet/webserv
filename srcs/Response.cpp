@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 19:24:24 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/20 20:34:11 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -279,6 +279,8 @@ const std::string Response::error_page_message(const int status)
 {
     if (status == 200)
         return ("OK");
+    if (status == 201)
+        return ("Created");
     if (status == 403)
         return ("Forbidden");
     if (status == 404)
