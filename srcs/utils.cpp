@@ -1,14 +1,20 @@
 #include "server.hpp"
 
-Server* apply_location(std::string path, Server* conf)
+std::string apply_location(std::string path, Server* conf, Server** dest)
 {
-  while (path.size() != 0)
+  std::string tmp = path;
+
+  while (tmp.size() != 0)
   {
     if (conf->locations.find(path) != conf->locations.end())
-      return (&conf->locations[path]);
+    {
+      *dest = &conf->locations[tmp];
+      return (tmp);
+    }
     path.erase(path.find_last_of("/"), path.length());
   }
-  return (conf);
+  *dest = conf;
+  return (path);
 }
 
 std::string intToStr(int n){

@@ -318,9 +318,16 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 		if (client->request->ready())
 		{
 			Server*	conf_local;
+			std::string	location;
 			
-			conf_local = apply_location(client->request->get_path(), &conf->server[j]);
+			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
 			client->response->setConf(conf_local);
+			if (conf->server[j].root != conf_local->root)
+			{
+				client->request->set_path(client->request->get_path().erase(1, location.length()));
+				if (client->request->get_path().compare(0, 2, "//"))
+					client->request->set_path(client->request->get_path().erase(1, 1));	
+			}
 			if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
 			{
 				client->response->setStatus(405);

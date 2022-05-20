@@ -53,11 +53,7 @@ public:
     // getter
     std::string get_path() const { return _path; };
 
-    void set_path(std::string new_path)
-    {
-        _path = new_path;
-        return;
-    };
+    void        set_path(std::string newpath) { _path = newpath; return ; };
 
     std::string get_body() const { return _body; };
 

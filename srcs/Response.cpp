@@ -104,7 +104,7 @@ int Response::treatRequest()
             else
                 _stat_rd = 302;
             transfer = it->redirect2;
-            return(fd_file);
+            return(-1);
         }
         it++;
     }
@@ -119,17 +119,14 @@ int Response::treatRequest()
         transfer = _filepath + "/";
         if(LOG == 1)
             std::cout << YELLOW << "[⊛ REDIRECTION]        => " << WHITE << _filepath + "/" << RESET << std::endl;
-        return (fd_file);
+        return (-1);
     }
     get_filepath();
     if (_filepath == "")
     {
-        std::cout << "404" << std::endl;
         _stat_rd = 400;
-        fd_file = openFile();
-        return (fd_file);
     }
-    if (is_directory(_filepath))
+    else if (is_directory(_filepath))
     {
         if (method != "GET")
             _stat_rd = 400;
@@ -138,56 +135,13 @@ int Response::treatRequest()
             indexGenerator(&_filecontent, _filepath);
             _stat_rd = 200;
         }
-        fd_file = openFile();
-        return (fd_file);
     }
-    if (method == "DELETE")
+    else if (method == "DELETE")
         _stat_rd = method_delete();
     fd_file = openFile();
     return (fd_file);
 }
 
-// void Response::makeResponse()
-// {
-//     if (((_request->get_method() == "POST" && ((_request->get_path().find(".php") != std::string::npos) || (_request->get_path().find(".sh") != std::string::npos))) || (_request->get_method() == "GET" && ((_request->get_path().find(".php?") != std::string::npos) || (_request->get_path().find(".sh?") != std::string::npos)))) && (_stat_rd == 0 || _stat_rd == 200))
-//     {
-//         if (_request->get_method() == "GET")
-//         {
-//             if (_filepath.find(".php?") != std::string::npos)
-//                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-//             if (_filepath.find(".sh") != std::string::npos)
-//                 _filepath = _filepath.substr(0, _filepath.find(".sh?") + 3);
-//         }
-//         if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
-//         {
-//             _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
-//             if (_content_type.find(";") != std::string::npos)
-//                 _content_type = _content_type.substr(0, _content_type.find(";"));
-//         }
-//         else
-//         {
-//             if (_request->get_method() == "GET")
-//                 _filepath = _filepath.substr(0, _filepath.find(".php?") + 4);
-//             if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
-//                 _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
-//             else
-//             {
-//                 _content_type = "text/html";
-
-//             }
-//             if (transfer.find("\r\n\r\n") != std::string::npos)
-//                 transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
-//         }
-//         else
-//             get_content_type();
-//         if (transfer != "")
-//             _filecontent = transfer;
-//     }
-//     _response = getHeader() + _filecontent + "\r\n";
-//     // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
-//     // std::cout << _filecontent.length() << std::endl;
-//     return;
-// }
 void Response::makeResponse()
 {
     if (_stat_rd != 301 && _stat_rd != 302)
@@ -282,10 +236,20 @@ void Response::get_filepath()
     if (_request->get_path() != "")
     {
         _filepath = _conf->root + _request->get_path();
-        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/' && !_conf->autoindex)
+        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
             _filepath += "/";
-        if (is_directory(_filepath) && !_conf->autoindex)
-            _filepath += *(_conf->index.begin());
+        if (is_directory(_filepath))
+        {
+            int fd;
+            for (size_t i = 0; i < _conf->index.size(); i++)
+            {
+                if ((fd = open(std::string(_filepath + _conf->index[i]).c_str(), O_RDONLY)) >= 0)
+                {
+                    close(fd);
+                    _filepath += _conf->index[i];
+                }
+            }
+        }
     }
 }
 
