@@ -62,7 +62,7 @@ Response &Response::operator=(const Response &src)
     return (*this);
 }
 
-std::string Response::getHeader()
+std::string Response::getHeader(std::string set_cookie)
 {
     std::string head = "";
     if (_stat_rd == 0)
@@ -81,8 +81,9 @@ std::string Response::getHeader()
         head += "\r\n\r\n";
         return (head);
     }
-    head += "\r\nContent-Type: " + _content_type;
     head += "\r\nContent-Length: " + sizetToStr(_filecontent.length());
+    head += "\r\nContent-Type: " + _content_type;
+    head += set_cookie;
     head += "\r\n\r\n";
     return (head);
 }
@@ -145,6 +146,8 @@ int Response::treatRequest()
 
 void Response::makeResponse()
 {
+    std::string set_cookie = "";
+
     if (_stat_rd != 301 && _stat_rd != 302)
     {
         if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200))
@@ -158,16 +161,27 @@ void Response::makeResponse()
                 _content_type = "text/html";
             }
             if (transfer.find("\r\n\r\n") != std::string::npos)
+            {
+                std::string tmp = transfer;
+                while (tmp.substr(0, 4) != "\r\n\r\n")
+                {
+                    if (tmp.substr(0, 2) == "\r\n")
+                        tmp.erase(0, 2);
+                    if (tmp.substr(0, 11) == "Set-Cookie:")
+                        set_cookie += "\r\n" + tmp.substr(0, tmp.find("\r\n"));
+                    tmp.erase(0, tmp.find("\r\n"));
+                }
                 transfer = transfer.substr(transfer.find("\r\n\r\n") + 4, transfer.length());
+            }
         }
         else
             get_content_type();
         if (transfer != "")
             _filecontent = transfer;
     }
-    _response = getHeader() + _filecontent + "\r\n";
+    _response = getHeader(set_cookie) + _filecontent + "\r\n";
     // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
-    // std::cout << _filecontent.length() << std::endl;
+    //std::cout << _response << std::endl;
     return;
 }
 

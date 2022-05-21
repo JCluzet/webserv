@@ -1,15 +1,26 @@
 #include "server.hpp"
 
+void  print_loca(std::map<std::string, Server> conf)
+{
+  std::map<std::string, Server>::iterator it = conf.begin();
+  for (; it != conf.end(); it++)
+  {
+    std::cout << it->first << std::endl;
+  }
+  return ;
+}
+
 std::string apply_location(std::string path, Server* conf, Server** dest)
 {
   std::string tmp = path;
 
+  //print_loca(conf->locations);
   while (tmp.length() != 0)
   {
-    if (conf->locations.find(tmp) != conf->locations.end() || conf->locations.find(tmp + "/") != conf->locations.end())
+    if (conf->locations.find(tmp) != conf->locations.end()) //|| conf->locations.find(tmp + "/") != conf->locations.end()i)
     {
       if (LOG == 1)
-            std::cout << YELLOW << "[⊛ LOCATION]        => " << WHITE << tmp << RESET << std::endl;
+        std::cout << YELLOW << "[⊛ LOCATION]        => " << WHITE << tmp << RESET << std::endl;
       *dest = &conf->locations[tmp];
       return (tmp);
     }

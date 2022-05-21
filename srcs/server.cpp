@@ -256,7 +256,6 @@ void ReadCGI(Client *client)
 		client->pipe_cgi_out[0] = -1;
 		client->response->setStatus(200);
         std::cout << GREEN << "[⊛ POST]       => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
-        // std::cout << client->response->transfer << std::endl;
 	}
 	else
 	{
@@ -325,7 +324,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 		{
 			Server*	conf_local;
 			std::string	location;
-			
+
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
@@ -349,9 +348,13 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 						break ;
 					else if (i + 1 == conf_local->server_name.size())
 					{
+						if (conf_local->ip == "0.0.0.0" && client->request->get_header("Host").find(":") != std::string::npos
+							&& client->request->get_header("Host").find(":") == client->request->get_header("Host").find_last_of(":")
+							&& client->request->get_header("Host").substr(client->request->get_header("Host").find(":") + 1, client->request->get_header("Host").length()) == conf_local->port)
+							break ;
 						client->response->setStatus(400);				
 						client->fd_file = client->response->openFile();
-						return;
+						return ;
 					}
 				}
 			}

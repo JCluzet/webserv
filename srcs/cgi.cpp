@@ -132,7 +132,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     return (env);
 }
 
-void afficher_env(char **env)
+/*void afficher_env(char **env)
 {
     std::string str;
     for (size_t i = 0; env[i] != NULL; i++)
@@ -141,7 +141,7 @@ void afficher_env(char **env)
     }
     std::cout << std::endl;
     return;
-}
+}*/
 
 void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
 {

@@ -34,7 +34,7 @@ public:
 
     void        clear();
     std::string getDate();
-    std::string getHeader();
+    std::string getHeader(std::string set_cookie);
     std::string get_pathfile() { return (_filepath); }
     int readFile(std::string filename, std::string *fileContent);
     std::string get_response() { return (_response); }
