@@ -297,6 +297,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
     Server      loc_tmp;
     size_t      j_loc;
     char        c;
+    bool z = 0;
     pass_blanck(s, i, line_i);
     if (s_a_have_b(s, *i, "location"))
     {
@@ -363,9 +364,13 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                             return (error_config_message(s, *line_i, 22) + 1);
                         tmp = s.substr(p, *i - p);
                         for (std::vector<std::string>::const_iterator it = serv_tmp->server_name.begin(); it != serv_tmp->server_name.end(); ++it)
-                            if (*it == tmp)
-                                return (error_config_message(s, *line_i, 15) + 1);
-                        serv_tmp->server_name.push_back(tmp);
+                            if (*it == tmp){
+                                z = 1;
+                                break;
+                            }
+                        if (!z)
+                            serv_tmp->server_name.push_back(tmp);
+                        z = 0;
                         pass_blanck(s, i, line_i);
                     }
                     break;
@@ -423,7 +428,14 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                             if (tmp[tmp.length() - 1] == '/')
                                 tmp.erase(tmp.length() - 1, 1);
                         }
-                        serv_tmp->index.push_back(tmp);
+                        for (std::vector<std::string>::const_iterator it = serv_tmp->index.begin(); it != serv_tmp->index.end(); ++it)
+                            if (*it == tmp){
+                                z = 1;
+                                break;
+                            }
+                        if (!z)
+                            serv_tmp->index.push_back(tmp);
+                        z = 0;
                         pass_blanck(s, i, line_i);
                     }
                     break;
@@ -485,6 +497,9 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                         if (tmp1[tmp1.length() - 1] == '/')
                             tmp1.erase(tmp1.length() - 1, 1);
                     }
+                    for (std::vector<std::pair<std::string,std::string> >::const_iterator it = serv_tmp->cgi.begin(); it != serv_tmp->cgi.end(); ++it)
+                        if ((*it).first == tmp && (*it).second == tmp1)
+                            return (error_config_message(s, *line_i, 28) + 1);
                     serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
                 case (11): //cgi_bin
@@ -542,6 +557,9 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                     tmp2 = s.substr(p, *i - p);
                     if (!tmp2.size() || (tmp2 != "redirect" && tmp2 != "permanent"))
                         return (error_config_message(s, *line_i, 31) + 1);
+                    for (std::vector<Redirect>::const_iterator it = serv_tmp->redirect.begin(); it != serv_tmp->redirect.end(); ++it)
+                        if ((*it).redirect1 == tmp)
+                            return (error_config_message(s, *line_i, 32) + 1);
                     serv_tmp->redirect.push_back(Redirect(tmp, tmp1, tmp2 == "permanent" ? 1 : 0));
                     break;
                 case (13): //upload
