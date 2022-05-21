@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/21 18:59:56 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/21 19:10:27 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ int Response::treatRequest()
         _stat_rd = 301;
         transfer = _filepath + "/";
         if(LOG == 1)
-            std::cout << YELLOW << "[⊛ REDIRECTION]        => " << WHITE << _filepath + "/" << RESET << std::endl;
+            std::cout << YELLOW << "[⊛ REDIRECTION]        => " << WHITE << _filepath << RED <<  "/" << RESET << std::endl;
         return (-1);
     }
     get_filepath();
