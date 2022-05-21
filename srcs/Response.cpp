@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/20 23:23:07 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/21 18:09:02 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,19 +236,141 @@ int Response::get_content_type()
 {
     _content_type = "text/html";
 
-    if (_request->get_path() != "" && _filepath.length() >= 4)
+        if (_request->get_path() != "" && _filepath.length() >= 5)
     {
-        if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
-            _content_type = "image/svg+xml";
-        else if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
-            _content_type = "application/pdf";
-        else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
-            _content_type = "image/webp";
-        else if (_filepath.substr(_filepath.length() - 4, 4) == ".css")
-            _content_type = "text/css";
+        // TEXT TYPE
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".css" )
+           _content_type = "text/css";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".csv")
+            _content_type = "text/csv";
+        else if (_filepath.substr(_filepath.length() - 5, 5) == ".html")
+            _content_type = "text/html";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".xml")
+            _content_type = "text/xml";
         else if (_filepath.substr(_filepath.length() - 5, 5) == ".scss")
             _content_type = "text/css";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".txt")
+            _content_type = "text/plain";
+
+        // IMAGE TYPE
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".svg")
+            _content_type = "image/svg+xml";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".gif")
+            _content_type = "image/gif";
+        else if (_filepath.substr(_filepath.length() - 5, 5) == ".jpeg")
+            _content_type = "image/jpeg";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".png")
+            _content_type = "image/webp";                               // show png as a webp
+        else if (_filepath.substr(_filepath.length() - 5, 5) == ".tiff")
+            _content_type = "image/tiff";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".webp")
+            _content_type = "image/webp";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".ico")
+            _content_type = "image/x-icon";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".bmp")
+            _content_type = "image/bmp";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jpg")
+            _content_type = "image/jpeg";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jpe")
+            _content_type = "image/jpeg";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jif")
+            _content_type = "image/jif";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jfif")
+            _content_type = "image/jfif";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jfi")
+            _content_type = "image/jfi";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jpx")
+            _content_type = "image/jpx";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jp2")
+            _content_type = "image/jp2";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".j2k")
+            _content_type = "image/j2k";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".j2c")
+            _content_type = "image/j2c";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".jpc")
+            _content_type = "image/jpc";
+        
+        // AUDIO TYPE
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".mp3")
+            _content_type = "audio/mpeg";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".wav")
+            _content_type = "audio/wav";
+        else if (_filepath.substr(_filepath.length() - 5, 5) == ".flac")
+            _content_type = "audio/flac";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".aac")
+            _content_type = "audio/aac";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".ogg")
+            _content_type = "audio/ogg";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".oga")
+            _content_type = "audio/oga";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4a")
+            _content_type = "audio/m4a";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4b")
+            _content_type = "audio/m4b";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4p")
+            _content_type = "audio/m4p";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4r")
+            _content_type = "audio/m4r";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4v")
+            _content_type = "audio/m4v";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4s")
+            _content_type = "audio/m4s";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4a")
+            _content_type = "audio/m4a";
+        
+        // VIDEO TYPE
+
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".mp4")
+            _content_type = "video/mp4";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4v")
+            _content_type = "video/m4v";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4p")
+            _content_type = "video/m4p";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4b")
+            _content_type = "video/m4b";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4r")
+            _content_type = "video/m4r";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4s")
+            _content_type = "video/m4s";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4a")
+            _content_type = "video/m4a";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4v")
+            _content_type = "video/m4v";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4p")
+            _content_type = "video/m4p";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4b")
+            _content_type = "video/m4b";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4r")
+            _content_type = "video/m4r";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".m4s")
+            _content_type = "video/m4s";
+
+        // APPLICATION TYPE
+        
+        if (_filepath.substr(_filepath.length() - 4, 4) == ".pdf")
+            _content_type = "application/pdf";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".doc")
+            _content_type = "application/msword";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".docx")
+            _content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".xls")
+            _content_type = "application/vnd.ms-excel";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".xlsx")
+            _content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".ppt")
+            _content_type = "application/vnd.ms-powerpoint";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".pptx")
+            _content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".pps")
+            _content_type = "application/vnd.ms-powerpoint";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".ppsx")
+            _content_type = "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".odt")
+            _content_type = "application/vnd.oasis.opendocument.text";
+        else if (_filepath.substr(_filepath.length() - 4, 4) == ".odp")
+            _content_type = "application/vnd.oasis.opendocument.presentation";
     }
+
     return (0);
 }
 
