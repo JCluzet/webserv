@@ -1,6 +1,5 @@
 
 ---------CONF_PARSING---------
-max body size doit pouvoir etre modifier en location
 
 map <path, Server*> location - vector2
 --------INDEX_GENERATOR-------

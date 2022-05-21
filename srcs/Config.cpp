@@ -611,14 +611,9 @@ bool    Config::get_conf(const std::string s)
         {
             for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
             {
-                if (server[j].ip == DEFAULT_IP)
-                {
-                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip(" << DEFAULT_IP << ")." << std::endl;
-                    e_ipport = 1;
-                }
                 if (server[j].port == DEFAULT_PORT)
                 {
-                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << DEFAULT_PORT << ")." << std::endl;
+                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip:port (" << DEFAULT_IP << ":" << DEFAULT_PORT << ")." << std::endl;
                     e_ipport = 1;
                 }
                 if (e_ipport)
@@ -634,14 +629,10 @@ bool    Config::get_conf(const std::string s)
             {
                 for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
                 {
-                    if (server[j].ip == vp[i].first)
+                    if ((server[j].ip == vp[i].first && server[j].port == vp[i].second)
+                        || (server[j].port == vp[i].second && (server[j].ip == DEFAULT_IP || vp[i].first == DEFAULT_IP)))
                     {
-                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip(" << vp[i].first << ")." << std::endl;
-                        e_ipport = 1;
-                    }
-                    if (server[j].port == vp[i].second)
-                    {
-                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same port(" << vp[i].second << ")." << std::endl;
+                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip:port(" << vp[i].first << ":" << (server[j].ip == DEFAULT_IP || vp[i].second == DEFAULT_IP ? DEFAULT_IP : vp[i].second) << ")." << std::endl;
                         e_ipport = 1;
                     }
                     if (e_ipport)
