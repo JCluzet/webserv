@@ -25,6 +25,7 @@ public:
     std::string transfer;
     bool        writing;
 
+    std::string get_fpath();
     Response(Request* request);
     Response();
     Response(Response const &src);

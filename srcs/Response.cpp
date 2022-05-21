@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/21 18:09:02 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/21 18:59:56 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,13 +373,20 @@ int Response::get_content_type()
     return (0);
 }
 
+std::string Response::get_fpath()
+{
+    return (_filepath);
+}
+
 void Response::get_filepath()
 {
     if (_request->get_path() != "")
     {
+        // std::cout << "Filepath : " << _filepath << std::endl;
         _filepath = _conf->root + _request->get_path();
-        if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
-            _filepath += "/";
+        // std::cout << "Filepath : " << _filepath << std::endl;
+        // if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
+        //     _filepath += "/";
         if (is_directory(_filepath))
         {
             int fd;
@@ -388,9 +395,10 @@ void Response::get_filepath()
                 if ((fd = open(std::string(_filepath + _conf->index[i]).c_str(), O_RDONLY)) >= 0)
                 {
                     close(fd);
-                    // if (_filepath[_filepath.length() - 1] == '/')
-                    //     _filepath = _filepath.substr(0, _filepath.length() - 1);
+                    if (_filepath[_filepath.length() - 1] == '/')
+                        _filepath = _filepath.substr(0, _filepath.length() - 1);
                     _filepath += _conf->index[i];
+                    // std::cout << "Filepath : " << _filepath << std::endl;
                 // std::cout << _conf->index[i] << std::endl;
                     
                 }

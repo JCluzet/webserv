@@ -198,7 +198,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	else if (client->response->writing == false)
 	{
 		if(LOG == 1)
-			output_log(client->response->getstat(), client->response->get_pathfile());
+			output_log(client->response->getstat(), client->response->get_fpath());
 		if (conf->get_debug() == true)
 			output_debug(client->request->get_request(), client->response->get_response()); //PAS REFAIRE GETHEADER
 		client->response->clear();
@@ -255,7 +255,11 @@ void ReadCGI(Client *client)
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
 		client->response->setStatus(200);
-        std::cout << GREEN << "[⊛ POST]       => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
+		if (client->response->transfer.length() > 0)
+        	std::cout << GREEN << "[⊛ CGI]        => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
+		else
+        	std::cout << GREEN << "[⊛ CGI]        => " << RED << "NOT VALID CGI-BIN" << RESET << std::endl;
+
 	}
 	else
 	{
