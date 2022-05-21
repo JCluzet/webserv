@@ -105,6 +105,7 @@ int Response::treatRequest()
             else
                 _stat_rd = 302;
             transfer = it->redirect2;
+            std::cout << transfer << std::endl; //////// ALEX LOCA: MAX_BODY_SIZE, INDEX, REWRITE / avant http
             return(-1);
         }
         it++;

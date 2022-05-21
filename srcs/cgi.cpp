@@ -18,7 +18,7 @@ bool is_cgi(Request* request, Server* conf)
 std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *client, Server *server, std::string extension)
 {
     std::ostringstream convert;
-    std::vector<std::string> env(28);
+    std::vector<std::string> env(29);
     std::string str;
     str = "CONTENT_TYPE="; // The media type of the query data, such as text/html.
     if (client->request->get_method() == "GET")
@@ -128,6 +128,9 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     else
         str += server->root + client->request->get_path();
     env[27] = str;
+    str = "UPLOAD_PATH=";
+    str += server->upload;
+    env[28] = str;
 
     return (env);
 }
