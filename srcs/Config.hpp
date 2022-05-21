@@ -88,7 +88,7 @@ class Config
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
     bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, size_t calling_lvl, size_t *loc_i, std::vector<std::pair<std::string, std::string> >*vp, bool* a);
     bool    get_conf(const std::string s);
-    bool    check_server(Server* s);
+    bool    check_server(Server* s, std::vector<std::pair<std::string, std::string> >   vp);
     void    init_loc_tmp(Server *dst, Server src);
     bool    check_location(Server *s, Server parent, Server *original);
 };

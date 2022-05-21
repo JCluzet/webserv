@@ -623,7 +623,7 @@ bool    Config::get_conf(const std::string s)
         if (i >= s.length() || s[i] != '}')
             return error_config_message(s, line_i, 33) + 1;
         i += 1;
-        if (check_server(&serv_tmp))
+        if (check_server(&serv_tmp, vp))
             return 1;
         if (vp.empty())
         {
@@ -673,9 +673,10 @@ bool    Config::get_conf(const std::string s)
     return 0;
 }
 
-bool    Config::check_server(Server* s)
+bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::string> >   vp)
 {
     bool r = 0;
+    bool a = 0;
     std::string tmp;
     if (s->root.empty())
     {
@@ -711,7 +712,21 @@ bool    Config::check_server(Server* s)
             r = 1;
         }
     }
-    if (s->upload.length() && !is_directory(s->upload))
+    for (std::vector<std::string>::const_iterator it = s->server_name.begin(); it != s->server_name.end();it++)
+        if (*it == "localhost")
+        {
+            a = 1;
+            break;
+        }
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = vp.begin(); it != vp.end(); it++)
+        if ((it->first == "127.0.0.1" || it->first == "0.0.0.0") && !a)
+        {
+            s->server_name.push_back("localhost");
+            break;
+        }
+    if (!s->upload.length())
+        s->upload = s->root;
+    if (!is_directory(s->upload))
     {
         std::cerr << "Error config: server " << s->id << ": can't open upload directory path (" << s->upload << ")." << std::endl;
         r = 1;
@@ -746,7 +761,7 @@ void    Config::init_loc_tmp(Server *dst, Server src)
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
         if (dst->error_page.find(it->first) == dst->error_page.end())
             dst->error_page.insert(std::make_pair(it->first, it->second));
-    dst->client_max_body_size = src.client_max_body_size;
+    dst->client_max_body_size = dst->client_max_body_size.length() ? dst->client_max_body_size : src.client_max_body_size;
     //METHOD gerer en amont
     std::vector<std::pair<std::string, std::string> >::iterator dst_it = dst->cgi.begin();
     for (std::vector<std::pair<std::string, std::string> >::const_iterator src_it = src.cgi.begin(); src_it != src.cgi.end(); src_it++)
@@ -783,6 +798,8 @@ void    Config::init_loc_tmp(Server *dst, Server src)
             dst->redirect.push_back(*src_it);
         b = 0;
     }
+    if (!dst->upload.length())
+        dst->upload = src.upload;
 }
 
 bool    Config::check_location(Server *s, Server parent, Server *original)
@@ -862,7 +879,7 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
-        ostream << WHITE << (it == src.server_name.begin() ? "server_name: " : "          ") << RESET << *it << std::endl;
+        ostream << WHITE << (it == src.server_name.begin() ? "server_name: " : "             ") << RESET << *it << std::endl;
     }
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
