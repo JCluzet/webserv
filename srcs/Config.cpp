@@ -364,7 +364,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                             return (error_config_message(s, *line_i, 22) + 1);
                         tmp = s.substr(p, *i - p);
                         for (std::vector<std::string>::const_iterator it = serv_tmp->server_name.begin(); it != serv_tmp->server_name.end(); ++it)
-                            if (*it == tmp){
+                            if (*it == tmp) {
                                 z = 1;
                                 break;
                             }
@@ -498,7 +498,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
                             tmp1.erase(tmp1.length() - 1, 1);
                     }
                     for (std::vector<std::pair<std::string,std::string> >::const_iterator it = serv_tmp->cgi.begin(); it != serv_tmp->cgi.end(); ++it)
-                        if ((*it).first == tmp && (*it).second == tmp1)
+                        if ((*it).first == tmp)
                             return (error_config_message(s, *line_i, 28) + 1);
                     serv_tmp->cgi.push_back(std::make_pair(tmp, tmp1));
                     break;
