@@ -712,8 +712,8 @@ void    Config::init_loc_tmp(Server *dst, Server src)
     dst->root = src.o_root;
     dst->o_root = src.o_root;
     dst->server_name = src.server_name;
-    dst->port = src.port;
-    dst->ip = src.ip;
+    //dst->port = src.port;
+    //dst->ip = src.ip;
     dst->index = dst->index.size() ? dst->index : src.index;
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
         if (dst->error_page.find(it->first) == dst->error_page.end())
