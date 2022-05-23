@@ -1,3 +1,7 @@
+<?php
+setcookie("cookie1", $_GET["fname"]);
+setcookie("cookie2", $_GET["lname"]);
+?>
 <body>
     <section class="notFound">
     <link rel="stylesheet" href="/style/style.css">
@@ -10,13 +14,12 @@
             <br><br>
             <br><br>
             
+            <h3>Here is the cookies you Enter :</h3>
             <?php
-echo "Hello " . $_POST["lname"] . " " . $_POST["fname"] . " !";
+echo "Cookie1: " . $_GET["fname"] . "<br>";
+echo "Cookie2: " . $_GET["lname"] . "<br><br><br>";
 ?>
 </div>
-        
 </section>
 </body>
-
-
 </html>
