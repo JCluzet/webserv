@@ -1,99 +1,6 @@
 <body>
     <section class="notFound">
-        <style>
-            body {
-              background-color: rgb(68, 54, 40);
-            }
-            @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    font-family: 'Press Start 2P';
-    color: #ffffff;
-    text-align: center;
-}
-
-body {
-    background-color: #000000;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='58' viewBox='0 0 42 58'%3E%3Cg fill='%23dddcdd' fill-opacity='0.23'%3E%3Cpath fill-rule='evenodd' d='M12 18h12v18h6v4H18V22h-6v-4zm-6-2v-4H0V0h36v6h6v36h-6v4h6v12H6v-6H0V16h6zM34 2H2v8h24v24h8V2zM6 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM2 50h32v-8H10V18H2v32zm28-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 0a2 2 0 1 0 0 4 2 0 0-4z'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-section.notFound {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 5%;
-    height: 60vh;
-}
-
-section.notFound h1 {
-    color: red;
-    font-size: 100px;
-}
-
-section.submit {
-    background-color: #000000;
-    border: none;
-    color: #fffff;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-}
-
-section.notFound h2 {
-    font-size: 50px;
-}
-
-section.notFound h1, h2, h3 {
-    margin-bottom: 40px;
-}
-
-div.text {
-    height: 50vh;
-}
-
-div.text a {
-    text-decoration: none;
-    margin-right: 20px;
-}
-
-div.text a:hover {
-    color: red;
-    text-decoration: underline; 
-}
-
-@media only screen and (max-width: 768px) {
-    section.notFound {
-        flex-direction: column;
-        justify-content: space-around;
-    }
-    section.notFound div.img img {
-        width: 70vw;
-        height: auto;
-    }
-    section.notFound h1 {
-        font-size: 50px;
-    }
-    section.notFound h2 {
-        font-size: 25px;
-    }
-    div.text a:active {
-    color: red;
-    text-decoration: underline; 
-  }
-
-}
-            h1 {
-              color: maroon;
-              margin-left: 40px;
-            }
-            </style>
+    <link rel="stylesheet" href="/style/style.css">
 		<!-- <link href="style.css" rel="stylesheet"> -->
         <div class="text">
             <h1><a href="/">HomePage</a></h1>
@@ -111,17 +18,31 @@ $uploaddir = $_ENV["UPLOAD_PATH"];
 $uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile"]["name"]);
 $name = $_FILES["uploadedfile"]["name"];
 echo "<br><br>";
-if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile))
+if ($_FILES['uploadedfile']['tmp_name']) 
 {
+<<<<<<< HEAD
     echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
     echo "<br><br>";
     echo "You can click   <a href='/uploads/$name'>here</a> to see the it.";
+=======
+    if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile)) 
+    {
+        echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
+        echo "<br><br>";
+        echo "You can click   <a href='/uploads/$name'>here</a> to see the it.";
+    }
+    else 
+{
+        echo 'Voici quelques informations de débogage :';
+        print_r($_FILES);
+        echo '</pre>';
+    }
+    
+>>>>>>> fde5f8b08a722df3e9c8b88fabdf6942b320b9e4
 }
 else
-{    
-    echo 'Voici quelques informations de débogage :';
-    print_r($_FILES);
-    echo '</pre>';
+{
+    echo 'Aucun fichier à upload !';
 }
 ?>
 </div>
