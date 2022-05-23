@@ -30,7 +30,7 @@ Config check_config(int argc, char const *argv[])
 		std::cout << std::endl
 				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Configuration ERROR" << std::endl;
 
-		exit(EXIT_FAILURE);
+		return conf;
 	}
 	std::cout << WHITE << "[" << getHour() << "] START Web" << RED << "Serv" << WHITE << "   ";
 	return conf;
@@ -39,6 +39,8 @@ Config check_config(int argc, char const *argv[])
 int main(int argc, char const *argv[])
 {
 	Config	conf(check_config(argc, argv));
+	if (conf.server.empty())
+		return (1);
 	if (argc >= 2 && !strcmp(argv[1], "--debug"))
 		conf.set_debug();
 
@@ -53,6 +55,7 @@ int main(int argc, char const *argv[])
 	std::cout << RESET << std::endl
 			  << std::endl;
     if (run_server(conf) == -1)
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
+		return 1;
     return (0);
 }

@@ -33,7 +33,7 @@ void launch_browser(int port)
 			  << RESET;
 }
 
-sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
+bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 {
 	struct sockaddr_in address;
 
@@ -68,7 +68,8 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
 	{
 			// std::cout << RED << "[⊛] => " << WHITE << "PORT " << port << " Already in use." << RESET << std::endl;
 		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Port already in use" << std::endl;
-		exit(EXIT_FAILURE);
+		// exit(EXIT_FAILURE);
+		return 1;
 		// while (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
 		// {
 		// 	port++;
@@ -82,9 +83,11 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
 		std::cout << std::endl
 				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 
-		exit(EXIT_FAILURE);
+		// exit(EXIT_FAILURE);
+		return 1;
 	}
-	return (address);
+	// return (address);
+	return 0;
 }
 
 int build_fd_set(int *listen_sock, Config *conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
@@ -419,7 +422,8 @@ int run_server(Config conf)
 	fd_set write_fds;
 	int listen_sock[conf.server.size()];
 	for (size_t i = 0; i < conf.server.size(); i++)
-		ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i], conf.server[i].ip);
+		if (ListenSocketAssign(atoi(conf.server[i].port.c_str()), &listen_sock[i], conf.server[i].ip))
+			return (-1);
 
 	while (1)
 	{

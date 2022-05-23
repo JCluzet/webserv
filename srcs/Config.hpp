@@ -29,8 +29,7 @@ class Server
     ~Server();
 
     Server& operator=(const Server &src);
-    bool	operator==(const Server &c) const;
-    Server*     location(const std::string s);
+    void    clear();
   
     bool cb;
 
@@ -47,7 +46,6 @@ class Server
     bool                                                methods[3]; // [0] = GET, [1] = POST, [2] = DELETE
     std::vector<std::pair<std::string, std::string> >   cgi; // first = extension, second = cgi filename
     std::string                                         cgi_bin; // cgi path  
-    std::vector<Server>                                 loc; // locations
     bool                                                autoindex;
     std::vector<Redirect>                               redirect;
     std::string                                         upload;
@@ -86,11 +84,11 @@ class Config
     bool    error_config_message(const std::string s, const std::string::size_type i, const int a) const;
     bool    get_error_page_line(const std::string s, Server* serv_tmp, std::string::size_type *i, std::string::size_type *line_i);
     bool    error_config_message(const std::string s, const std::string::size_type i) const;
-    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, size_t calling_lvl, size_t *loc_i, std::vector<std::pair<std::string, std::string> >*vp, bool* a);
+    bool    get_server_line(std::string s, std::string::size_type *i, std::string::size_type *line_i, Server *serv_tmp, size_t calling_lvl, size_t *loc_i, std::vector<std::pair<std::string, std::string> >*vp, bool* a, std::map<std::string, Server> *ptrmap);
     bool    get_conf(const std::string s);
-    bool    check_server(Server* s);
+    bool    check_server(Server* s, std::vector<std::pair<std::string, std::string> >   vp);
     void    init_loc_tmp(Server *dst, Server src);
-    bool    check_location(Server *s, Server parent, Server *original);
+    bool    check_location(Server *s);
 };
 
 std::ostream&	operator<<(std::ostream& ostream, const Server& src);
