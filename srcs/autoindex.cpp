@@ -18,7 +18,6 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 {
     DIR *dir = opendir(path.c_str());
     if (!dir){
-        // std::cerr << "Can't open " << path << "for generate index.*codeHTML." << std::endl;
         return (1);
     }
     struct dirent *ent;
@@ -69,7 +68,6 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 	*codeHTML += "</able>\n";
 	*codeHTML += "</body>\n";
 	*codeHTML += "</html>\n";
-    // std::cout << *codeHTML << std::endl;
     closedir(dir);
     return (0);
 }

@@ -26,7 +26,6 @@ Config check_config(int argc, char const *argv[])
 	Config conf(tmp);
 	if (conf.server.empty())
 	{
-		// std::cout << WHITE << "[" << RED << "⊛" << WHITE << "] => " << RESET << tmp << WHITE << " Configuration ERROR" << std::endl;
 		std::cout << std::endl
 				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Configuration ERROR" << std::endl;
 
@@ -51,11 +50,8 @@ int main(int argc, char const *argv[])
 
 	std::cout << "             ";
 	for (size_t j = 0; j < conf.server.size(); j++)
-		std::cout << RED << "⊛" << WHITE << "localhost:" + conf.server[j].port << "  ";
-	std::cout << RESET << std::endl
-			  << std::endl;
+		std::cout << RED << "⊛" << WHITE << conf.server[j].ip << ":" <<  conf.server[j].port << "  " << RESET << std::endl << std::endl;
     if (run_server(conf) == -1)
-        // exit(EXIT_FAILURE);
 		return 1;
     return (0);
 }
