@@ -1,15 +1,5 @@
 #include "server.hpp"
 
-/*void  print_loca(std::map<std::string, Server> conf)
-{
-  std::map<std::string, Server>::iterator it = conf.begin();
-  for (; it != conf.end(); it++)
-  {
-    std::cout << it->first << std::endl;
-  }
-  return ;
-}*/
-
 std::string apply_location(std::string path, Server *conf, Server **dest)
 {
   std::string tmp = path;

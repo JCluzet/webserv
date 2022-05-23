@@ -11,7 +11,7 @@
     margin: 0;
     box-sizing: border-box;
     font-family: 'Press Start 2P';
-    color: #9f9f9f;
+    color: #ffffff;
     text-align: center;
 }
 
@@ -36,7 +36,7 @@ section.notFound h1 {
 section.submit {
     background-color: #000000;
     border: none;
-    color: #5d3434;
+    color: #fffff;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
@@ -109,10 +109,13 @@ div.text a:hover {
             <?php
 $uploaddir = $_ENV["UPLOAD_PATH"];
 $uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile"]["name"]);
+$name = $_FILES["uploadedfile"]["name"];
 echo "<br><br>";
 if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile))
 {
     echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
+    echo "<br><br>";
+    echo "You can click   <a href='/$name'>here</a> to see the it.";
 }
 else
 {    

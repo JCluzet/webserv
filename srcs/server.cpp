@@ -217,9 +217,9 @@ void ReadCGI(Client *client)
         }
 		else
 			client->response->setStatus(200);
-		if (client->response->transfer.length() > 0)
+		if (client->response->transfer.length() > 0 && LOG == 1)
         	std::cout << GREEN << "[⊛ CGI]        => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
-		else
+		else if (LOG == 1)
         	std::cout << GREEN << "[⊛ CGI]        => " << RED << "NOT VALID CGI-BIN" << RESET << std::endl;
 	}
 	else
@@ -434,6 +434,5 @@ void quit_sig(int sig)
 {
 	if (SIGINT == sig)
 		exit_status = true;
-	std::cout << std::endl
-			  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+	std::cout << std::endl << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
 }
