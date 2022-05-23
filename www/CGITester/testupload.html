@@ -100,13 +100,19 @@ div.text a:hover {
             <h3>WEBSERV 1.0</h3>
         <div class="img">
             <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/>
+            <!-- <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/> -->
             <br><br>
             <br><br>
             <br><br>
             
-    <br><br>
-    <a href="webservsujet.pdf" download>Download File</a> <br>
-    <a href="webservsujet.pdf">Visualize PDF</a>
+
+    <form enctype="multipart/form-data" action="upload.pl" method="POST">
+        Choose a file to upload <input name="uploadedfile" type="file" /><br />
+        <input type="submit"></a>
+        <!-- <input type="submit" value="Upload File" /><br> -->
+    </form>
+</div>
+
 </section>
 </body>
 
