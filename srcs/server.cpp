@@ -286,7 +286,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 		client->request->add(std::string(data, valread));
 		if (client->request->ready())
 		{
-			Server*	conf_local;
+			Server*		conf_local;
 			std::string	location;
 
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
@@ -305,10 +305,10 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			}
 			if (client->request->get_header("Host") != conf->server[j].ip + ":" + conf->server[j].port)
 			{
-				for (size_t i = 0; i < conf_local->server_name.size(); i++)
+				for (size_t k = 0; k < conf_local->server_name.size(); k++)
 				{
-					if (conf_local->server_name[i] == client->request->get_header("Host")
-						|| conf_local->server_name[i] + ":" + conf->server[j].port == client->request->get_header("Host"))
+					if (conf_local->server_name[k] == client->request->get_header("Host")
+						|| conf_local->server_name[k] + ":" + conf->server[j].port == client->request->get_header("Host"))
 						break ;
 					else if (i + 1 == conf_local->server_name.size())
 					{
@@ -332,7 +332,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 				}
 				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
 				{
-					client->response->setStatus(201);
+					//client->response->setStatus(201); PAS UTILE
 				}
 				treat_cgi(conf_local, client);
 			}
@@ -403,22 +403,24 @@ int run_server(Config conf)
 				{
 					ReadRequest(&conf, client, j, i);
 				}
-				else if (client->request->ready() == true && client->request->get_method() == "POST" && client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) // write cgi
+				else if (client->request->ready() == true && client->request->get_method() == "POST"
+					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) // write cgi
 				{
 					WriteCGI(client);
 
 				}
-				else if (client->request->ready() == true && is_cgi(client->request, client->response->get_conf()) && client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
+				else if (client->request->ready() == true && is_cgi(client->request, client->response->get_conf())
+					&& client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi
 				{
 					ReadCGI(client);
 				}
-				else if (client->request->ready() == true // && is_cgi(client->request) == false //&& client->request->get_method() == "GET"
-						 && client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds))
+				else if (client->request->ready() == true && client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds)) // read file
 				{
 					ReadFile(client);
 
 				}
-				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1 && client->fd_file == -1 && FD_ISSET(client->socket, &write_fds)) // write client
+				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1
+					&& client->fd_file == -1 && FD_ISSET(client->socket, &write_fds)) // write client
 				{
 					WriteResponse(&conf, client, j, i);
 				}
