@@ -36,9 +36,7 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
 	*codeHTML += "</tr>\n"; //10
 //LISTING
     while ((ent = readdir(dir))){
-        // if (!strcmp(ent->d_name, ".")){
         if (strcmp(ent->d_name, ".") && (strcmp(ent->d_name, "..") || path != defaultFolder + "/")){
-            // std::cout << "*******************" << ent->d_name << std::endl;
             std::string filepath = path + "/" + ent->d_name;
             struct stat s;
             stat(filepath.c_str(), &s);
@@ -47,8 +45,6 @@ bool	indexGenerator(std::string* codeHTML, std::string path, std::string default
             date.erase(date.size() - 1);
             *codeHTML += "<tr>\n";
             *codeHTML += "<td><a href=\"";
-            // *codeHTML += path.substr(4, path.size() - 4);
-            // *codeHTML += "/";
             *codeHTML += ent->d_name;
             *codeHTML += S_ISDIR(s.st_mode) ? "/" : "";
             *codeHTML += "\">";
