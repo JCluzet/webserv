@@ -768,7 +768,7 @@ bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::
 void    Config::init_loc_tmp(Server *dst, Server src)
 {
     bool b = 0;
-    dst->root = src.o_root;
+    dst->root = dst->root.length() ? dst->root : src.o_root;
     dst->o_root = src.o_root;
     dst->server_name = src.server_name;
     dst->index = dst->index.size() ? dst->index : src.index;
