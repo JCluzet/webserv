@@ -733,12 +733,35 @@ bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::
         s->server_name.push_back(DEFAULT_HOSTNAME);
     if (s->client_max_body_size.empty())
         s->client_max_body_size = DEFAULT_CLIENT_MAX_BODY_SIZE;
-    for (std::map<std::string, Server>::iterator it = s->locations.begin(); it != s->locations.end(); it++)
+    std::string::size_type biggestId = 1;
+    for (std::map<std::string, Server>::const_iterator it = s->locations.begin(); it != s->locations.end(); it++)
+        if (it->second.loc_id.length() > biggestId)
+            biggestId = it->second.loc_id.length();
+    std::map<std::string, Server>::const_iterator jt;
+    for (std::string::size_type x = 3; x <= biggestId; x+=2)
     {
-        init_loc_tmp(&it->second, *s);
+        for (std::map<std::string, Server>::iterator it = s->locations.begin(); it != s->locations.end(); it++)
+        {
+            if (it->second.loc_id.length() == x)
+            {
+                if (it->second.loc_id.length() == 3)
+                    init_loc_tmp(&it->second, *s);
+                else 
+                {
+                    jt = s->locations.begin();
+                    while (jt != s->locations.end() && jt->second.loc_id != it->second.loc_id.substr(0, it->second.loc_id.length() - 2))
+                        jt++;
+                    if (jt == s->locations.end())
+                        return error_msg("On a un gros probleme dsl") + 1;
+                    else
+                        init_loc_tmp(&it->second, jt->second);
+                }   
+            }
+        }
+    }
+    for (std::map<std::string, Server>::iterator it = s->locations.begin(); it != s->locations.end(); it++)
         if (check_location(&it->second))
             return 1;
-    }
     return r;
 }
 
@@ -913,6 +936,15 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->redirect1 << " " << it->redirect2 << (it->permanent ? " permanent" : " redirect") << std::endl;
     }
+    // std::string::size_type biggestId = 1;
+    // for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
+    //     if (it->second.loc_id.length() > biggestId)
+    //         biggestId = it->second.loc_id.length();
+    // std::map<std::string, Server>::const_iterator jt;
+    // for (std::string::size_type x = 3; x <= biggestId; x+=2)
+    //     for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
+    //         if (it->second.loc_id.length() == x)
+    //             ostream << it->second;
     for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
         ostream << it->second;
     return ostream;

@@ -32,7 +32,6 @@ class Server
     void    clear();
   
     bool cb;
-
     int                                                 id; // Server id
     std::string                                         loc_id; // Location id
     std::string                                         ip; // Server adresse ip
