@@ -678,8 +678,8 @@ bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::
     std::string tmp;
     if (s->root.empty())
     {
-        std::cerr << "Error config: server " << s->id << ": need a root" << std::endl;
-        return 1;
+        s->root = DEFAULT_ROOT;
+        s->o_root = DEFAULT_ROOT;
     }
     if (s->root[0] != '/')
     {

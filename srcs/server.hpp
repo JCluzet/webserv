@@ -22,6 +22,7 @@
 #define DEFAULT_HOSTNAME "localhost"
 #define DEFAULT_PORT "80"
 #define DEFAULT_IP "0.0.0.0"
+#define DEFAULT_ROOT "/var/www"
 #define NB_LINETYPE 14
 
 #define RED     "\033[1;31m"
