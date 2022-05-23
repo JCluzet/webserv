@@ -334,7 +334,7 @@ bool    Config::get_server_line(std::string s, std::string::size_type *i, std::s
             std::cerr << "Error: config file: location " << loc_tmp.loc_id << " and location " << (*ptrmap)[loc_tmp.path].loc_id << " share the same path(" << loc_tmp.path << ")." << std::endl;
             return 1;
         }
-        serv_tmp->locations.insert(make_pair(loc_tmp.path, loc_tmp));
+        ptrmap->insert(make_pair(loc_tmp.path, loc_tmp));
         return 0;
     }
     else
