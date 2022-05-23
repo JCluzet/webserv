@@ -1,7 +1,3 @@
-<?php
-setcookie("cookie1", "oh voilà un ptit ");
-setcookie("cookie2", "COOKIE !");
-?>
 <body>
     <section class="notFound">
     <link rel="stylesheet" href="/style/style.css">

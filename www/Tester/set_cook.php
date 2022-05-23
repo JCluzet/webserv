@@ -1,6 +1,9 @@
 <?php
-setcookie("cookie1", $_GET["fname"]);
-setcookie("cookie2", $_GET["lname"]);
+// reset cookies
+unset($_COOKIE['cookie1']);
+unset($_COOKIE['cookie2']);
+setcookie('cookie1', $_GET["fname"]);
+setcookie('cookie2', $_GET["lname"]);
 ?>
 <body>
     <section class="notFound">
@@ -14,11 +17,13 @@ setcookie("cookie2", $_GET["lname"]);
             <br><br>
             <br><br>
             
-            <h3>Here is the cookies you Enter :</h3>
+            <h3>Here is the cookies you've just enter :</h3>
             <?php
 echo "Cookie1: " . $_GET["fname"] . "<br>";
 echo "Cookie2: " . $_GET["lname"] . "<br><br><br>";
 ?>
+<br><br><br>
+<h3>Click <a href="seecookies.html">here</a>to see your cookies.</h3>
 </div>
 </section>
 </body>

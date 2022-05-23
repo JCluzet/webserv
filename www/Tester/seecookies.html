@@ -11,12 +11,18 @@
             <br><br>
             
             <h3>Huuum, That's your cookies :</h3>
-<?php
-echo "Cookie1: " . $_COOKIE["cookie1"] . "<br>";
-echo "Cookie2: " . $_COOKIE["cookie2"] . "<br><br><br>";
-?>
-        
-        <h3> Click here to reset your cookies :</h3>
+            <span id="myId"><span>
+<script>
+document.getElementById('myId').innerHTML=listCookies()
+function listCookies() {
+    var theCookies = document.cookie.split(';');
+    var aString = '';
+    for (var i = 1 ; i <= theCookies.length; i++) {
+        aString += i + ' ' + theCookies[i-1] + "\n";
+}
+    return aString;
+}
+</script>
         </div>
         
     </section>
