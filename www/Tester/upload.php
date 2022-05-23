@@ -20,11 +20,6 @@ $name = $_FILES["uploadedfile"]["name"];
 echo "<br><br>";
 if ($_FILES['uploadedfile']['tmp_name']) 
 {
-<<<<<<< HEAD
-    echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
-    echo "<br><br>";
-    echo "You can click   <a href='/uploads/$name'>here</a> to see the it.";
-=======
     if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile)) 
     {
         echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
@@ -38,7 +33,6 @@ if ($_FILES['uploadedfile']['tmp_name'])
         echo '</pre>';
     }
     
->>>>>>> fde5f8b08a722df3e9c8b88fabdf6942b320b9e4
 }
 else
 {
