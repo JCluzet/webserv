@@ -1,3 +1,0 @@
-
----------CONF_PARSING---------
-map <path, Server*> location - vector2
