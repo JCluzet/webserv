@@ -1,7 +1,6 @@
 <?php
 $uploaddir = $_ENV["UPLOAD_PATH"];
 $uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile"]["name"]);
-echo $uploadfile . "<br>";
 echo "<br><br>";
 if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile))
 {

@@ -76,7 +76,7 @@ sockaddr_in ListenSocketAssign(int port, int *listen_sock, std::string ip)
 		// }
 		// std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
 	}
-	if (listen(*listen_sock, 10) < 0)
+	if (listen(*listen_sock, MAX_QUEUED_CONNEXIONS) < 0)
 	{
 		perror("In listen");
 		std::cout << std::endl
@@ -163,17 +163,8 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		client->response->transfer = client->response->get_response();
 		client->response->writing = true;
 	}
-	if (client->response->transfer.length() < BUFFER_SIZE * 10)
-	{
-		valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
-		client->response->writing = false;
-		// std::cout << client->response->transfer << std::endl;
-	}
-	else
-	{
-		valwrite = write(client->socket, client->response->transfer.c_str(), BUFFER_SIZE * 10);
-		client->response->transfer = client->response->transfer.erase(0, BUFFER_SIZE * 10);
-	}
+
+	valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
 	if (valwrite < 0)
 	{
 		if(CONNEXION_LOG == 1)
@@ -183,10 +174,10 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		i--;
 		return;
 	}
-	else if (valwrite == 0)
+	else if (valwrite == 0 || valwrite == static_cast<int>(client->response->transfer.length()))
 	{
-	} // ???
-	// std::cout << valwrite << " " << client->response->get_response().length();
+		client->response->writing = false;
+	}
 	if (client->response->writing == false && (client->response->getstat() == 400 || client->response->getstat() == 500 || client->request->get_header("Connection") == "close"))
 	{
 		if(CONNEXION_LOG == 1)
@@ -216,13 +207,11 @@ void ReadFile(Client *client)
 	{
 		client->fd_file = -1;
 		client->response->setStatus(500);
-		// std::cout << "!!!!!!!!!!!!!!!!1" << std::endl;
 		client->fd_file = client->response->openFile();
 		client->response->transfer = "";
 	}
 	else if (valread == 0)
 	{
-		// std::cout << "HERE" << client->fd_file << std::endl;
 		close(client->fd_file);
 		client->fd_file = -1;
 	}
@@ -242,7 +231,6 @@ void ReadCGI(Client *client)
 	if ((valread = read(client->pipe_cgi_out[0], data, BUFFER_SIZE)) < 0)
 	{
 		client->response->setStatus(500);
-		// std::cout << "!!!!!!!!!!!!!!!!2" << std::endl;
 		client->fd_file = client->response->openFile();
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
@@ -254,12 +242,23 @@ void ReadCGI(Client *client)
 		close(client->pipe_cgi_out[0]);
 		client->pipe_cgi_out[1] = -1;
 		client->pipe_cgi_out[0] = -1;
-		client->response->setStatus(200);
+        if (client->response->transfer.length() > 10 && client->response->transfer.find("Status: ") != std::string::npos
+			&& client->response->transfer.find("Status: ") < client->response->transfer.find("\r\n\r\n"))
+        {
+			int tmp_status = atoi(client->response->transfer.substr(client->response->transfer.find("Status: ") + 8, 3).c_str());
+			if (tmp_status <= 0)
+				tmp_status = 200;
+            client->response->setStatus(tmp_status);
+			if (tmp_status != 200 && tmp_status != 201)
+		    	client->fd_file = client->response->openFile();
+        }
+		else
+			client->response->setStatus(200);
 		if (client->response->transfer.length() > 0)
         	std::cout << GREEN << "[⊛ CGI]        => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
 		else
         	std::cout << GREEN << "[⊛ CGI]        => " << RED << "NOT VALID CGI-BIN" << RESET << std::endl;
-
+		//std::cout << client->response->transfer << "!!" << std::endl;
 	}
 	else
 	{
@@ -277,7 +276,6 @@ void WriteCGI(Client *client)
 	if (valwrite < 0)
 	{
 		client->response->setStatus(500);
-		// std::cout << "!!!!!!!!!!!!!!!!3" << std::endl;
 		client->fd_file = client->response->openFile();
 		close(client->pipe_cgi_in[1]);
 		client->pipe_cgi_in[1] = -1;
@@ -289,10 +287,13 @@ void WriteCGI(Client *client)
 	}
 	else if (valwrite == 0 || valwrite == static_cast<int>(client->request->get_body().length()))
 	{
+		//std::cout << client->request->get_body() << " " <<  client->request->get_body().length() << valwrite << std::endl << "-----------------" << std::endl << std::endl;
 		close(client->pipe_cgi_in[1]);
 		client->pipe_cgi_in[1] = -1;
 		client->pipe_cgi_in[0] = -1;
+
 	}
+	//std::cout << std::endl << valwrite << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	return;
 }
 
@@ -323,13 +324,13 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 	{
 		data[valread] = '\0';
 		client->request->add(data);
-
+		//std::cout << data << std::endl;
 		if (client->request->ready())
 		{
 			Server*	conf_local;
 			std::string	location;
 
-			//std::cout << conf->server[j].ip << " " << conf->server[j].port << std::endl;
+			std::cout << client->request->get_request() << std::endl;
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
@@ -365,7 +366,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			}
 			if (is_cgi(client->request, conf_local) == true)
 			{
-        		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length()) // check max body size error 413
+        		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length())
 				{
 					client->response->setStatus(413);
 					client->fd_file = client->response->openFile();
@@ -394,7 +395,7 @@ void NewClients(int *listen_sock, Config *conf, fd_set *read_fds)
 
 	for (size_t j = 0; j < conf->server.size(); j++)
 	{
-		if (conf->server[j].client.size() < CO_MAX && FD_ISSET(listen_sock[j], read_fds))
+		if (conf->server[j].client.size() < MAX_CONNEXIONS && FD_ISSET(listen_sock[j], read_fds))
 		{
 			if ((new_socket = accept(listen_sock[j], (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
 			{

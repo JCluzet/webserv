@@ -81,6 +81,12 @@ std::string Response::getHeader(std::string set_cookie)
         head += "\r\n\r\n";
         return (head);
     }
+    if (_stat_rd == 401)
+    {
+        head += "\r\nWWW-Authenticate: Basic";
+        head += "\r\n\r\n";
+        return (head);
+    }
     head += "\r\nContent-Length: " + sizetToStr(_filecontent.length());
     head += "\r\nContent-Type: " + _content_type;
     head += set_cookie;
@@ -140,7 +146,12 @@ int Response::treatRequest()
 
     }
     else if (method == "DELETE")
-        _stat_rd = method_delete();
+    {
+        if (_request->get_header("Authorization") == "")
+            _stat_rd = 401;
+        else
+            _stat_rd = method_delete();
+    }
     fd_file = openFile();
     return (fd_file);
 }
@@ -149,9 +160,9 @@ void Response::makeResponse()
 {
     std::string set_cookie = "";
 
-    if (_stat_rd != 301 && _stat_rd != 302)
+    if (_stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
-        if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200))
+        if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200 || _stat_rd == 201))
         {
             if (_request->get_method() == "GET")
                 _filepath = _filepath.substr(0, _filepath.find_last_of("?"));
@@ -168,7 +179,7 @@ void Response::makeResponse()
                 {
                     if (tmp.substr(0, 2) == "\r\n")
                         tmp.erase(0, 2);
-                    if (tmp.substr(0, 11) == "Set-Cookie:")
+                    if (tmp.length() > 10 && tmp.substr(0, 11) == "Set-Cookie:")
                         set_cookie += "\r\n" + tmp.substr(0, tmp.find("\r\n"));
                     tmp.erase(0, tmp.find("\r\n"));
                 }
@@ -181,8 +192,6 @@ void Response::makeResponse()
             _filecontent = transfer;
     }
     _response = getHeader(set_cookie) + _filecontent + "\r\n";
-    // if (_request->)       // NEED TO CHECK ACCEPT: REQUEST
-    //std::cout << _response << std::endl;
     return;
 }
 
@@ -216,20 +225,19 @@ std::string Response::getDate()
 
 int Response::method_delete(void)
 {
-
     std::ifstream ifs;
     ifs.open(_filepath.c_str());
 
     if (!ifs)
         return (404);
     ifs.close();
-    if (_request->get_header("Authorization") == "user42 token")
+    if (_request->get_header("Authorization") == "Basic user42:user42")
     {
         if (remove(_filepath.c_str()) < 0)
-            return (500); // 500 Internal Server Error / avec strerror ?/// bonne erreur ?
+            return (500);
         return (200);
     }
-    return (403); // Forbidden: you don't have permission /// bonne erreur ??
+    return (403);
 }
 
 int Response::get_content_type()
@@ -383,11 +391,7 @@ void Response::get_filepath()
 {
     if (_request->get_path() != "")
     {
-        // std::cout << "Filepath : " << _filepath << std::endl;
         _filepath = _conf->root + _request->get_path();
-        // std::cout << "Filepath : " << _filepath << std::endl;
-        // if (is_directory(_filepath) && _filepath[_filepath.length() - 1] != '/')
-        //     _filepath += "/";
         if (is_directory(_filepath))
         {
             int fd;
@@ -399,8 +403,6 @@ void Response::get_filepath()
                     if (_filepath[_filepath.length() - 1] == '/')
                         _filepath = _filepath.substr(0, _filepath.length() - 1);
                     _filepath += _conf->index[i];
-                    // std::cout << "Filepath : " << _filepath << std::endl;
-                // std::cout << _conf->index[i] << std::endl;
                     
                 }
             }
@@ -448,6 +450,8 @@ const std::string Response::error_page_message(const int status)
         return ("Moved Permanently");
     if (status == 302)
         return ("Found");
+    if (status == 401)
+        return ("Unauthorized");
     return ("Bad Request");
 }
 
@@ -468,7 +472,7 @@ int Response::openFile()
                 _stat_rd = 200; // le fichier est lisible
         }
     }
-    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302)
+    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
         if (!_conf->error_page.count(_stat_rd))
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";

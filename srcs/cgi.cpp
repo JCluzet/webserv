@@ -37,9 +37,9 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[2] = str;
     str = "PATH_INFO="; // Extra path information passed to a CGI program.
     if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
+        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
-        str += server->root + client->request->get_path();
+        str += client->request->get_path();
     env[3] = str;
     str = "PATH_TRANSLATED="; // The translated version of the path given by the variable PATH_INFO.
     if (client->request->get_method() == "GET")
@@ -75,10 +75,10 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[11] = str;
     str = "SCRIPT_NAME="; // The virtual path (e.g., /cgi-bin/program.pl) of the script being executed.
     str += cmd.substr(cmd.find("/cgi-bin/"), cmd.length()); //// A CHANGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <<<< !
-    env[12] = str;
+    /*env[12] = str;*/
 
     str = "SERVER_NAME="; // The server's hostname or IP address. Equivalent HTTP_HOST
-    str += server->ip;    // OU HOST ??
+    str += server->ip;
     env[13] = str;
     str = "SERVER_PROTOCOL="; // The name and revision number of the server protocol.
     str += "HTTP/1.1";
@@ -271,6 +271,11 @@ void treat_cgi(Server *server, Client *client)
             cmd_cgi = server->cgi_bin + server->cgi[i].second;
             break;
         }
+    }
+    if (i == server->cgi.size())
+    {
+        i = 0;
+        cmd_cgi = server->cgi_bin + server->cgi[0].second;
     }
     if (client->request->get_method() == "POST")
     {

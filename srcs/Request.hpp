@@ -2,7 +2,7 @@
 
 #include "server.hpp"
 
-#define NB_HEADERS 22
+#define NB_HEADERS 21
 #define NL "\r\n"
 #define NLSIZE 2
 
@@ -100,12 +100,12 @@ public:
             _version = "";
             _end = false;
             _valid = false;
-            _line = "";
             _chunked = false;
             _body = "";
 
             init_header_map();
         }
+        
         // modifier
     private:
         std::map<const std::string, std::string> _m;
@@ -123,20 +123,15 @@ public:
         bool addp(std::string r)
         {
             std::string::size_type nl;
-            // cut_end(&r);
-            if (_request.empty() == true && (r.empty() == true || r == NL))
-                return true;
-            if (_line == "" && (r == "" || r.substr(0, 1) == " "))
+            
+            if (_line == "" && _request.find("\r\n\r\n") == std::string::npos && (r == "" || r.substr(0, 1) == " "))
                 return false;
             if (_chunked == true)
+            {
                 r = chunked(r);
+            }
             r = _line + r;
-            if (r.find(NL) != std::string::npos && r.find_last_of(NL) + 1 < r.length())
-                _line = r.substr(r.find_last_of(NL) + 1, r.length());
-            else if (r.find(NL) != std::string::npos && r.find_last_of(NL) + 1 == r.length())
-                _line = "";
-            else
-                _line = r;
+            _line = "";
             while ((nl = r.find(NL)) != std::string::npos)
             {
                 if (_request.empty() == true)
@@ -144,7 +139,8 @@ public:
                     if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
                         return false;
                 }
-                else if (r[0] == '\r' && r[1] == '\n' && _line == "")
+                else if (r[0] == '\r' && r[1] == '\n' && _request.substr(_request.length() - 2, _request.length()) == "\r\n"
+                    && _request.find("\r\n\r\n") == std::string::npos)
                 {
                     if (_method == "GET" || _method == "DELETE")
                     {
@@ -156,18 +152,21 @@ public:
                     {
                         _chunked = true;
                     }
-                    if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
+                    else if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
                         return false;
                 }
                 else if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos)
                 {
-                    _body += r;
+                    _body += r.substr(0, nl + NLSIZE);
                     if (static_cast<int>(_body.length()) >= atoi(_m["Content-Length"].c_str()))
                     {
-
                         if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
-                            _body = _body.substr(0, atoi(_m["Content-Length"].c_str()) - 1);
-                        _request += r;
+                        {
+                            _line = _body.substr(atoi(_m["Content-Length"].c_str()), std::string::npos);
+                            std::cout << _line << std::endl;
+                            _body = _body.substr(0, atoi(_m["Content-Length"].c_str()));
+                        }
+                        _request += r.substr(0, nl + NLSIZE);
                         _end = true;
                         return true;
                     }
@@ -176,34 +175,27 @@ public:
                 {
                     get_request_line(r.substr(0, nl + NLSIZE));
                 }
-                _request += r.substr(0, nl + NLSIZE);
+                if (r != "\r\n" || _request != "")
+                    _request += r.substr(0, nl + NLSIZE);
                 r.erase(0, nl + NLSIZE);
             }
+
             if (r.empty() == false && _method == "POST" && _request.find("\r\n\r\n") != std::string::npos && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
             {
                 _body += r;
                 _request += r;
                 if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
-                    _body = _body.substr(0, atoi(_m["Content-Length"].c_str()) - 1);
+                {
+                    _line = _body.substr(atoi(_m["Content-Length"].c_str()), std::string::npos);
+                    std::cout << _line << std::endl;
+                    _body = _body.substr(0, atoi(_m["Content-Length"].c_str()));
+                }
                 _end = true;
                 return true;
             }
-
-            // check if body contain no more characters than client_max_body_size
+            _line = r;
             return true;
         }
-
-        /*void cut_end(std::string *r)
-        {
-            std::string end = NL;
-            std::string::size_type x;
-            end += NL;
-            if ((x = r->find(end)) != std::string::npos)
-            {
-                *r = r->substr(0, x + NLSIZE);
-                _end = true;
-            }
-        }*/
 
         void pprint()
         {
@@ -219,7 +211,7 @@ public:
                       << std::endl;
         }
 
-        bool get_request_line(std::string r) // Check request line conformitys
+        bool get_request_line(std::string r)
         {
             std::string ctn;
             std::string::size_type pos;
@@ -249,6 +241,8 @@ public:
             std::string::size_type n = std::string::npos;
             std::string request = r;
 
+            if (r == NL)
+                return (true);
             if ((next_space = request.find(" ")) == n)
                 return (false);
             if ((next_nl = request.find(NL)) == n)
@@ -307,12 +301,11 @@ public:
             _header[13] = "Retry-After";
             _header[14] = "Transfer-Encoding";
             _header[15] = "User-Agent";
-            _header[16] = "Www-Authenticate"; // Pas utile ?
-            _header[17] = "Connection";
-            _header[18] = "Accept";
-            _header[19] = "Cookie";
-            _header[20] = "Accept-Encoding";
-            _header[21] = "From";
+            _header[16] = "Connection";
+            _header[17] = "Accept";
+            _header[18] = "Cookie";
+            _header[19] = "Accept-Encoding";
+            _header[20] = "From";
             _m["Accept-Charsets"] = "";
             _m["Accept-Language"] = "";
             _m["Auth-Scheme"] = "";
@@ -329,7 +322,6 @@ public:
             _m["Retry-After"] = "";
             _m["Transfer-Encoding"] = "";
             _m["User-Agent"] = "";
-            _m["Www-Authenticate"] = "";
             _m["Connection"] = "keep-alive";
             _m["Cookie"] = "";
             _m["Accept-Encoding"] = "";
