@@ -30,6 +30,7 @@
 #define YELLOW  "\033[1;33m"
 #define BLUE    "\033[1;34m"
 #define RESET   "\033[0m"
+#include <errno.h>
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>

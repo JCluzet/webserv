@@ -2,54 +2,25 @@
 
 bool exit_status = false;
 
-// class Config;
-
-void launch_browser(int port)
-{
-	std::string test, o;
-	std::cout << std::endl;
-	std::cout << BLUE << "[⊛] => " << WHITE << "Want to open page on browser on first port? (y/n)";
-	while (1)
-	{
-		std::cin >> test;
-		if (test == "y")
-		{
-			// std::cout << "Opening page on port " << port << std::endl;
-			if (MAC == 1)
-				o = "open http://localhost:"; // --> mac
-			else
-				o = "xdg-open http://localhost:"; // --> linux
-			o += intToStr(port);
-			system(o.c_str());
-			break;
-		}
-		if (test == "n")
-		{
-			break;
-		}
-	}
-	system("clear");
-	std::cout << RED << "   _      __    __   ____            \n  | | /| / /__ / /  / __/__ _____  __\n  | |/ |/ / -_) _ \\_\\ \\/ -_) __/ |/ /\n  |__/|__/\\__/_.__/___/\\__/_/  |___/ \n " << BLUE << "\n⎯⎯  jcluzet  ⎯  alebross ⎯  amanchon  ⎯⎯\n\n"
-			  << RESET;
-}
-
 bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 {
 	struct sockaddr_in address;
 
 	if ((*listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		perror("In socket");
-		std::cout << std::endl
-				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-		exit(EXIT_FAILURE);
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Socket");
+		std::cout << RESET;
+		return 1;
 	}
 	fcntl(*listen_sock, F_SETFL, O_NONBLOCK);
 	int reuse = 1;
 	if (setsockopt(*listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
 	{
-		perror("set sockopt");
-		exit(EXIT_FAILURE);
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("SetSockOpt");
+		std::cout << RESET;
+		return 1;
 	}
 
 	if (ip == "0.0.0.0")
@@ -66,27 +37,18 @@ bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 
 	if (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
-			// std::cout << RED << "[⊛] => " << WHITE << "PORT " << port << " Already in use." << RESET << std::endl;
-		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << WHITE << " : " << RESET << "Port already in use" << std::endl;
-		// exit(EXIT_FAILURE);
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Bind");
+		std::cout << RESET;
 		return 1;
-		// while (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
-		// {
-		// 	port++;
-		// 	address.sin_port = htons(port);
-		// }
-		// std::cout << GREEN << "[⊛] => " << WHITE << "We have change the port number to " << GREEN << port << RESET << std::endl;
 	}
 	if (listen(*listen_sock, MAX_QUEUED_CONNEXIONS) < 0)
 	{
-		perror("In listen");
-		std::cout << std::endl
-				  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-
-		// exit(EXIT_FAILURE);
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Listen");
+		std::cout << RESET;
 		return 1;
 	}
-	// return (address);
 	return 0;
 }
 
@@ -153,11 +115,9 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	if (client->response->writing == false)
 	{
 		client->response->makeResponse();
-		// std::cout << client->request->get_header("Accept") << ">>> " << client->response->c_type() << "<<<" << "?" << std::endl;
 		if (client->request->get_header("Accept").find(client->response->c_type()) == std::string::npos && (client->response->getstat() == 0 || client->response->getstat() == 200) // error 406 not acceptable
 		 && client->request->get_header("Accept") != "" && client->request->get_header("Accept").find("*/*") == std::string::npos)
 		{
-			// std::cout << client->request->get_header("Accept") << "?" << std::endl;
 			client->response->clear();
 			client->response->setStatus(406);
 			client->fd_file = client->response->openFile();
@@ -194,7 +154,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		if(LOG == 1)
 			output_log(client->response->getstat(), client->response->get_fpath());
 		if (conf->get_debug() == true)
-			output_debug(client->request->get_request(), client->response->get_response()); //PAS REFAIRE GETHEADER
+			output_debug(client->request->get_request(), client->response->get_response());
 		client->response->clear();
 		client->request->clear();
 	}
@@ -261,7 +221,6 @@ void ReadCGI(Client *client)
         	std::cout << GREEN << "[⊛ CGI]        => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
 		else
         	std::cout << GREEN << "[⊛ CGI]        => " << RED << "NOT VALID CGI-BIN" << RESET << std::endl;
-		//std::cout << client->response->transfer << "!!" << std::endl;
 	}
 	else
 	{
@@ -290,13 +249,11 @@ void WriteCGI(Client *client)
 	}
 	else if (valwrite == 0 || valwrite == static_cast<int>(client->request->get_body().length()))
 	{
-		//std::cout << client->request->get_body() << " " <<  client->request->get_body().length() << valwrite << std::endl << "-----------------" << std::endl << std::endl;
 		close(client->pipe_cgi_in[1]);
 		client->pipe_cgi_in[1] = -1;
 		client->pipe_cgi_in[0] = -1;
 
 	}
-	//std::cout << std::endl << valwrite << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	return;
 }
 
@@ -326,14 +283,12 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 	else
 	{
 		data[valread] = '\0';
-		client->request->add(data);
-		//std::cout << data << std::endl;
+		client->request->add(std::string(data, valread));
 		if (client->request->ready())
 		{
 			Server*	conf_local;
 			std::string	location;
 
-			std::cout << client->request->get_request() << std::endl;
 			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
 			client->response->setConf(conf_local);
 			if (conf->server[j].root != conf_local->root)
@@ -401,10 +356,7 @@ void NewClients(int *listen_sock, Config *conf, fd_set *read_fds)
 		if (conf->server[j].client.size() < MAX_CONNEXIONS && FD_ISSET(listen_sock[j], read_fds))
 		{
 			if ((new_socket = accept(listen_sock[j], (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-			{
-				// pas grave (?)
 				return;
-			}
 			fcntl(new_socket, F_SETFL, O_NONBLOCK);
 			conf->server[j].client.push_back(Client(new_socket, address));
 			if(CONNEXION_LOG == 1)
@@ -430,14 +382,14 @@ int run_server(Config conf)
 		high_sock = build_fd_set(&listen_sock[0], &conf, &read_fds, &write_fds, NULL);
 
 		int activity = select(high_sock + 1, &read_fds, &write_fds, NULL, NULL);
-		if (exit_status == true) // ??
+		if (exit_status == true)
 			return (0);
 		if (activity < 0)
 		{
-			perror("select error");
-			std::cout << std::endl
-					  << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
-			exit(-1);
+			std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+			perror("Select");
+			std::cout << RESET;
+			return 1;
 		}
 
 		NewClients(&listen_sock[0], &conf, &read_fds);
