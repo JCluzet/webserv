@@ -1,3 +1,7 @@
+<?php
+setcookie("cookie1", "oh voilà un ptit ");
+setcookie("cookie2", "COOKIE !");
+?>
 <body>
     <section class="notFound">
         <style>
@@ -11,7 +15,7 @@
     margin: 0;
     box-sizing: border-box;
     font-family: 'Press Start 2P';
-    color: #9f9f9f;
+    color: #ffffff;
     text-align: center;
 }
 
@@ -87,7 +91,6 @@ div.text a:hover {
     color: red;
     text-decoration: underline; 
   }
-
 }
             h1 {
               color: maroon;
@@ -99,14 +102,20 @@ div.text a:hover {
             <h1><a href="/">HomePage</a></h1>
             <h3>WEBSERV 1.0</h3>
         <div class="img">
-            <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/>
+            <!-- <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/> -->
+            <img src="http://i.stack.imgur.com/SBv4T.gif" alt="this slowpoke moves"  width="250" />
+            <!-- <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/> -->
             <br><br>
             <br><br>
             <br><br>
             
-    <br><br>
-    <a href="webservsujet.pdf" download>Download File</a> <br>
-    <a href="webservsujet.pdf">Visualize PDF</a>
+            <?php
+echo "Cookie1: " . $_COOKIE["cookie1"] . "<br>";
+echo "Cookie2: " . $_COOKIE["cookie2"] . "<br><br><br>";
+echo "Hello " . $_GET["lname"] . " " . $_GET["fname"] . " !";
+?>
+</div>
+        
 </section>
 </body>
 

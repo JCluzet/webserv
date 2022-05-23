@@ -100,13 +100,29 @@ div.text a:hover {
             <h3>WEBSERV 1.0</h3>
         <div class="img">
             <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/>
+            <!-- <img src="https://assets.codepen.io/5647096/Delorean.png" alt="El Delorean, El Doc y Marti McFly"/> -->
             <br><br>
             <br><br>
             <br><br>
             
-    <br><br>
-    <a href="webservsujet.pdf" download>Download File</a> <br>
-    <a href="webservsujet.pdf">Visualize PDF</a>
+
+            <?php
+$uploaddir = $_ENV["UPLOAD_PATH"];
+$uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile"]["name"]);
+echo "<br><br>";
+if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile))
+{
+    echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
+}
+else
+{    
+    echo 'Voici quelques informations de débogage :';
+    print_r($_FILES);
+    echo '</pre>';
+}
+?>
+</div>
+
 </section>
 </body>
 
