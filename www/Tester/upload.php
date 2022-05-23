@@ -111,17 +111,25 @@ $uploaddir = $_ENV["UPLOAD_PATH"];
 $uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile"]["name"]);
 $name = $_FILES["uploadedfile"]["name"];
 echo "<br><br>";
-if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile))
+if ($_FILES['uploadedfile']['tmp_name']) 
 {
-    echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
-    echo "<br><br>";
-    echo "You can click   <a href='/$name'>here</a> to see the it.";
+    if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile)) 
+    {
+        echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
+        echo "<br><br>";
+        echo "You can click   <a href='/uploads/$name'>here</a> to see the it.";
+    }
+    else 
+{
+        echo 'Voici quelques informations de débogage :';
+        print_r($_FILES);
+        echo '</pre>';
+    }
+    
 }
 else
-{    
-    echo 'Voici quelques informations de débogage :';
-    print_r($_FILES);
-    echo '</pre>';
+{
+    echo 'Aucun fichier à upload !';
 }
 ?>
 </div>
