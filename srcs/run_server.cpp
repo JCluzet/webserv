@@ -257,6 +257,67 @@ void WriteCGI(Client *client)
 	return;
 }
 
+void	checkHost(Client* client, std::string ip, std::string port, std::vector<std::string> server_name)
+{
+	if (client->request->get_header("Host") != ip + ":" + port)
+	{
+		for (size_t k = 0; k < server_name.size(); k++)
+		{
+			if (server_name[k] == client->request->get_header("Host")
+				|| server_name[k] + ":" + port == client->request->get_header("Host"))
+				break ;
+			else if (k + 1 == server_name.size())
+			{
+				if (ip == "0.0.0.0" && client->request->get_header("Host").find(":") != std::string::npos
+					&& client->request->get_header("Host").find(":") == client->request->get_header("Host").find_last_of(":")
+					&& client->request->get_header("Host").substr(client->request->get_header("Host").find(":") + 1, client->request->get_header("Host").length()) == port)
+					break ;
+				client->response->setStatus(400);				
+				client->fd_file = client->response->openFile();
+				return ;
+			}
+		}
+	}
+	return ;
+}
+
+void	launch_treatment(Client* client, Server* conf_o)
+{
+	Server*		conf_local;
+	std::string	location;
+
+	location = apply_location(client->request->get_path(), conf_o, &conf_local);
+	if (is_directory(conf_local->root + client->request->get_path()) == false && client->request->get_path()[client->request->get_path().length() - 1] == '/')
+		client->request->set_path(client->request->get_path().substr(0, client->request->get_path().length() - 1));
+	client->response->setConf(conf_local);
+	if (conf_o->root != conf_local->root)
+	{
+		client->request->set_path(client->request->get_path().erase(1, location.length()));
+		if (client->request->get_path().compare(0, 2, "//"))
+			client->request->set_path(client->request->get_path().erase(1, 1));	
+	}
+	if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
+	{
+		client->response->setStatus(405);
+		client->fd_file = client->response->openFile();
+		return ;
+	}
+	checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name);
+	if (is_cgi(client->request, conf_local) == true)
+	{
+   		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length())
+		{
+			client->response->setStatus(413);
+			client->fd_file = client->response->openFile();
+			return ;
+		}
+		treat_cgi(conf_local, client);
+	}
+	else
+		client->fd_file = client->response->treatRequest();
+	return ;
+}
+
 void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 {
 	int valread;
@@ -286,62 +347,9 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 		client->request->add(std::string(data, valread));
 		if (client->request->ready())
 		{
-			Server*		conf_local;
-			std::string	location;
-
-			location = apply_location(client->request->get_path(), &conf->server[j], &conf_local);
-			client->response->setConf(conf_local);
-			if (conf->server[j].root != conf_local->root)
-			{
-				client->request->set_path(client->request->get_path().erase(1, location.length()));
-				if (client->request->get_path().compare(0, 2, "//"))
-					client->request->set_path(client->request->get_path().erase(1, 1));	
-			}
-			if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
-			{
-				client->response->setStatus(405);
-				client->fd_file = client->response->openFile();
-				return;
-			}
-			if (client->request->get_header("Host") != conf->server[j].ip + ":" + conf->server[j].port)
-			{
-				for (size_t k = 0; k < conf_local->server_name.size(); k++)
-				{
-					if (conf_local->server_name[k] == client->request->get_header("Host")
-						|| conf_local->server_name[k] + ":" + conf->server[j].port == client->request->get_header("Host"))
-						break ;
-					else if (i + 1 == conf_local->server_name.size())
-					{
-						if (conf->server[j].ip == "0.0.0.0" && client->request->get_header("Host").find(":") != std::string::npos
-							&& client->request->get_header("Host").find(":") == client->request->get_header("Host").find_last_of(":")
-							&& client->request->get_header("Host").substr(client->request->get_header("Host").find(":") + 1, client->request->get_header("Host").length()) == conf->server[j].port)
-							break ;
-						client->response->setStatus(400);				
-						client->fd_file = client->response->openFile();
-						return ;
-					}
-				}
-			}
-			if (is_cgi(client->request, conf_local) == true)
-			{
-        		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length())
-				{
-					client->response->setStatus(413);
-					client->fd_file = client->response->openFile();
-					return;
-				}
-				if (client->request->get_method() == "POST" && client->request->get_header("Content-Type").find(";") != std::string::npos && client->request->get_header("Content-Type").substr(0, client->request->get_header("Content-Type").find(";")) == "multipart/form-data")
-				{
-					//client->response->setStatus(201); PAS UTILE
-				}
-				treat_cgi(conf_local, client);
-			}
-			else
-				client->fd_file = client->response->treatRequest();	
+			launch_treatment(client, &conf->server[j]);
 		}
 	}
-
-
 	return;
 }
 

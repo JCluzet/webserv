@@ -15,11 +15,12 @@ bool is_cgi(Request* request, Server* conf)
     return false;
 }
 
-std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *client, Server *server, std::string extension)
+std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *server, std::string extension)
 {
     std::ostringstream convert;
-    std::vector<std::string> env(29);
+    std::vector<std::string> env(28);
     std::string str;
+
     str = "CONTENT_TYPE="; // The media type of the query data, such as text/html.
     if (client->request->get_method() == "GET")
         str += "";
@@ -43,9 +44,9 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     env[3] = str;
     str = "PATH_TRANSLATED="; // The translated version of the path given by the variable PATH_INFO.
     if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
+        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
-        str += server->root + client->request->get_path();
+        str += client->request->get_path();
     env[4] = str;
     str = "QUERY_STRING="; // The query information passed to the program. It is appended to the URL following a question mark (?).
     if (client->request->get_method() == "GET")
@@ -57,7 +58,7 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str += "Basic";
     env[6] = str;
     str = "REMOTE_ADDR=";                        // The remote IP address from which the user is making the client->request.
-    str += inet_ntoa(client->sockaddr.sin_addr); // A CHANGER
+    str += inet_ntoa(client->sockaddr.sin_addr);
     env[7] = str;
     str = "REMOTE_PORT="; // The remote IP address from which the user is making the client->request.
     convert << static_cast<int>(ntohs(client->sockaddr.sin_port));
@@ -73,64 +74,61 @@ std::vector<std::string> cgi_env(std::string cmd, std::string cgi_str, Client *c
     str = "REQUEST_METHOD="; // The method with which the information client->request was issued (e.g., GET, POST, HEAD).
     str += client->request->get_method();
     env[11] = str;
-    str = "SCRIPT_NAME="; // The virtual path (e.g., /cgi-bin/program.pl) of the script being executed.
-    str += cmd.substr(cmd.find("/cgi-bin/"), cmd.length()); //// A CHANGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <<<< !
-    /*env[12] = str;*/
 
     str = "SERVER_NAME="; // The server's hostname or IP address. Equivalent HTTP_HOST
     str += server->ip;
-    env[13] = str;
+    env[12] = str;
     str = "SERVER_PROTOCOL="; // The name and revision number of the server protocol.
     str += "HTTP/1.1";
-    env[14] = str;
+    env[13] = str;
     str = "SERVER_PORT="; // The port number of the host on which the server is running.
     str += server->port;
-    env[15] = str;
+    env[14] = str;
     str = "SERVER_SOFTWARE="; // The name and version of the server software that is answering the client client->request
     str += "WebServ/1.0";
-    env[16] = str;
+    env[15] = str;
     str = "HTTP_ACCEPT="; // A list of the media types that the client can accept.
     str += client->request->get_header("Accept");
-    env[17] = str;
+    env[16] = str;
     str = "HTTP_COOKIE="; // A list of cookies defined for that URL.
     str += client->request->get_header("Cookie");
-    env[18] = str;
+    env[17] = str;
     str = "HTTP_ACCEPT_LANGUAGE="; // Langage accepté par le client.
     str += client->request->get_header("Accept-Language");
-    env[19] = str;
+    env[18] = str;
     str = "HTTP_REFERER="; // The URL of the document the client read before accessing the CGI program.
     str += client->request->get_header("Referer");
-    env[20] = str;
+    env[19] = str;
     str = "HTTP_USER_AGENT="; // The browser the client is using to issue the client->request.
     str += client->request->get_header("User-Agent");
-    env[21] = str;
+    env[20] = str;
     str = "HTTP_ACCEPT_ENCODING=";
     str += client->request->get_header("Accept-Encoding");
-    env[22] = str;
+    env[21] = str;
     str = "HTTP_ACCEPT_CHARSET=";
     str += client->request->get_header("Accept_Charsets");
-    env[23] = str;
-    str = "DOCUMENT_ROOT=";                                          // The directory from which web documents are served. //
+    env[22] = str;
+    str = "DOCUMENT_ROOT="; // The directory from which web documents are served.
     str += server->root;
-    env[24] = str;
+    env[23] = str;
     str = "REQUEST_URI="; // file_path //
     if (client->request->get_method() == "GET")
         str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += client->request->get_path();
-    env[25] = str;
+    env[24] = str;
     str = "REDIRECT_STATUS=";
     str += "200";
-    env[26] = str;
+    env[25] = str;
     str = "SCRIPT_FILENAME=";
     if (client->request->get_method() == "GET")
         str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
     else
         str += server->root + client->request->get_path();
-    env[27] = str;
+    env[26] = str;
     str = "UPLOAD_PATH=";
     str += server->upload;
-    env[28] = str;
+    env[27] = str;
 
     return (env);
 }
@@ -246,7 +244,6 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
         for (size_t k = 0; k < cmd.size(); k++)
             delete[] cmd_execve[k];
         delete[] cmd_execve;
-        // wait(&status);
     }
     return;
 }
@@ -281,15 +278,15 @@ void treat_cgi(Server *server, Client *client)
     {
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        cgi_exec(cmd, cgi_env(cmd_cgi, "", client, server, server->cgi[i].first), client);
+        cgi_exec(cmd, cgi_env("", client, server, server->cgi[i].first), client);
     }
     if (client->request->get_method() == "GET")
     {
-        cmd_path = cmd_path.substr(0, cmd_path.find("." + server->cgi[i].first + "?") + std::string("." + server->cgi[i].first).length());
+        cmd_path = cmd_path.substr(0, cmd_path.find_last_of("." + server->cgi[i].first + "?"));
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        str = client->request->get_path().substr(client->request->get_path().find(("." + server->cgi[i].first + "?")) + std::string(server->cgi[i].first).length() + 2, client->request->get_path().length());
-        cgi_exec(cmd, cgi_env(cmd_cgi, str, client, server, server->cgi[i].first), client);
+        str = client->request->get_path().substr(client->request->get_path().find_last_of(("." + server->cgi[i].first + "?")) + 1, client->request->get_path().length());
+        cgi_exec(cmd, cgi_env(str, client, server, server->cgi[i].first), client);
     }
     return;
 }

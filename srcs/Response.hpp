@@ -19,7 +19,7 @@ private:
     std::string _filepath;
     int         _stat_rd;
 
-    int             method_delete(void);
+    int method_delete(void);
 
 public:
     std::string transfer;

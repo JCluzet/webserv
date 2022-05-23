@@ -4,10 +4,9 @@ std::string apply_location(std::string path, Server *conf, Server **dest)
 {
   std::string tmp = path;
 
-  // print_loca(conf->locations);
   while (tmp.length() != 0)
   {
-    if (conf->locations.find(tmp) != conf->locations.end()) //|| conf->locations.find(tmp + "/") != conf->locations.end()i)
+    if (conf->locations.find(tmp) != conf->locations.end())
     {
       if (LOG == 1)
         std::cout << YELLOW << "[⊛ LOCATION]   => " << WHITE << tmp << RESET << std::endl;
@@ -124,7 +123,6 @@ void pass_not_blanck(const std::string s, std::string::size_type *i)
 
 bool s_a_have_b(const std::string a, const std::string::size_type i, const std::string b)
 {
-  // std::cout << "**" << a.substr(i, b.length()) << " == " << b << "?" << std::endl;
   return (a.length() >= (b.length() + i) && a.substr(i, b.length()) == b);
 }
 

@@ -220,7 +220,7 @@ bool    Config::get_error_page_line(const std::string s, Server *serv_tmp, std::
         *i += 1;
     }
     n = atoi(path.c_str());
-    if (n != 400 && n != 403 && n != 404 && n != 500)
+    if (n != 400 && n != 401 && n != 403 && n != 404 && n != 405 && n != 406 && n != 411 && n != 413 && n != 500 && n != 501)
     {
         std::cerr << "Error: config file: error page can't be (" << n << ")." << std::endl;
         return 1;

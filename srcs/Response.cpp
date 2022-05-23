@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server.hpp" //  1: CHANGER RESPONSE pour lire en dehors (les erreur) // 2: AJOUTER UPLOAD dans response/request, ecrire en dehors, faire isupload
+#include "server.hpp"
 
 Response::Response(Request *request) : _conf(NULL), _request(request), _header(""), _content_type("text/html"), _filecontent(""), _filepath(""), _stat_rd(0)
 {
@@ -111,18 +111,12 @@ int Response::treatRequest()
             else
                 _stat_rd = 302;
             transfer = it->redirect2;
-            std::cout << transfer << std::endl; //////// ALEX LOCA: MAX_BODY_SIZE, INDEX, REWRITE / avant http
             return(-1);
         }
         it++;
     }
-
-    // if the filepath is a directory and does not end with a / then redirect to the directory with a / at the end of the path
-
-    // std::cout << "_Filepath: " << _conf->root + _filepath << std::endl;
     if (_filepath != "" && is_directory(_conf->root + _filepath) == true && _filepath[_filepath.length() - 1] != '/')
     {
-        // std::cout << "yeah" << std::endl;
         _stat_rd = 301;
         transfer = _filepath + "/";
         if(LOG == 1)
@@ -143,7 +137,6 @@ int Response::treatRequest()
         }
         else
             _stat_rd = 403;
-
     }
     else if (method == "DELETE")
     {
@@ -438,8 +431,6 @@ const std::string Response::error_page_message(const int status)
         return ("Request Entity Too Large");
     if (status == 405)
         return ("Method Not Allowed");
-    if (status == 502)
-        return ("Bad Gateway");
     if (status == 411)
         return ("Length Required");
     if (status == 501)
@@ -479,19 +470,9 @@ int Response::openFile()
         else
         {
             _filepath = _conf->root + _conf->error_page[_stat_rd];
-            if (access(_filepath.c_str(), F_OK))
+            if (access(_filepath.c_str(), F_OK) || (fd_file = open(_filepath.c_str(), O_RDONLY)) < 0)
             {
-                _stat_rd = 404;
-                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 404</h1>\n    <p>File not found.</p>\n</body>\n\n</html>";
-            }
-            else
-            {
-                fd_file = open(_filepath.c_str(), O_RDONLY);
-                if (fd_file < 0)
-                {
-                    _stat_rd = 403;
-                    _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR 403</h1>\n    <p>Forbidden.</p>\n</body>\n\n</html>";
-                }
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
             }
         }
     }

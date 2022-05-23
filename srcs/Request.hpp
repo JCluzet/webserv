@@ -89,9 +89,6 @@ public:
             }
         }
     }
-
-        void print() { pprint(); }
-
         void clear()
         {
             _request = "";
@@ -197,20 +194,6 @@ public:
             return true;
         }
 
-        void pprint()
-        {
-            std::cout << "method :" << _method << std::endl;
-            std::cout << "path :" << _path << std::endl;
-            std::cout << "version :" << _version << std::endl;
-            for (int i = 0; i < NB_HEADERS; i++)
-            {
-                if (_m[_header[i]].length())
-                    std::cout << _header[i] << " :" << _m[_header[i]] << std::endl;
-            }
-            std::cout << "end :" << _end << std::endl
-                      << std::endl;
-        }
-
         bool get_request_line(std::string r)
         {
             std::string ctn;
@@ -220,7 +203,7 @@ public:
             {
                 return (false);
             }
-            ctn = r.substr(0, pos); // secu
+            ctn = r.substr(0, pos);
             if (ctn.find(" ") != std::string::npos)
             {
                 return (false);
@@ -253,15 +236,14 @@ public:
             if (request.substr(0, next_space) != "GET" && request.substr(0, next_space) != "POST" && request.substr(0, next_space) != "DELETE")
                 return (false);
             _method = request.substr(0, next_space);
-            // std::cout << request.substr(0, next_space) << " " << _method << std::endl;
             request.erase(0, next_space);
             if ((next_space = request.find_first_not_of(" ")) == n)
                 return (false);
             request.erase(0, next_space);
             if ((next_space = request.find(" ")) == n)
                 return (false);
-            _path = request.substr(0, next_space); // secu
-            request.erase(0, next_space);          // secu
+            _path = request.substr(0, next_space);
+            request.erase(0, next_space);
                                           //  Check version
             request.erase(0, request.find_first_not_of(" "));
             next_space = request.find(" ");
