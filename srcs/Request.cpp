@@ -104,6 +104,8 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
     _line = "";
     while ((nl = r.find(NL)) != std::string::npos)
     {
+
+    //std::cout << _path << "!!" << std::endl;
         if (_request.empty() == true)
         {
             if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
@@ -161,6 +163,7 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
 {
    	Server*		conf_local;
 	std::string	location;
+
     if (checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name) == 400)
        return 400;
     location = apply_location(_path, conf_o, &conf_local);
@@ -169,7 +172,11 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
     client->response->setConf(conf_local);
     if (conf_o->root != conf_local->root)
     {
+        //std::cout << _path << std::endl;
         _path = _path.substr(_path.find_last_of(location) + 1);
+        if (_path == "")
+            _path = "/";
+        //std::cout << _path << " " << conf_local->root << " " << location << std::endl;
     }
     if ((_method == "POST" && !conf_local->methods[1]) || (_method == "GET" && !conf_local->methods[0]) || (_method == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
  	    return 405;
