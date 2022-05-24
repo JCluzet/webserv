@@ -62,36 +62,50 @@ Response &Response::operator=(const Response &src)
     return (*this);
 }
 
-std::string Response::getHeader(std::string set_cookie)
+void Response::clear()
 {
-    std::string head = "";
+    _header = "";
+    _content_type = "text/html";
+    _filecontent = "";
+    _filepath = "";
+    _stat_rd = 0;
+    transfer = "";
+    _response = "";
+    writing = false;
+    return;
+}
+
+int Response::openFile()
+{
+    int fd_file = -1;
     if (_stat_rd == 0)
-        head = "HTTP/1.1 400 " + error_page_message(_stat_rd);
-    else
-        head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
-    head += "\r\nServer: WebServ/1.0";
-    head += "\r\nDate: " + getDate();
-    if (_request->get_header("Connection") == "close")
-        head += "\r\nConnection: close";
-    else
-        head += "\r\nConnection: keep-alive";
-    if (_stat_rd == 301 || _stat_rd == 302)
     {
-        head += "\r\nLocation: " + transfer;
-        head += "\r\n\r\n";
-        return (head);
+        if (access(_filepath.c_str(), F_OK))
+            _stat_rd = 404;
+        if (_stat_rd == 0) // le fichier existe
+        {
+            char buf[1];
+            fd_file = open(_filepath.c_str(), O_RDONLY);
+            if (fd_file < 0 || read(fd_file, buf, 0) < 0) // le fichier exite mais n'as pas les droits
+                _stat_rd = 403;
+            else
+                _stat_rd = 200; // le fichier est lisible
+        }
     }
-    if (_stat_rd == 401)
+    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
-        head += "\r\nWWW-Authenticate: Basic";
-        head += "\r\n\r\n";
-        return (head);
+        if (!_conf->error_page.count(_stat_rd))
+            _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
+        else
+        {
+            _filepath = _conf->root + _conf->error_page[_stat_rd];
+            if (access(_filepath.c_str(), F_OK) || (fd_file = open(_filepath.c_str(), O_RDONLY)) < 0)
+            {
+                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
+            }
+        }
     }
-    head += "\r\nContent-Length: " + sizetToStr(_filecontent.length());
-    head += "\r\nContent-Type: " + _content_type;
-    head += set_cookie;
-    head += "\r\n\r\n";
-    return (head);
+    return (fd_file);
 }
 
 int Response::treatRequest()
@@ -181,39 +195,65 @@ void Response::makeResponse()
         }
         else
             get_content_type();
-        if (transfer != "")
-            _filecontent = transfer;
+        _filecontent += transfer;
     }
     _response = getHeader(set_cookie) + _filecontent + "\r\n";
     return;
 }
 
-void Response::clear()
+void Response::get_filepath()
 {
-    _header = "";
-    _content_type = "text/html";
-    _filecontent = "";
-    _filepath = "";
-    _stat_rd = 0;
-    transfer = "";
-    _response = "";
-    writing = false;
-    return;
+    if (_request->get_path() != "")
+    {
+        _filepath = _conf->root + _request->get_path();
+        if (is_directory(_filepath))
+        {
+            int fd;
+            for (size_t i = 0; i < _conf->index.size(); i++)
+            {
+                if ((fd = open(std::string(_filepath + _conf->index[i]).c_str(), O_RDONLY)) >= 0)
+                {
+                    close(fd);
+                    if (_filepath[_filepath.length() - 1] == '/')
+                        _filepath = _filepath.substr(0, _filepath.length() - 1);
+                    _filepath += _conf->index[i];
+                    
+                }
+            }
+        }
+    }
 }
 
-Server* Response::get_conf()
+std::string Response::getHeader(std::string set_cookie)
 {
-    return (_conf);
-}
-
-std::string Response::getDate()
-{
-    time_t now = time(0);
-    struct tm tstruct;
-    char buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
-    return (buf);
+    std::string head = "";
+    if (_stat_rd == 0)
+        head = "HTTP/1.1 400 " + error_page_message(_stat_rd);
+    else
+        head = "HTTP/1.1 " + intToStr(_stat_rd) + " " + error_page_message(_stat_rd);
+    head += "\r\nServer: WebServ/1.0";
+    head += "\r\nDate: " + getDate();
+    if (_request->get_header("Connection") == "close")
+        head += "\r\nConnection: close";
+    else
+        head += "\r\nConnection: keep-alive";
+    if (_stat_rd == 301 || _stat_rd == 302)
+    {
+        head += "\r\nLocation: " + transfer;
+        head += "\r\n\r\n";
+        return (head);
+    }
+    if (_stat_rd == 401)
+    {
+        head += "\r\nWWW-Authenticate: Basic";
+        head += "\r\n\r\n";
+        return (head);
+    }
+    head += "\r\nContent-Length: " + sizetToStr(_filecontent.length());
+    head += "\r\nContent-Type: " + _content_type;
+    head += set_cookie;
+    head += "\r\n\r\n";
+    return (head);
 }
 
 int Response::method_delete(void)
@@ -231,6 +271,69 @@ int Response::method_delete(void)
         return (200);
     }
     return (403);
+}
+
+std::string Response::getDate()
+{
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%a, %d %b %Y %X %Z", &tstruct);
+    return (buf);
+}
+
+void    Response::setConf(Server *newconf)
+{
+    _conf = newconf;
+    return ;
+}
+
+void    Response::setStatus(const int new_status)
+{
+    _stat_rd = new_status;
+    return;
+}
+
+Server* Response::get_conf()
+{
+    return (_conf);
+}
+
+std::string Response::get_fpath()
+{
+    return (_filepath);
+}
+
+const std::string Response::error_page_message(const int status)
+{
+    if (status == 200)
+        return ("OK");
+    if (status == 201)
+        return ("Created");
+    if (status == 403)
+        return ("Forbidden");
+    if (status == 404)
+        return ("Not Found");
+    if (status == 500)
+        return ("Internal Server Error");
+    if (status == 413)
+        return ("Request Entity Too Large");
+    if (status == 405)
+        return ("Method Not Allowed");
+    if (status == 411)
+        return ("Length Required");
+    if (status == 501)
+        return ("Not Implemented");
+    if (status == 406)
+        return ("Not Acceptable");
+    if (status == 301)
+        return ("Moved Permanently");
+    if (status == 302)
+        return ("Found");
+    if (status == 401)
+        return ("Unauthorized");
+    return ("Bad Request");
 }
 
 int Response::get_content_type()
@@ -373,108 +476,4 @@ int Response::get_content_type()
     }
 
     return (0);
-}
-
-std::string Response::get_fpath()
-{
-    return (_filepath);
-}
-
-void Response::get_filepath()
-{
-    if (_request->get_path() != "")
-    {
-        _filepath = _conf->root + _request->get_path();
-        if (is_directory(_filepath))
-        {
-            int fd;
-            for (size_t i = 0; i < _conf->index.size(); i++)
-            {
-                if ((fd = open(std::string(_filepath + _conf->index[i]).c_str(), O_RDONLY)) >= 0)
-                {
-                    close(fd);
-                    if (_filepath[_filepath.length() - 1] == '/')
-                        _filepath = _filepath.substr(0, _filepath.length() - 1);
-                    _filepath += _conf->index[i];
-                    
-                }
-            }
-        }
-    }
-}
-
-void    Response::setConf(Server *newconf)
-{
-    _conf = newconf;
-    return ;
-}
-
-void    Response::setStatus(const int new_status)
-{
-    _stat_rd = new_status;
-    return;
-}
-
-const std::string Response::error_page_message(const int status)
-{
-    if (status == 200)
-        return ("OK");
-    if (status == 201)
-        return ("Created");
-    if (status == 403)
-        return ("Forbidden");
-    if (status == 404)
-        return ("Not Found");
-    if (status == 500)
-        return ("Internal Server Error");
-    if (status == 413)
-        return ("Request Entity Too Large");
-    if (status == 405)
-        return ("Method Not Allowed");
-    if (status == 411)
-        return ("Length Required");
-    if (status == 501)
-        return ("Not Implemented");
-    if (status == 406)
-        return ("Not Acceptable");
-    if (status == 301)
-        return ("Moved Permanently");
-    if (status == 302)
-        return ("Found");
-    if (status == 401)
-        return ("Unauthorized");
-    return ("Bad Request");
-}
-
-int Response::openFile()
-{
-    int fd_file = -1;
-    if (_stat_rd == 0)
-    {
-        if (access(_filepath.c_str(), F_OK))
-            _stat_rd = 404;
-        if (_stat_rd == 0) // le fichier existe
-        {
-            char buf[1];
-            fd_file = open(_filepath.c_str(), O_RDONLY);
-            if (fd_file < 0 || read(fd_file, buf, 0) < 0) // le fichier exite mais n'as pas les droits
-                _stat_rd = 403;
-            else
-                _stat_rd = 200; // le fichier est lisible
-        }
-    }
-    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
-    {
-        if (!_conf->error_page.count(_stat_rd))
-            _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
-        else
-        {
-            _filepath = _conf->root + _conf->error_page[_stat_rd];
-            if (access(_filepath.c_str(), F_OK) || (fd_file = open(_filepath.c_str(), O_RDONLY)) < 0)
-            {
-                _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
-            }
-        }
-    }
-    return (fd_file);
 }

@@ -201,6 +201,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 			client->response->clear();
 			client->response->setStatus(406);
 			client->fd_file = client->response->openFile();
+			client->response->transfer = "";
 			return;
 		}
 		client->response->transfer = client->response->get_response();
@@ -293,7 +294,13 @@ void ReadCGI(Client *client)
 				tmp_status = 200;
             client->response->setStatus(tmp_status);
 			if (tmp_status != 200 && tmp_status != 201)
+			{
+				if (client->response->transfer.find("\r\n\r\n") != std::string::npos)
+					client->response->transfer = "CGI: " + client->response->transfer.substr(client->response->transfer.find("\r\n\r\n") + 4, std::string::npos);
+				else 
+					client->response->transfer = "";
 		    	client->fd_file = client->response->openFile();
+			}
         }
 		else
 			client->response->setStatus(200);
