@@ -2,54 +2,84 @@
 
 bool exit_status = false;
 
-bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
+void	checkHost(Client* client, std::string ip, std::string port, std::vector<std::string> server_name)
 {
-	struct sockaddr_in address;
-
-	if ((*listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if (client->request->get_header("Host") != ip + ":" + port)
 	{
-		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
-		perror("Socket");
-		std::cout << RESET;
-		return 1;
+		for (size_t k = 0; k < server_name.size(); k++)
+		{
+			if (server_name[k] == client->request->get_header("Host")
+				|| server_name[k] + ":" + port == client->request->get_header("Host"))
+				break ;
+			else if (k + 1 == server_name.size())
+			{
+				if (ip == "0.0.0.0" && client->request->get_header("Host").find(":") != std::string::npos
+					&& client->request->get_header("Host").find(":") == client->request->get_header("Host").find_last_of(":")
+					&& client->request->get_header("Host").substr(client->request->get_header("Host").find(":") + 1, client->request->get_header("Host").length()) == port)
+					break ;
+				client->response->setStatus(400);				
+				client->fd_file = client->response->openFile();
+				return ;
+			}
+		}
 	}
-	fcntl(*listen_sock, F_SETFL, O_NONBLOCK);
-	int reuse = 1;
-	if (setsockopt(*listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
-	{
-		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
-		perror("SetSockOpt");
-		std::cout << RESET;
-		return 1;
-	}
+	return ;
+}
 
-	if (ip == "0.0.0.0")
-		address.sin_addr.s_addr = INADDR_ANY;
-	else if (ip == "127.0.0.1")
-		address.sin_addr.s_addr = INADDR_LOOPBACK;
+void	launch_treatment(Client* client, Server* conf_o)
+{
+	Server*		conf_local;
+	std::string	location;
+	std::string	jquery = "";
+	std::string	tmp;
+
+	location = apply_location(client->request->get_path(), conf_o, &conf_local);
+	if (is_directory(conf_local->root + client->request->get_path()) == false && client->request->get_path()[client->request->get_path().length() - 1] == '/')
+		client->request->set_path(client->request->get_path().substr(0, client->request->get_path().length() - 1));
+	client->response->setConf(conf_local);
+	if (conf_o->root != conf_local->root)
+	{
+		client->request->set_path(client->request->get_path().erase(1, location.length()));
+		if (client->request->get_path().compare(0, 2, "//"))
+			client->request->set_path(client->request->get_path().erase(1, 1));	
+	}
+	if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
+	{
+		client->response->setStatus(405);
+		client->fd_file = client->response->openFile();
+		return ;
+	}
+    for (size_t i = 0; i < conf_local->cgi.size(); i++)
+    {
+        if (client->request->get_method() == "GET" && client->request->get_path().find("." + conf_local->cgi[i].first + "?") != std::string::npos)
+		{
+            jquery = client->request->get_path().substr(client->request->get_path().find_last_of("." + conf_local->cgi[i].first + "?"), std::string::npos);
+			tmp = client->request->get_path().substr(0, client->request->get_path().find_last_of("." + conf_local->cgi[i].first + "?"));
+			client->request->set_path(url_decode(tmp) + jquery);
+			break ;
+		}
+        if (client->request->get_method() == "POST" && client->request->get_path().find("." + conf_local->cgi[i].first) != std::string::npos)
+		{
+			tmp = client->request->get_path().substr(0, client->request->get_path().find_last_of("." + conf_local->cgi[i].first));
+			client->request->set_path(url_decode(tmp) + jquery);
+			break ;
+		}
+		
+    }
+	checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name);
+	if (is_cgi(client->request, conf_local) == true)
+	{
+   		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length())
+		{
+			client->response->setStatus(413);
+			client->fd_file = client->response->openFile();
+			return ;
+		}
+		treat_cgi(conf_local, client);
+	}
 	else
-		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"	
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_family = AF_INET;
-	address.sin_port = htons(port);
-
-	memset(address.sin_zero, '\0', sizeof address.sin_zero);
-
-	if (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
-	{
-		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
-		perror("Bind");
-		std::cout << RESET;
-		return 1;
-	}
-	if (listen(*listen_sock, MAX_QUEUED_CONNEXIONS) < 0)
-	{
-		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
-		perror("Listen");
-		std::cout << RESET;
-		return 1;
-	}
-	return 0;
+		client->fd_file = client->response->treatRequest();
+	return ;
 }
 
 int build_fd_set(int *listen_sock, Config *conf, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
@@ -106,6 +136,56 @@ int build_fd_set(int *listen_sock, Config *conf, fd_set *read_fds, fd_set *write
 		}
 	}
 	return (high_sock);
+}
+
+bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
+{
+	struct sockaddr_in address;
+
+	if ((*listen_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Socket");
+		std::cout << RESET;
+		return 1;
+	}
+	fcntl(*listen_sock, F_SETFL, O_NONBLOCK);
+	int reuse = 1;
+	if (setsockopt(*listen_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0)
+	{
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("SetSockOpt");
+		std::cout << RESET;
+		return 1;
+	}
+
+	if (ip == "0.0.0.0")
+		address.sin_addr.s_addr = INADDR_ANY;
+	else if (ip == "127.0.0.1")
+		address.sin_addr.s_addr = INADDR_LOOPBACK;
+	else
+		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"	
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_family = AF_INET;
+	address.sin_port = htons(port);
+
+	memset(address.sin_zero, '\0', sizeof address.sin_zero);
+
+	if (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
+	{
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Bind");
+		std::cout << RESET;
+		return 1;
+	}
+	if (listen(*listen_sock, MAX_QUEUED_CONNEXIONS) < 0)
+	{
+		std::cout << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv... ERROR !" << std::endl << std::endl;
+		perror("Listen");
+		std::cout << RESET;
+		return 1;
+	}
+	return 0;
 }
 
 void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
@@ -255,67 +335,6 @@ void WriteCGI(Client *client)
 
 	}
 	return;
-}
-
-void	checkHost(Client* client, std::string ip, std::string port, std::vector<std::string> server_name)
-{
-	if (client->request->get_header("Host") != ip + ":" + port)
-	{
-		for (size_t k = 0; k < server_name.size(); k++)
-		{
-			if (server_name[k] == client->request->get_header("Host")
-				|| server_name[k] + ":" + port == client->request->get_header("Host"))
-				break ;
-			else if (k + 1 == server_name.size())
-			{
-				if (ip == "0.0.0.0" && client->request->get_header("Host").find(":") != std::string::npos
-					&& client->request->get_header("Host").find(":") == client->request->get_header("Host").find_last_of(":")
-					&& client->request->get_header("Host").substr(client->request->get_header("Host").find(":") + 1, client->request->get_header("Host").length()) == port)
-					break ;
-				client->response->setStatus(400);				
-				client->fd_file = client->response->openFile();
-				return ;
-			}
-		}
-	}
-	return ;
-}
-
-void	launch_treatment(Client* client, Server* conf_o)
-{
-	Server*		conf_local;
-	std::string	location;
-
-	location = apply_location(client->request->get_path(), conf_o, &conf_local);
-	if (is_directory(conf_local->root + client->request->get_path()) == false && client->request->get_path()[client->request->get_path().length() - 1] == '/')
-		client->request->set_path(client->request->get_path().substr(0, client->request->get_path().length() - 1));
-	client->response->setConf(conf_local);
-	if (conf_o->root != conf_local->root)
-	{
-		client->request->set_path(client->request->get_path().erase(1, location.length()));
-		if (client->request->get_path().compare(0, 2, "//"))
-			client->request->set_path(client->request->get_path().erase(1, 1));	
-	}
-	if ((client->request->get_method() == "POST" && !conf_local->methods[1]) || (client->request->get_method() == "GET" && !conf_local->methods[0]) || (client->request->get_method() == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
-	{
-		client->response->setStatus(405);
-		client->fd_file = client->response->openFile();
-		return ;
-	}
-	checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name);
-	if (is_cgi(client->request, conf_local) == true)
-	{
-   		if(ft_atoi(conf_local->client_max_body_size.c_str()) < client->request->get_body().length())
-		{
-			client->response->setStatus(413);
-			client->fd_file = client->response->openFile();
-			return ;
-		}
-		treat_cgi(conf_local, client);
-	}
-	else
-		client->fd_file = client->response->treatRequest();
-	return ;
 }
 
 void ReadRequest(Config *conf, Client *client, size_t j, size_t i)

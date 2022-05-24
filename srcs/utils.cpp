@@ -20,6 +20,68 @@ std::string apply_location(std::string path, Server *conf, Server **dest)
   return (path);
 }
 
+std::string url_decode(std::string str)
+{
+    std::string url;
+    for (std::string::size_type i = 0; i < str.size(); i++)
+    {
+        if (str[i] == '%')
+        {
+            std::string hex = str.substr(i + 1, 2);
+            url += static_cast<char>(std::strtol(hex.c_str(), NULL, 16));
+            i += 2;
+        }
+        else if (str[i] == '+')
+            url += ' ';
+        else
+            url += str[i];
+    }
+    return url;
+}
+/*
+std::string UriDecode(const std::string & sSrc)
+{
+   // Note from RFC1630: "Sequences which start with a percent
+   // sign but are not followed by two hexadecimal characters
+   // (0-9, A-F) are reserved for future extension"
+
+   const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
+   const int SRC_LEN = sSrc.length();
+   const unsigned char * const SRC_END = pSrc + SRC_LEN;
+   // last decodable '%' 
+   const unsigned char * const SRC_LAST_DEC = SRC_END - 2;
+
+   char * const pStart = new char[SRC_LEN];
+   char * pEnd = pStart;
+
+   while (pSrc < SRC_LAST_DEC)
+   {
+      if (*pSrc == '%')
+      {
+        char dec1, dec2;
+        int n;
+        std::istringstream("2A") >> std::hex >> n
+        if (-1 != (dec1 = std::HEX2DEC[*(pSrc + 1)])
+          && -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
+        {
+          *pEnd++ = (dec1 << 4) + dec2;
+          pSrc += 3;
+          continue;
+        }
+      }
+
+      *pEnd++ = *pSrc++;
+   }
+
+   // the last 2- chars
+   while (pSrc < SRC_END)
+      *pEnd++ = *pSrc++;
+
+   std::string sResult(pStart, pEnd);
+   delete [] pStart;
+   return sResult;
+}*/
+
 std::string intToStr(int n)
 {
   std::string s = (n < 0) ? "-" : "";

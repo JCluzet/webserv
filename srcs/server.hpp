@@ -76,6 +76,7 @@ struct server_data {
 
 class Config;
 // class Redirect;
+std::string					url_decode(std::string str);
 std::string					apply_location(std::string path, Server* conf, Server** dest);
 std::string					chunked(std::string str);
 void                        output_debug(std::string request, std::string response);
