@@ -24,7 +24,7 @@ if ($_FILES['uploadedfile']['tmp_name'])
     {
         echo "File " . basename($name) . " uploaded !";
         echo "<br><br>";
-        echo "You can click <a href='/uploads/" . basename($name) . "'>here</a> to see the it.";
+        echo "You can click <a href='/uploads/" . basename($name) . "'>here</a> to see the it.<br>";
     }
     else 
     {
@@ -34,7 +34,49 @@ if ($_FILES['uploadedfile']['tmp_name'])
 }
 else
 {
-    echo 'Aucun fichier à upload !';
+    echo 'Aucun fichier à upload !<br>';
+}
+$uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile2"]["name"]);
+$name = $_FILES["uploadedfile2"]["name"];
+echo "<br><br>";
+if ($_FILES['uploadedfile2']['tmp_name']) 
+{
+    if (move_uploaded_file($_FILES["uploadedfile2"]["tmp_name"], $uploadfile)) 
+    {
+        echo "File " . basename($name) . " uploaded !";
+        echo "<br><br>";
+        echo "You can click <a href='/uploads/" . basename($name) . "'>here</a> to see the it.<br>";
+    }
+    else 
+    {
+        echo 'Voici quelques informations de débogage :';
+        print_r($_FILES);
+    } 
+}
+else
+{
+    echo 'Aucun fichier à upload !<br>';
+}
+$uploadfile = $uploaddir . "/" . basename($_FILES["uploadedfile3"]["name"]);
+$name = $_FILES["uploadedfile3"]["name"];
+echo "<br><br>";
+if ($_FILES['uploadedfile3']['tmp_name']) 
+{
+    if (move_uploaded_file($_FILES["uploadedfile3"]["tmp_name"], $uploadfile)) 
+    {
+        echo "File " . basename($name) . " uploaded !";
+        echo "<br><br>";
+        echo "You can click <a href='/uploads/" . basename($name) . "'>here</a> to see the it.<br>";
+    }
+    else 
+    {
+        echo 'Voici quelques informations de débogage :';
+        print_r($_FILES);
+    } 
+}
+else
+{
+    echo 'Aucun fichier à upload !<br>';
 }
 ?>
 </div>

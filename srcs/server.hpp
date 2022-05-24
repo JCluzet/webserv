@@ -12,9 +12,9 @@
 
 #pragma once
 
-#define MAX_CONNEXIONS 4096
+#define MAX_CONNEXIONS 2048
 #define MAX_QUEUED_CONNEXIONS 512 // Maximum de connexions en attente d'etre acceptés, celles en plus recevront ECONNREFUSED
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 #define LOG 1
 #define CONNEXION_LOG 0
 
