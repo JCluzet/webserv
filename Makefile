@@ -32,7 +32,7 @@ CLEAR_LINE := \33[2K\r
 ################################################################################
 
 SRCS        :=      srcs/utils.cpp \
-                          srcs/server.cpp \
+                        srcs/run_server.cpp \
 						srcs/autoindex.cpp \
 						srcs/Response.cpp \
 						srcs/Config.cpp \
