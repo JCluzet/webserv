@@ -5,6 +5,11 @@ then
     echo ""
     echo "Replacing default.conf..."
 realpath=$(realpath $0);newrealpath=${realpath%/*};cat config/.conf | sed "s|/home/parallels/Desktop/webserv|$newrealpath|g" > config/default.conf;echo "path_replace: $newrealpath"
+# if we are on mac, replace all cgi php php-cgi_ubuntu by php-cgi
+if [ "$(uname)" == "Darwin" ]; then
+    sed -i '' 's/php-cgi_ubuntu/php-cgi/g' config/default.conf
+    sed -i '' 's/ubuntu_cgi_tester/cgi-tester/g' config/default.conf
+fi
     echo "Done ✅"
 else
     echo ""
