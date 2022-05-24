@@ -158,8 +158,8 @@ int Response::treatRequest()
 	        {
 	            if (_filepath.find("." + _conf->cgi[i].first + "?") != std::string::npos)
 	    		{
-	                jquery = _filepath.substr(_filepath.find_last_of("." + _conf->cgi[i].first + "?"), std::string::npos);
-	    			tmp = _filepath.substr(0, _filepath.find_last_of("." + _conf->cgi[i].first + "?"));
+	                jquery = _filepath.substr(_filepath.rfind("." + _conf->cgi[i].first + "?"), std::string::npos);
+	    			tmp = _filepath.substr(0, _filepath.rfind("." + _conf->cgi[i].first + "?"));
 	    			tmp = url_decode(tmp) + jquery;
 	    			break ;
 	    		}
@@ -210,7 +210,7 @@ void Response::makeResponse()
         if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200 || _stat_rd == 201))
         {
             if (_request->get_method() == "GET")
-                _filepath = _filepath.substr(0, _filepath.find_last_of("?"));
+                _filepath = _filepath.substr(0, _filepath.rfind("?"));
             if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
                 _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
             else
