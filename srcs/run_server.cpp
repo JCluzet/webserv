@@ -133,7 +133,7 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 	else
 	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), BUFFER_SIZE);
-		client->response->transfer = client->response->transfer.substr(0, BUFFER_SIZE);
+		client->response->transfer = client->response->transfer.substr(BUFFER_SIZE - 1);
 	}
 	if (valwrite < 0)
 	{
@@ -254,7 +254,7 @@ void WriteCGI(Client *client)
 	else
 	{
 		valwrite = write(client->pipe_cgi_in[1], client->response->transfer.c_str(), BUFFER_SIZE);
-		client->response->transfer = client->response->transfer.substr(0, BUFFER_SIZE);
+		client->response->transfer = client->response->transfer.substr(BUFFER_SIZE - 1);
 	}
 	if (valwrite < 0)
 	{
