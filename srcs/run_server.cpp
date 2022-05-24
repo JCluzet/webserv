@@ -60,10 +60,13 @@ void	launch_treatment(Client* client, Server* conf_o)
 		}
         if (client->request->get_method() == "POST" && client->request->get_path().find("." + conf_local->cgi[i].first) != std::string::npos)
 		{
-			tmp = client->request->get_path().substr(0, client->request->get_path().find_last_of("." + conf_local->cgi[i].first));
+			tmp = client->request->get_path().substr(0, client->request->get_path().find_last_of("." + conf_local->cgi[i].first) + 1);
 			client->request->set_path(url_decode(tmp) + jquery);
 			break ;
 		}
+		if (i == conf_local->cgi.size() - 1)
+			client->request->set_path(url_decode(client->request->get_path()));
+
 		
     }
 	checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name);
