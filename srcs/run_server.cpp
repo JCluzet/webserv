@@ -127,14 +127,10 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		client->response->transfer = client->response->get_response();
 		client->response->writing = true;
 	}
-
 	if (client->response->transfer.length() <= BUFFER_SIZE)
 		valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
 	else
-	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), BUFFER_SIZE);
-		client->response->transfer = client->response->transfer.substr(BUFFER_SIZE - 1);
-	}
 	if (valwrite < 0)
 	{
 		if(CONNEXION_LOG == 1)
@@ -149,6 +145,8 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		client->response->writing = false;
 		client->response->transfer = "";
 	}
+	else
+		client->response->transfer = client->response->transfer.substr(valwrite);
 
 	if (client->response->writing == false && (client->response->getstat() == 400 || client->response->getstat() == 500 || client->request->get_header("Connection") == "close"))
 	{
@@ -252,10 +250,7 @@ void WriteCGI(Client *client)
 	if (client->response->transfer.length() <= BUFFER_SIZE)
 		valwrite = write(client->pipe_cgi_in[1], client->response->transfer.c_str(), client->response->transfer.length());
 	else
-	{
 		valwrite = write(client->pipe_cgi_in[1], client->response->transfer.c_str(), BUFFER_SIZE);
-		client->response->transfer = client->response->transfer.substr(BUFFER_SIZE - 1);
-	}
 	if (valwrite < 0)
 	{
 		client->response->setStatus(500);
@@ -275,6 +270,8 @@ void WriteCGI(Client *client)
 		client->pipe_cgi_in[0] = -1;
 		client->response->transfer = "";
 	}
+	else
+		client->response->transfer = client->response->transfer.substr(valwrite);
 	return;
 }
 
