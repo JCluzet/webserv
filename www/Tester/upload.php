@@ -22,17 +22,15 @@ if ($_FILES['uploadedfile']['tmp_name'])
 {
     if (move_uploaded_file($_FILES["uploadedfile"]["tmp_name"], $uploadfile)) 
     {
-        echo "File " . basename($_FILES["uploadedfile"]["name"]) . " uploaded !";
+        echo "File " . basename($name) . " uploaded !";
         echo "<br><br>";
-        echo "You can click   <a href='/uploads/$name'>here</a> to see the it.";
+        echo "You can click <a href='/uploads/" . basename($name) . "'>here</a> to see the it.";
     }
     else 
-{
+    {
         echo 'Voici quelques informations de débogage :';
         print_r($_FILES);
-        echo '</pre>';
-    }
-    
+    } 
 }
 else
 {
