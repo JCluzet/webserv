@@ -691,14 +691,14 @@ bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::
         std::cerr << "Error config: server " << s->id << ": can't open root directory path.(" << s->root << ")" << std::endl;
         return 1;
     }
+    if ((s->cgi_bin.empty() || !s->cgi.size()))
+    {
+        std::cerr << "Error config: server " << s->id << ": can't create a server withou cgi and cgi bin." << std::endl;
+        r = 1;
+    }
     if (s->cgi_bin.length() && !is_directory(s->cgi_bin))
     {
         std::cerr << "Error config: server " << s->id << ": can't open cgi_bin (" << s->cgi_bin << ")." << std::endl;
-        r = 1;
-    }
-    if ((s->cgi_bin.empty() && s->cgi.size()) || (s->cgi_bin.length() && s->cgi.empty()))
-    {
-        std::cerr << "Error config: server " << s->id << ": can't have cgi_bin or cgi withou the other." << std::endl;
         r = 1;
     }
     for (std::vector<std::pair<std::string, std::string> >::const_iterator it = s->cgi.begin(); it != s->cgi.end(); it++)
