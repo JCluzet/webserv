@@ -1,5 +1,11 @@
 #pragma once
+
 #include "server.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+
+class Request;
+class Response;
 
 class  Client
 {

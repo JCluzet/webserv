@@ -92,7 +92,7 @@ int Response::openFile()
                 _stat_rd = 200; // le fichier est lisible
         }
     }
-    if (_stat_rd != 200 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
+    if (_stat_rd != 200 && _stat_rd != 201 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
         if (!_conf->error_page.count(_stat_rd))
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
@@ -114,8 +114,14 @@ int Response::treatRequest()
     std::string method = _request->get_method();
     std::vector<Redirect>::iterator it = _conf->redirect.begin();
 
-    _filepath = _request->get_path();
+    if (_request->is_valid() != 0)
+    {
+        _stat_rd = _request->is_valid();
+        fd_file = openFile();
+        return (fd_file);
+    }
 
+    /* --Redirections-- */
     while (it != _conf->redirect.end())
     {
         if (it->redirect1.length() <= _filepath.length() && it->redirect1 == _filepath.substr(0, it->redirect1.length()))
@@ -125,19 +131,51 @@ int Response::treatRequest()
             else
                 _stat_rd = 302;
             transfer = it->redirect2;
-            return(-1);
+            return (-1);
         }
         it++;
     }
-    if (_filepath != "" && is_directory(_conf->root + _filepath) == true && _filepath[_filepath.length() - 1] != '/')
+    if (_filepath != "" && is_directory(_conf->root + _request->get_path()) == true
+        && _request->get_path().substr(_request->get_path().length() - 1, _request->get_path().length()) != "/")
     {
         _stat_rd = 301;
-        transfer = _filepath + "/";
+        transfer = _request->get_path() + "/";
         if(LOG == 1)
             std::cout << YELLOW << "[⊛ REDIRECTION]        => " << WHITE << _filepath << RED <<  "/" << RESET << std::endl;
         return (-1);
     }
+    /* ---- */
+
+    /* --Url_Decode-- */
     get_filepath();
+	if (access(_filepath.c_str(), F_OK) && is_directory(_filepath) == false)
+	{
+        std::string tmp;
+    	if (_request->get_method() == "GET" && _filepath.find("?") != std::string::npos)
+    	{
+            std::string jquery = "";
+	        for (size_t i = 0; i < _conf->cgi.size(); i++)
+	        {
+	            if (_filepath.find("." + _conf->cgi[i].first + "?") != std::string::npos)
+	    		{
+	                jquery = _filepath.substr(_filepath.find_last_of("." + _conf->cgi[i].first + "?"), std::string::npos);
+	    			tmp = _filepath.substr(0, _filepath.find_last_of("." + _conf->cgi[i].first + "?"));
+	    			tmp = url_decode(tmp) + jquery;
+	    			break ;
+	    		}
+                if (i == _conf->cgi.size() - 1)
+                    tmp = url_decode(_filepath);
+	    	}
+       }
+       else
+	        tmp = url_decode(_filepath);
+	    if (access(tmp.c_str(), F_OK) == 0 || is_directory(_filepath) == true)
+	    	_filepath = tmp;
+	}
+    if (is_cgi(_request, _conf) == true)
+        return -1;
+    /* ---- */
+    
     if (_filepath == "")
     {
         _stat_rd = 400;
@@ -283,16 +321,16 @@ std::string Response::getDate()
     return (buf);
 }
 
-void    Response::setConf(Server *newconf)
-{
-    _conf = newconf;
-    return ;
-}
-
 void    Response::setStatus(const int new_status)
 {
     _stat_rd = new_status;
     return;
+}
+
+void    Response::setConf(Server *newconf)
+{
+    _conf = newconf;
+    return ;
 }
 
 Server* Response::get_conf()

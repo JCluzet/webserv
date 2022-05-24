@@ -75,6 +75,11 @@ struct server_data {
 #endif
 
 class Config;
+class Server;
+class Client;
+class Request;
+class Response;
+
 // class Redirect;
 std::string					url_decode(std::string str);
 std::string					apply_location(std::string path, Server* conf, Server** dest);
@@ -100,7 +105,7 @@ std::string                 set_default_page(std::string filetosearch, std::stri
 std::string                 data_sender(std::string client_data);
 std::vector<std::string>    cgi_env(std::string cmd, std::string cgi_str, Client* client, Server* server);
 //utils
-size_t ft_atoi(std::string str);
+size_t			ft_atoi(std::string str);
 bool            readinFile(std::string filename, std::string *fileContent);
 bool            is_number(char c);
 bool            is_space(const char c);

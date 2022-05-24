@@ -1,5 +1,7 @@
 #pragma once
 #include "server.hpp"
+#include "Client.hpp"
+#include "Request.hpp"
 
 class Client;
 
