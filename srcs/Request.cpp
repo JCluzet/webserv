@@ -124,7 +124,6 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
                 if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
                 {
                     _line = _body.substr(atoi(_m["Content-Length"].c_str()), std::string::npos);
-                    std::cout << _line << std::endl;
                     _body = _body.substr(0, atoi(_m["Content-Length"].c_str()));
                 }
                 _request += r.substr(0, nl + NLSIZE);
@@ -147,7 +146,6 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         if (static_cast<int>(_body.length()) > atoi(_m["Content-Length"].c_str()))
         {
             _line = _body.substr(atoi(_m["Content-Length"].c_str()), std::string::npos);
-            std::cout << _line << std::endl;
             _body = _body.substr(0, atoi(_m["Content-Length"].c_str()));
         }
         _end = true;
@@ -161,16 +159,19 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
 {
    	Server*		conf_local;
 	std::string	location;
+
     if (checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name) == 400)
        return 400;
     location = apply_location(_path, conf_o, &conf_local);
-    if (is_directory(conf_local->root + _path) == false && _path[_path.length() - 1] == '/')
-        _path = _path.substr(0, _path.length() - 1);
     client->response->setConf(conf_local);
     if (conf_o->root != conf_local->root)
     {
-        _path = _path.substr(_path.find_last_of(location) + 1);
+        _path = _path.substr(_path.find(location) + location.length());
+        if (_path == "")
+            _path = "/";
     }
+    if (is_directory(conf_local->root + _path) == false && _path[_path.length() - 1] == '/' && _path != "/")
+        _path = _path.substr(0, _path.length() - 1);
     if ((_method == "POST" && !conf_local->methods[1]) || (_method == "GET" && !conf_local->methods[0]) || (_method == "DELETE" && !conf_local->methods[2])) // check error 405 Method not allowed
  	    return 405;
     if (_method == "GET" || _method == "DELETE")
@@ -200,7 +201,7 @@ int	Request::checkHost(Client* client, std::string ip, std::string port, std::ve
     		else if (k + 1 == server_name.size())
     		{
     			if (ip == "0.0.0.0" && _m["Host"].find(":") != std::string::npos
-    				&& _m["Host"].find(":") == _m["Host"].find_last_of(":")
+    				&& _m["Host"].find(":") == _m["Host"].rfind(":")
     				&& _m["Host"].substr(_m["Host"].find(":") + 1, _m["Host"].length()) == port)
     				break ;
     			return 400;

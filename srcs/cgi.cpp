@@ -282,10 +282,10 @@ void treat_cgi(Server *server, Client *client)
     }
     if (client->request->get_method() == "GET")
     {
-        cmd_path = cmd_path.substr(0, cmd_path.find_last_of("." + server->cgi[i].first + "?"));
+        cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?"));
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        str = client->request->get_path().substr(client->request->get_path().find_last_of(("." + server->cgi[i].first + "?")) + 1, client->request->get_path().length());
+        str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + 1, client->request->get_path().length());
         cgi_exec(cmd, cgi_env(str, client, server, server->cgi[i].first), client);
     }
     return;
