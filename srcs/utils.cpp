@@ -8,8 +8,6 @@ std::string apply_location(std::string path, Server *conf, Server **dest)
   {
     if (conf->locations.find(tmp) != conf->locations.end())
     {
-      if (LOG == 1)
-        std::cout << YELLOW << "[⊛ LOCATION]   => " << WHITE << tmp << RESET << std::endl;
       *dest = &conf->locations[tmp];
       return (tmp);
     }
