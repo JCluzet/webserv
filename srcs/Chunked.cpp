@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/16 20:07:13 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/18 20:32:54 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/25 20:09:23 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,10 @@ std::string chunked(std::string str)
     std::string _chunked = "";
     unsigned int i = 0;
     unsigned int len = strtol(str.c_str(), NULL, 16);
+    if (str == "0\r\n" || str == "0\r\n\r\n")
+    {
+        return(_chunked);
+    }
     while (i < str.length())
     {
         if (str[i] == '\r' && str[i + 1] == '\n')
@@ -43,16 +47,7 @@ std::string chunked(std::string str)
         i++;
     }
     if (i != str.length())
-    {
-        try
-        {
-            _chunked += chunked(str.substr(i, str.length()));
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-    }
+        _chunked += chunked(str.substr(i, str.length()));
     return (_chunked);
 }
 
@@ -60,8 +55,11 @@ std::string chunked(std::string str)
 // {
 //     std::string str = "26\r\n";
 //     str += "Voici les données du premier morceau\r\n\r\n";
+//     std::cout << chunked(str);
+//     str = "";
 //     str += "1C\r\n";
 //     str += "et voici un second morceau\r\n\r\n";
+//     str += "0\r\n\r\n";
 //     std::cout << chunked(str);
 //     return (0);
 // }
