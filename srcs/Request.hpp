@@ -7,11 +7,6 @@
 class Server;
 class Client;
 
-bool        is_directory(const std::string path);
-size_t		ft_atoi(std::string str);
-std::string	apply_location(std::string path, Server* conf, Server** dest);
-std::string chunked(std::string str);
-
 #define NB_HEADERS 21
 #define NL "\r\n"
 #define NLSIZE 2

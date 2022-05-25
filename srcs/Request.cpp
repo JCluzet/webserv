@@ -104,7 +104,8 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         return 400;
     if (_chunked == true)
     {
-        r = chunked(r);
+        if (chunked(&r) == false)
+            return 400;
         _request += r;
         _body += r;
         if (r == "")
@@ -150,7 +151,7 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
             _request += r.substr(0, nl + NLSIZE);
         r.erase(0, nl + NLSIZE);
     }
-    if (r.empty() == false && _method == "POST" && _request.find("\r\n\r\n") != std::string::npos && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
+    if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
     {
         _body += r;
         _request += r;
