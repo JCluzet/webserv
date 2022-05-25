@@ -16,7 +16,7 @@
 #define MAX_QUEUED_CONNEXIONS 512 // Maximum de connexions en attente d'etre acceptés, celles en plus recevront ECONNREFUSED
 #define BUFFER_SIZE 4096
 #define LOG 0
-#define CONNEXION_LOG 1
+#define CONNEXION_LOG 0
 
 #define DEFAULT_CLIENT_MAX_BODY_SIZE "8192"
 #define DEFAULT_HOSTNAME "localhost"
