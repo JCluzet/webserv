@@ -187,10 +187,16 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
         _end = true;
         return 0;
     }
-    if (_method == "POST" && (_m["Content-Length"] == "" || _m["Transfer-Encoding"] == "chunked"))
+    if (_method == "POST" && (_m["Content-Length"] == "" && _m["Transfer-Encoding"] == "chunked"))
+    {
+        std::cout << "AA" << std::endl;
         _chunked = true;
+    }
     else if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
+    {
+        std::cout << "BB" << std::endl;
         return 411;
+    }
     else if (_method == "POST" && atoi(_m["Content-Length"].c_str()) > atoi(conf_local->client_max_body_size.c_str()))
         return 413;
     return -1;

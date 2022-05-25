@@ -239,7 +239,7 @@ void Response::makeResponse()
             get_content_type();
         _filecontent += transfer;
     }
-    _response = getHeader(set_cookie) + _filecontent + "\r\n";
+    _response = getHeader(set_cookie) + _filecontent;
     return;
 }
 

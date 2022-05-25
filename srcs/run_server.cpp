@@ -89,7 +89,7 @@ bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
 
-	memset(address.sin_zero, '\0', sizeof address.sin_zero);
+	memset(&address.sin_zero, 0, sizeof(address.sin_zero));
 
 	if (bind(*listen_sock, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{

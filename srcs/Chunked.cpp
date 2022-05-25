@@ -14,7 +14,7 @@
 
 std::string chunked(std::string str)
 {
-    std::string _chunked;
+    std::string _chunked = "";
     unsigned int i = 0;
     unsigned int len = strtol(str.c_str(), NULL, 16);
     while (i < str.length())
