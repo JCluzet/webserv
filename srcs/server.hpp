@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alebross <alebross@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:08:33 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/21 00:01:25 by alebross         ###   ########.fr       */
+/*   Updated: 2022/05/25 21:00:18 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ class Response;
 // class Redirect;
 std::string					url_decode(std::string str);
 std::string					apply_location(std::string path, Server* conf, Server** dest);
-std::string					chunked(std::string str);
+bool						chunked(std::string *strrec);
 void                        output_debug(std::string request, std::string response);
 void                        treat_cgi(Server* server, Client* client);
 void	                    quit_sig(int sig);
