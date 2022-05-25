@@ -9,7 +9,7 @@ bool is_cgi(Request* request, Server* conf)
         return true;
     for (size_t i = 0; i < conf->cgi.size(); i++)
     {
-        if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first + "?") != std::string::npos)
+        if (request->get_method() == "GET" && request->get_path().rfind("." + conf->cgi[i].first + "?") != std::string::npos)
             return true;
     }
     return false;
@@ -219,8 +219,18 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
     {
         close(client->pipe_cgi_in[1]);
         close(client->pipe_cgi_out[0]);
-        dup2(client->pipe_cgi_out[1], 1);
-        dup2(client->pipe_cgi_in[0], 0);
+        if (dup2(client->pipe_cgi_out[1], 1) < 0 || dup2(client->pipe_cgi_in[0], 0) < 0)
+        {
+            close(client->pipe_cgi_in[0]);
+            close(client->pipe_cgi_out[1]);
+            for (size_t k = 0; k < env.size(); k++)
+                delete[] env_execve[k];
+            delete[] env_execve;
+            for (size_t k = 0; k < cmd.size(); k++)
+                delete[] cmd_execve[k];
+            delete[] cmd_execve;
+            exit(1);
+        }
 
         if (execve(cmd[0].c_str(), cmd_execve, env_execve) < 0)
         {
@@ -230,6 +240,7 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
             for (size_t k = 0; k < cmd.size(); k++)
                 delete[] cmd_execve[k];
             delete[] cmd_execve;
+            close(client->pipe_cgi_in[0]);
             close(client->pipe_cgi_out[1]);
         }
         exit(1);
@@ -282,10 +293,10 @@ void treat_cgi(Server *server, Client *client)
     }
     if (client->request->get_method() == "GET")
     {
-        cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?"));
+        cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?") + server->cgi[i].first.length() + 1);
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path;
-        str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + 1, client->request->get_path().length());
+        str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + server->cgi[i].first.length() + 2);
         cgi_exec(cmd, cgi_env(str, client, server, server->cgi[i].first), client);
     }
     return;

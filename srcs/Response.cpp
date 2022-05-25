@@ -158,8 +158,8 @@ int Response::treatRequest()
 	        {
 	            if (_filepath.find("." + _conf->cgi[i].first + "?") != std::string::npos)
 	    		{
-	                jquery = _filepath.substr(_filepath.rfind("." + _conf->cgi[i].first + "?"), std::string::npos);
-	    			tmp = _filepath.substr(0, _filepath.rfind("." + _conf->cgi[i].first + "?"));
+	                jquery = _filepath.substr(_filepath.rfind("." + _conf->cgi[i].first + "?") + _conf->cgi[i].first.length() + 1);
+	    			tmp = _filepath.substr(0, _filepath.rfind("." + _conf->cgi[i].first + "?") + _conf->cgi[i].first.length() + 1);
 	    			tmp = url_decode(tmp) + jquery;
 	    			break ;
 	    		}
