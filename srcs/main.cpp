@@ -44,6 +44,8 @@ int main(int argc, char const *argv[])
 		conf.set_debug();
 
 	signal(SIGINT, quit_sig);
+	signal(SIGQUIT, quit_sig);
+	signal(SIGPIPE, quit_sig);
 
 	if (argc > 2 && !strcmp(argv[2], "--confdebug"))
 		std::cout << conf << std::endl;

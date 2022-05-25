@@ -15,7 +15,7 @@
 #define MAX_CONNEXIONS 2048
 #define MAX_QUEUED_CONNEXIONS 512 // Maximum de connexions en attente d'etre acceptés, celles en plus recevront ECONNREFUSED
 #define BUFFER_SIZE 4096
-#define LOG 1
+#define LOG 0
 #define CONNEXION_LOG 1
 
 #define DEFAULT_CLIENT_MAX_BODY_SIZE "8192"
@@ -41,6 +41,7 @@
 #include <map>
 #include <arpa/inet.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>

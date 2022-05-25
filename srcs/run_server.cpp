@@ -110,7 +110,7 @@ bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 
 void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 {
-	int valwrite;
+	int valwrite = 0;
 
 	if (client->response->writing == false)
 	{
@@ -128,9 +128,13 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		client->response->writing = true;
 	}
 	if (client->response->transfer.length() <= BUFFER_SIZE)
+	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
+	}
 	else
+	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), BUFFER_SIZE);
+	}
 	if (valwrite < 0)
 	{
 		if(CONNEXION_LOG == 1)
@@ -387,7 +391,6 @@ int run_server(Config conf)
 				else if (client->request->ready() == true && client->fd_file != -1 && FD_ISSET(client->fd_file, &read_fds)) // read file
 				{
 					ReadFile(client);
-
 				}
 				else if (client->request->ready() == true && client->pipe_cgi_out[0] == -1
 					&& client->fd_file == -1 && FD_ISSET(client->socket, &write_fds)) // write client
