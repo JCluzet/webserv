@@ -105,6 +105,11 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
     if (_chunked == true)
     {
         r = chunked(r);
+        _request += r;
+        _body += r;
+        if (r == "")
+            _end = true;
+        return 0;
     }
     r = _line + r;
     _line = "";
@@ -189,12 +194,10 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
     }
     if (_method == "POST" && (_m["Content-Length"] == "" && _m["Transfer-Encoding"] == "chunked"))
     {
-        std::cout << "AA" << std::endl;
         _chunked = true;
     }
     else if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
     {
-        std::cout << "BB" << std::endl;
         return 411;
     }
     else if (_method == "POST" && atoi(_m["Content-Length"].c_str()) > atoi(conf_local->client_max_body_size.c_str()))
