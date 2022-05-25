@@ -876,23 +876,26 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << "ip: " << RESET << src.ip << std::endl;
     }
+    for (size_t i = 0; i < src.lvl + 1; i++)
+        ostream << "\t";
+    ostream << WHITE << "root: " << RESET << src.root << std::endl;
+    for (size_t i = 0; i < src.lvl + 1; i++)
+        ostream << "\t";
+    ostream << WHITE << "upload: " << RESET << src.upload << std::endl;
     for (std::vector<std::string>::const_iterator it = src.server_name.begin(); it != src.server_name.end(); it++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
         ostream << WHITE << (it == src.server_name.begin() ? "server_name: " : "             ") << RESET << *it << std::endl;
     }
+    for (size_t i = 0; i < src.lvl + 1; i++)
+        ostream << "\t";
+    ostream << WHITE << "upload: " << RESET << src.upload << std::endl;
     for (std::vector<std::string>::const_iterator it = src.index.begin(); it != src.index.end(); it++)
     {
         for (size_t i = 0; i < src.lvl + 1; i++)
             ostream << "\t";
         ostream << WHITE << (it == src.index.begin() ? "index : " : "        ") << RESET << *it << std::endl;
-    }
-    if (src.root.length())
-    {
-        for (size_t i = 0; i < src.lvl + 1; i++)
-            ostream << "\t";
-        ostream << WHITE << "root: " << RESET << src.root << std::endl;
     }
     for (std::map<int, std::string>::const_iterator it = src.error_page.begin(); it != src.error_page.end(); it++)
     {
@@ -936,15 +939,6 @@ std::ostream&	operator<<(std::ostream& ostream, const Server& src)
             ostream << "\t";
         ostream << WHITE << (it == src.redirect.begin() ? "redirection: " :  "             ") << RESET << it->redirect1 << " " << it->redirect2 << (it->permanent ? " permanent" : " redirect") << std::endl;
     }
-    // std::string::size_type biggestId = 1;
-    // for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
-    //     if (it->second.loc_id.length() > biggestId)
-    //         biggestId = it->second.loc_id.length();
-    // std::map<std::string, Server>::const_iterator jt;
-    // for (std::string::size_type x = 3; x <= biggestId; x+=2)
-    //     for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
-    //         if (it->second.loc_id.length() == x)
-    //             ostream << it->second;
     for (std::map<std::string, Server>::const_iterator it = src.locations.begin(); it != src.locations.end(); it++)
         ostream << it->second;
     return ostream;
