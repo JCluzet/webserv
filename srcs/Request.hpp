@@ -31,6 +31,8 @@ public:
     // getter
     std::string get_path() const;
 
+    std::string get_path_o() const;
+
     void        set_path(std::string newpath);
 
     std::string get_body() const;
@@ -64,6 +66,7 @@ public:
         std::string _body;
         std::string _line;
         bool _chunked;
+        std::string _path_o;
 
         int addp(Client* client, Server* conf_o, std::string r);
 

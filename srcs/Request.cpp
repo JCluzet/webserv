@@ -1,7 +1,7 @@
 #include "Request.hpp"
 
 
-Request::Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(0), _body(""), _line(""), _chunked(false)
+Request::Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(0), _body(""), _line(""), _chunked(false), _path_o("")
 {
     init_header_map();
 }
@@ -27,6 +27,7 @@ Request&    Request::operator=(const Request &src)
         _body = src._body;
         _line = src._line;
         _chunked = src._chunked;
+        _path_o = src._path_o;
     }
     return *this;
 }
@@ -36,6 +37,8 @@ Request::~Request() {};
 
 // getter
 std::string Request::get_path() const { return _path; };
+
+std::string Request::get_path_o() const { return _path_o; };
 
 void        Request::set_path(std::string newpath) { _path = newpath; return ; };
 
@@ -86,6 +89,7 @@ void Request::clear()
     _valid = 0;
     _chunked = false;
     _body = "";
+    _path_o = "";
     init_header_map();
 }
 
@@ -162,6 +166,7 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
    	Server*		conf_local;
 	std::string	location;
 
+    _path_o = _path;
     if (checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name) == 400)
        return 400;
     location = apply_location(_path, conf_o, &conf_local);
