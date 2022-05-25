@@ -2,7 +2,7 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
     $_SESSION["newsession"] = "newsession";
-    $_SESSION["name"] = "test";
+    // $_SESSION["name"] = "test";
 }
 ?>
 <body>
