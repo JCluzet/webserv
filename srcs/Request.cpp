@@ -93,7 +93,9 @@ void Request::clear()
 int Request::addp(Client* client, Server* conf_o, std::string r)
 {
     std::string::size_type nl;
-    
+
+    if (_request == "")
+        client->response->setConf(conf_o);
     if (_line == "" && _request.find("\r\n\r\n") == std::string::npos && (r == "" || r.substr(0, 1) == " "))
         return 400;
     if (_chunked == true)
