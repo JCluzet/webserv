@@ -20,15 +20,6 @@ if (session_status() == PHP_SESSION_NONE) {
 
 echo 'Session is now start!';
 
-// $_SESSION['favcolor'] = 'green';
-// $_SESSION['animal']   = 'cat';
-// $_SESSION['time']     = time();
-
-// // Fonctionne si le cookie a été accepté
-// echo '<br /><a href="page2.php">page 2</a>';
-
-// // Ou bien, en indiquant explicitement l'identfiant de session
-// echo '<br /><a href="page2.php?' . SID . '">page 2</a>';
 ?>
 <br><br><br>
 </div>
