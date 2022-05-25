@@ -128,13 +128,9 @@ void WriteResponse(Config *conf, Client *client, size_t j, size_t i)
 		client->response->writing = true;
 	}
 	if (client->response->transfer.length() <= BUFFER_SIZE)
-	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), client->response->transfer.length());
-	}
 	else
-	{
 		valwrite = write(client->socket, client->response->transfer.c_str(), BUFFER_SIZE);
-	}
 	if (valwrite < 0)
 	{
 		if(CONNEXION_LOG == 1)
@@ -406,6 +402,8 @@ int run_server(Config conf)
 void quit_sig(int sig)
 {
 	if (SIGINT == sig)
+	{
 		exit_status = true;
-	std::cout << std::endl << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+		std::cout << std::endl << WHITE << "[" << getHour() << "] QUIT Web" << RED << "Serv" << RESET << std::endl;
+	}
 }
