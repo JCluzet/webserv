@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/05/16 20:07:13 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/25 20:59:31 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/25 21:10:09 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,17 +68,17 @@ bool chunked(std::string *strrec)
 {
     unsigned int len;
     std::string str = *strrec;
-    unsigned int i = 0;
-    unsigned int f = 0;
     std::string str1;
-    if (str == "0\r\n\r\n")
+    std::cout << "str: " << str << std::endl;
+    if (str == "0\r\n")
     {
+        std::cout << "end" << std::endl;
         *strrec = "";
         return(true);
     }
-    if (str.find("\r\n", i) == std::string::npos)
+    if (str.find("\r\n") == std::string::npos)
         return (false);
-    str1 = str.substr(0, str.find("\r\n", i));
+    str1 = str.substr(0, str.find("\r\n"));
     if ((len = strtol(str1.c_str(), NULL, 16)) == 0)
         return (false);
     str1 = str.substr(str.find("\r\n") + 2);
