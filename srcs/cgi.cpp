@@ -9,7 +9,7 @@ bool is_cgi(Request* request, Server* conf)
         return true;
     for (size_t i = 0; i < conf->cgi.size(); i++)
     {
-        if (request->get_method() == "GET" && request->get_path().rfind("." + conf->cgi[i].first + "?") != std::string::npos)
+        if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first + "?") != std::string::npos)
             return true;
     }
     return false;
@@ -219,7 +219,7 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
     {
         close(client->pipe_cgi_in[1]);
         close(client->pipe_cgi_out[0]);
-        if (dup2(client->pipe_cgi_out[1], 1) < 0 || dup2(client->pipe_cgi_in[0], 0) < 0)
+        if (dup2(client->pipe_cgi_out[1], 1) < 0 || (client->request->get_method() == "POST" && dup2(client->pipe_cgi_in[0], 0) < 0))
         {
             close(client->pipe_cgi_in[0]);
             close(client->pipe_cgi_out[1]);
