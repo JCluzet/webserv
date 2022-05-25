@@ -76,3 +76,5 @@ text-decoration: underline;
     color: maroon;
     margin-left: 40px;
   }
+
+  #loadOverlay{display: none;}
