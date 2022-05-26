@@ -1,7 +1,7 @@
 #include "Request.hpp"
 
 
-Request::Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(0), _body(""), _line(""), _chunked(false), _path_o("")
+Request::Request() : _request(""), _path(""), _method(""), _version(""), _end(false), _valid(0), _body(""), _line(""), _chunked(-2), _path_o("")
 {
     init_header_map();
 }
@@ -61,9 +61,8 @@ void Request::add(Client* client, Server* conf_o, std::string new_request)
 {
     if ((_valid = addp(client, conf_o, new_request)) != 0)
     {
-        clear();
         _end = true;
-        return;
+        return ;
     }
     if (_valid == 0 && _end == true && _method == "POST")
     {
@@ -74,9 +73,9 @@ void Request::add(Client* client, Server* conf_o, std::string new_request)
         if (_m["Content-Type"] != "text/plain" && (_m["Content-Type"].find(";") == std::string::npos || _m["Content-Type"].substr(0, _m["Content-Type"].find(";")) != "multipart/form-data") && _m["Content-Type"] != "application/x-www-form-urlencoded")
         {
             _valid = 400;
-            clear();
         }
     }
+    return ;
 }
 
 void Request::clear()
@@ -87,7 +86,7 @@ void Request::clear()
     _version = "";
     _end = false;
     _valid = 0;
-    _chunked = false;
+    _chunked = -2;
     _body = "";
     _path_o = "";
     init_header_map();
@@ -100,18 +99,10 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
 
     if (_request == "")
         client->response->setConf(conf_o);
+    if (_request == "" && r == "\r\n")
+        return 0;
     if (_line == "" && _request.find("\r\n\r\n") == std::string::npos && (r == "" || r.substr(0, 1) == " "))
         return 400;
-    if (_chunked == true)
-    {
-        if (chunked(&r) == false)
-            return 400;
-        _request += r;
-        _body += r;
-        if (r == "")
-            _end = true;
-        return 0;
-    }
     r = _line + r;
     _line = "";
     while ((nl = r.find(NL)) != std::string::npos)
@@ -121,12 +112,33 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
             if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
                 return 400;
         }
-        else if (r[0] == '\r' && r[1] == '\n' && _request.substr(_request.length() - 2, _request.length()) == "\r\n"
+        else if (r[0] == '\r' && r[1] == '\n' && _request.substr(_request.length() - 2) == "\r\n"
             && _request.find("\r\n\r\n") == std::string::npos)
         {
             int ret;
             if ((ret = checkHeader(client, conf_o, r)) != -1)
                 return ret;
+        }
+        else if (_chunked >= -1)
+        {
+            std::string dest = r;
+
+            _chunked = chunked(&dest, _chunked);
+            if (_chunked == -2)
+                return 400;
+            else if (_chunked == -1)
+            {
+                _body += dest;
+                _request += dest;
+                if (dest == "")
+                {
+                    _m["Content-Length"] = intToStr(_body.length());
+                    _end = true; 
+                    return 0;
+                }
+            }
+            else if (static_cast<signed int>(_body.length() + _chunked) > atoi(client->response->get_conf()->client_max_body_size.c_str()))
+                return (413);
         }
         else if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos)
         {
@@ -145,13 +157,15 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         }
         else
         {
-            get_request_line(r.substr(0, nl + NLSIZE));
+            if (!get_request_line(r.substr(0, nl + NLSIZE)))
+                return 400;
         }
-        if (r != "\r\n" || _request != "")
+        if (_chunked == -2)
             _request += r.substr(0, nl + NLSIZE);
         r.erase(0, nl + NLSIZE);
     }
-    if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
+    if (_method == "POST" && _request.find("\r\n\r\n") != std::string::npos && _chunked == -2
+        && static_cast<int>(_body.length() + r.length()) >= atoi(_m["Content-Length"].c_str()))
     {
         _body += r;
         _request += r;
@@ -193,9 +207,10 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
         _end = true;
         return 0;
     }
-    if (_method == "POST" && (_m["Content-Length"] == "" && _m["Transfer-Encoding"] == "chunked"))
+    else if (_method == "POST" && _m["Content-Length"] == "" && _m["Transfer-Encoding"] == "chunked")
     {
-        _chunked = true;
+        _request += r;
+        _chunked = -1;
     }
     else if (_method == "POST" && (_m["Content-Length"] == "" || _m["Content-Length"].find_first_not_of("0123456789") != std::string::npos))
     {

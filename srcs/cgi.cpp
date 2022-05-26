@@ -15,7 +15,7 @@ bool is_cgi(Request* request, Server* conf)
     return false;
 }
 
-std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *server, std::string extension)
+std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *server, std::string fullpath)
 {
     std::ostringstream convert;
     std::vector<std::string> env(28);
@@ -37,22 +37,13 @@ std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *se
     str += "CGI/1.1";
     env[2] = str;
     str = "PATH_INFO="; // Extra path information passed to a CGI program.
-    if (client->request->get_method() == "GET")
-        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
-    else
-        str += client->request->get_path();
+    str += fullpath.substr(server->root.length());
     env[3] = str;
     str = "PATH_TRANSLATED="; // The translated version of the path given by the variable PATH_INFO.
-    if (client->request->get_method() == "GET")
-        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
-    else
-        str += client->request->get_path();
+    str += fullpath.substr(server->root.length());
     env[4] = str;
     str = "QUERY_STRING="; // The query information passed to the program. It is appended to the URL following a question mark (?).
-    if (client->request->get_method() == "GET")
-        str += cgi_str;
-    else
-        str += "";
+    str += cgi_str;
     env[5] = str;
     str = "AUTH_TYPE="; // The authentication method used to validate a user. See REMOTE_IDENT and REMOTE_USER.
     str += "Basic";
@@ -111,20 +102,14 @@ std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *se
     str = "DOCUMENT_ROOT="; // The directory from which web documents are served.
     str += server->root;
     env[23] = str;
-    str = "REQUEST_URI="; // file_path //
-    if (client->request->get_method() == "GET")
-        str += client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
-    else
-        str += client->request->get_path();
+    str = "REQUEST_URI=";
+    str += client->request->get_path_o();
     env[24] = str;
     str = "REDIRECT_STATUS=";
     str += "200";
     env[25] = str;
     str = "SCRIPT_FILENAME=";
-    if (client->request->get_method() == "GET")
-        str += server->root + client->request->get_path().substr(0, client->request->get_path().find("." + extension + "?") + extension.length() + 1);
-    else
-        str += server->root + client->request->get_path();
+    str += fullpath;
     env[26] = str;
     str = "UPLOAD_PATH=";
     str += server->upload;
@@ -132,17 +117,6 @@ std::vector<std::string> cgi_env(std::string cgi_str, Client *client, Server *se
 
     return (env);
 }
-
-/*void afficher_env(char **env)
-{
-    std::string str;
-    for (size_t i = 0; env[i] != NULL; i++)
-    {
-        std::cout << env[i] << std::endl;
-    }
-    std::cout << std::endl;
-    return;
-}*/
 
 void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
 {
@@ -162,7 +136,6 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
         env_execve[i] = std::strcpy(env_execve[i], env[i].c_str());
     }
     env_execve[env.size()] = NULL;
-    // afficher_env(env_execve);
     if (pipe(client->pipe_cgi_out) < 0)
     {
         client->pipe_cgi_out[0] = -1;
@@ -259,13 +232,13 @@ void cgi_exec(std::vector<std::string> cmd, std::vector<std::string> env, Client
     return;
 }
 
-void treat_cgi(Server *server, Client *client)
+void treat_cgi(Server *server, Client *client, std::string cmd_path)
 {
-    std::string str;
+    std::string str = "";
     std::string cmd_cgi;
-    std::string cmd_path = server->root + client->request->get_path();
     std::vector<std::string> cmd(2);
     size_t i = 0;
+
 
     cmd_cgi = server->cgi_bin;
     for (; i < server->cgi.size(); i++)
@@ -277,7 +250,7 @@ void treat_cgi(Server *server, Client *client)
             else if (server->cgi_bin[server->cgi_bin.length() - 1] != '/' && server->cgi[i].second[0] != '/')
                 server->cgi_bin += "/";
             cmd_cgi = server->cgi_bin + server->cgi[i].second;
-            break;
+            break ;
         }
     }
     if (i == server->cgi.size())
@@ -287,17 +260,27 @@ void treat_cgi(Server *server, Client *client)
     }
     if (client->request->get_method() == "POST")
     {
-        cmd[0] = cmd_cgi;
-        cmd[1] = cmd_path;
-        cgi_exec(cmd, cgi_env("", client, server, server->cgi[i].first), client);
+        if (cmd_path.find("." + server->cgi[i].first + "?") != std::string::npos)
+        {
+            str = cmd_path.substr(cmd_path.rfind(("." + server->cgi[i].first + "?")) + server->cgi[i].first.length() + 2);
+            cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?") + server->cgi[i].first.length() + 1);
+            cmd[0] = cmd_cgi;
+            cmd[1] = cmd_path;  
+        }
+        else
+        {
+            cmd[0] = cmd_cgi;
+            cmd[1] = cmd_path;
+        } 
+        cgi_exec(cmd, cgi_env(str, client, server, cmd_path), client);
     }
     if (client->request->get_method() == "GET")
     {
         cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?") + server->cgi[i].first.length() + 1);
         cmd[0] = cmd_cgi;
-        cmd[1] = cmd_path;
+        cmd[1] = cmd_path; 
         str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + server->cgi[i].first.length() + 2);
-        cgi_exec(cmd, cgi_env(str, client, server, server->cgi[i].first), client);
+        cgi_exec(cmd, cgi_env(str, client, server, cmd_path), client);
     }
     return;
 }

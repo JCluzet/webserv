@@ -230,10 +230,6 @@ void ReadCGI(Client *client)
         }
 		else
 			client->response->setStatus(200);
-		if (client->response->transfer.length() > 0 && LOG == 1)
-        	std::cout << GREEN << "[⊛ CGI]        => " << WHITE << client->response->transfer.substr(0, 20) + "....." << RESET << std::endl;
-		else if (LOG == 1)
-        	std::cout << GREEN << "[⊛ CGI]        => " << RED << "NOT VALID CGI-BIN" << RESET << std::endl;
 	}
 	else
 	{
@@ -307,7 +303,7 @@ void ReadRequest(Config *conf, Client *client, size_t j, size_t i)
 			client->fd_file = client->response->treatRequest();
 			if (is_cgi(client->request, client->response->get_conf()) == true && client->response->getstat() == 0)
 			{
-				treat_cgi(client->response->get_conf(), client);
+				treat_cgi(client->response->get_conf(), client, client->response->get_fpath());
 				client->response->transfer = client->request->get_body(); 
 			}
 		}
@@ -377,7 +373,6 @@ int run_server(Config conf)
 					&& client->pipe_cgi_in[1] != -1 && FD_ISSET(client->pipe_cgi_in[1], &write_fds)) // write cgi
 				{
 					WriteCGI(client);
-
 				}
 				else if (client->request->ready() == true && is_cgi(client->request, client->response->get_conf())
 					&& client->pipe_cgi_in[1] == -1 && client->pipe_cgi_out[0] != -1 && FD_ISSET(client->pipe_cgi_out[0], &read_fds)) // read cgi

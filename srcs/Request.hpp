@@ -56,11 +56,11 @@ public:
         std::string _method;
         std::string _version;
         std::string _header[NB_HEADERS];
-        bool _end;
-        int _valid;
+        bool        _end;
+        int         _valid;
         std::string _body;
         std::string _line;
-        bool _chunked;
+        int         _chunked;
         std::string _path_o;
 
         int addp(Client* client, Server* conf_o, std::string r);

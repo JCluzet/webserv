@@ -72,7 +72,6 @@ std::string getHour()
   strftime(buf, sizeof(buf), "%X", &tstruct);
   return (buf);
 }
-
 bool readinFile(std::string filename, std::string *fileContent)
 {
   std::string s;
@@ -81,23 +80,22 @@ bool readinFile(std::string filename, std::string *fileContent)
 
   if (!ifs)
   {
-    std::cerr << "Not Found " << filename << "." << std::endl;
+    std::cerr << "Can't open " << filename << "." << std::endl;
     return (1);
   }
   getline(ifs, s);
-  if (s == "")
+  *fileContent += s;
+  while (getline(ifs, s)){
+    *fileContent += "\n";
+    *fileContent += s;
+  }
+  ifs.close();
+  if (*fileContent == "")
   {
     std::cerr << "Empty file." << std::endl;
     ifs.close();
     return (1);
   }
-  *fileContent += s;
-  while (getline(ifs, s))
-  {
-    *fileContent += "\n";
-    *fileContent += s;
-  }
-  ifs.close();
   return (0);
 }
 

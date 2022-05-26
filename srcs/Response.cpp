@@ -120,8 +120,8 @@ int Response::treatRequest()
         fd_file = openFile();
         return (fd_file);
     }
-    /* --Url_Decode-- */
     get_filepath();
+    /* --Url_Decode-- */
 	if (access(_filepath.c_str(), F_OK) != 0)
 	{
         std::string tmp;
@@ -146,8 +146,6 @@ int Response::treatRequest()
 	    if (access(tmp.c_str(), F_OK) == 0)
 	    	_filepath = tmp;
 	}
-    if (is_cgi(_request, _conf) == true)
-        return -1;
     /* ---- */
 
     /* --Redirections-- */
@@ -179,7 +177,9 @@ int Response::treatRequest()
         return (-1);
     }
     /* ---- */
-    
+
+    if (is_cgi(_request, _conf) == true)
+        return -1;
     if (_filepath == "")
     {
         _stat_rd = 400;
@@ -213,8 +213,24 @@ void Response::makeResponse()
     {
         if (is_cgi(_request, _conf) && (_stat_rd == 0 || _stat_rd == 200 || _stat_rd == 201))
         {
-            if (_request->get_method() == "GET")
-                _filepath = _filepath.substr(0, _filepath.rfind("?"));
+            size_t  i = 0;
+            for (; i < _conf->cgi.size(); i++)
+            {
+                    if (_filepath.rfind("." + _conf->cgi[i].first + "?") != std::string::npos)
+                        break ;
+            }
+            if (i == _conf->cgi.size())
+            {
+                if (_request->get_method() == "GET")
+                    _filepath = _filepath.substr(0, _filepath.rfind("?"));
+            }
+            else
+            {
+                if (_request->get_method() == "GET")
+                    _filepath = _filepath.substr(0, _filepath.rfind("." + _conf->cgi[i].first + "?"));
+                if (_request->get_method() == "POST" && _filepath.find("." + _conf->cgi[i].first + "?") != std::string::npos)
+                    _filepath = _filepath.substr(0, _filepath.rfind("." + _conf->cgi[i].first + "?"));
+            }
             if (transfer.find("Content-type: ") != std::string::npos && transfer.find("\r\n", transfer.find("Content-type: ")) != std::string::npos)
                 _content_type = transfer.substr(transfer.find("Content-type: ") + 14, transfer.find("\r\n", transfer.find("Content-type: ")) - transfer.find("Content-type: ") - 14);
             else
@@ -238,6 +254,10 @@ void Response::makeResponse()
         else
             get_content_type();
         _filecontent += transfer;
+    }
+    if ((_request->get_method() == "GET" || _request->get_method() == "POST") && _stat_rd == 200 && _filecontent == "")
+    {
+        _stat_rd = 204;
     }
     _response = getHeader(set_cookie) + _filecontent;
     return;
@@ -353,6 +373,8 @@ const std::string Response::error_page_message(const int status)
         return ("OK");
     if (status == 201)
         return ("Created");
+    if (status == 204)
+        return ("No Content");
     if (status == 403)
         return ("Forbidden");
     if (status == 404)
