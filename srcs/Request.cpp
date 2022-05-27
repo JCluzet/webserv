@@ -231,8 +231,8 @@ int	Request::checkHost(std::string ip, std::string port, std::vector<std::string
     			break ; 
     		else if (k + 1 == server_name.size())
     		{
-    			if (_m["Host"].find(":") != std::string::npos && _m["Host"].find(":") == _m["Host"].rfind(":")
-    				&& (ip == "0.0.0.0" || ip == _m["Host"].substr(0, _m["Host"].find(":"))) && _m["Host"].substr(_m["Host"].find(":") + 1) == port)
+    			if ((_m["Host"] == ip && port == "80") || (_m["Host"].find(":") != std::string::npos && _m["Host"].find(":") == _m["Host"].rfind(":")
+    				&& (ip == "0.0.0.0" || ip == _m["Host"].substr(0, _m["Host"].find(":"))) && _m["Host"].substr(_m["Host"].find(":") + 1) == port))
     				break ;
     			return 399;
     		}

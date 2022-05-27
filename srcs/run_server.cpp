@@ -82,10 +82,9 @@ bool ListenSocketAssign(int port, int *listen_sock, std::string ip)
 	if (ip == "0.0.0.0")
 		address.sin_addr.s_addr = INADDR_ANY;
 	else if (ip == "127.0.0.1")
-		address.sin_addr.s_addr = INADDR_LOOPBACK;
+		address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // htonl pour remettre les octets dans l'ordre
 	else
-		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"	
-	address.sin_addr.s_addr = INADDR_ANY;
+		address.sin_addr.s_addr = inet_addr(ip.c_str()); // fonctionne aussi avec "0.0.0.0" et "127.0.0.1"
 	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
 
