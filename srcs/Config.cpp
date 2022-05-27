@@ -595,7 +595,6 @@ bool    Config::get_conf(const std::string s)
     std::string::size_type line_i = 1, i = 0, i_serv = 1, i_loc = 1;
     std::vector<std::pair<std::string, std::string> >   vp;
     Server serv_tmp;
-    bool    e_ipport = 0;
     if (s.empty())
         return error_msg("Error: Empty config file.") + 1;
     pass_blanck(s, &i, &line_i);
@@ -673,8 +672,8 @@ bool    Config::get_conf(const std::string s)
 
 bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::string> >   vp)
 {
+    (void)vp;
     bool r = 0;
-    bool a = 0;
     std::string tmp;
     if (s->root.empty())
     {
