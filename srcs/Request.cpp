@@ -97,12 +97,10 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
 {
     std::string::size_type nl;
 
-    if (_request == "")
-        client->response->setConf(conf_o);
     if (_request == "" && r == "\r\n")
         return 0;
     if (_line == "" && _request.find("\r\n\r\n") == std::string::npos && (r == "" || r.substr(0, 1) == " "))
-        return 400;
+        return 399;
     r = _line + r;
     _line = "";
     while ((nl = r.find(NL)) != std::string::npos)
@@ -110,7 +108,7 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         if (_request.empty() == true)
         {
             if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
-                return 400;
+                return 399;
         }
         else if (r[0] == '\r' && r[1] == '\n' && _request.substr(_request.length() - 2) == "\r\n"
             && _request.find("\r\n\r\n") == std::string::npos)
@@ -187,8 +185,9 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
 	std::string	location;
 
     _path_o = _path;
-    if (checkHost(client, conf_o->ip, conf_o->port, conf_o->server_name) == 400)
-       return 400;
+    client->response->setConf(conf_o);
+    if (checkHost(conf_o->ip, conf_o->port, conf_o->server_name) == 399)
+       return 399;
     location = apply_location(_path, conf_o, &conf_local);
     client->response->setConf(conf_local);
     if (conf_o->root != conf_local->root)
@@ -221,22 +220,21 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
     return -1;
 }
 
-int	Request::checkHost(Client* client, std::string ip, std::string port, std::vector<std::string> server_name)
+int	Request::checkHost(std::string ip, std::string port, std::vector<std::string> server_name)
 {
-    if (client->request->get_header("Host") != ip + ":" + port)
+    if (_m["Host"] != ip + ":" + port)
     {
     	for (size_t k = 0; k < server_name.size(); k++)
     	{
-    		if (server_name[k] == _m["Host"]
+    		if ((server_name[k] == _m["Host"] && port == "80")
     			|| server_name[k] + ":" + port == _m["Host"])
-    			break ;
+    			break ; 
     		else if (k + 1 == server_name.size())
     		{
-    			if (ip == "0.0.0.0" && _m["Host"].find(":") != std::string::npos
-    				&& _m["Host"].find(":") == _m["Host"].rfind(":")
-    				&& _m["Host"].substr(_m["Host"].find(":") + 1, _m["Host"].length()) == port)
+    			if (_m["Host"].find(":") != std::string::npos && _m["Host"].find(":") == _m["Host"].rfind(":")
+    				&& (ip == "0.0.0.0" || ip == _m["Host"].substr(0, _m["Host"].find(":"))) && _m["Host"].substr(_m["Host"].find(":") + 1) == port)
     				break ;
-    			return 400;
+    			return 399;
     		}
     	}
     }

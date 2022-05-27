@@ -67,7 +67,7 @@ public:
 
         int checkHeader(Client* client, Server* conf_o, std::string r);
 
-        int	checkHost(Client* client, std::string ip, std::string port, std::vector<std::string> server_name);
+        int	checkHost(std::string ip, std::string port, std::vector<std::string> server_name);
 
         bool get_request_line(std::string r);
 

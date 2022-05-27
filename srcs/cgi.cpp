@@ -5,11 +5,11 @@ bool is_cgi(Request* request, Server* conf)
     std::string str;
     if (request->get_path().find("/") == std::string::npos || request->get_path() == "")
         return false;
-    if (request->get_method() == "POST")
-        return true;
     for (size_t i = 0; i < conf->cgi.size(); i++)
     {
-        if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first + "?") != std::string::npos)
+        if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first) != std::string::npos)
+            return true;
+        if (request->get_method() == "POST" && request->get_path().find("." + conf->cgi[i].first) != std::string::npos)
             return true;
     }
     return false;
@@ -276,10 +276,15 @@ void treat_cgi(Server *server, Client *client, std::string cmd_path)
     }
     if (client->request->get_method() == "GET")
     {
-        cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?") + server->cgi[i].first.length() + 1);
+        if (cmd_path.find("." + server->cgi[i].first + "?") != std::string::npos)
+        {
+            cmd_path = cmd_path.substr(0, cmd_path.rfind("." + server->cgi[i].first + "?") + server->cgi[i].first.length() + 1);
+            str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + server->cgi[i].first.length() + 2);
+        }
+        else
+            str = "";
         cmd[0] = cmd_cgi;
         cmd[1] = cmd_path; 
-        str = client->request->get_path().substr(client->request->get_path().rfind(("." + server->cgi[i].first + "?")) + server->cgi[i].first.length() + 2);
         cgi_exec(cmd, cgi_env(str, client, server, cmd_path), client);
     }
     return;

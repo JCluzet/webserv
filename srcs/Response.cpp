@@ -94,8 +94,12 @@ int Response::openFile()
     }
     if (_stat_rd != 200 && _stat_rd != 201 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
-        if (!_conf->error_page.count(_stat_rd))
+        if (_stat_rd == 399 || !_conf->error_page.count(_stat_rd))
+        {
+            if (_stat_rd == 399)
+                _stat_rd = 400;
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
+        }
         else
         {
             _filepath = _conf->root + _conf->error_page[_stat_rd];
@@ -112,14 +116,45 @@ int Response::treatRequest()
 {
     int fd_file = -1;
     std::string method = _request->get_method();
-    std::vector<Redirect>::iterator it = _conf->redirect.begin();
-
+    
     if (_request->is_valid() != 0)
     {
         _stat_rd = _request->is_valid();
         fd_file = openFile();
         return (fd_file);
     }
+
+    /* --Redirections-- */
+    std::vector<Redirect>::iterator it = _conf->redirect.begin();
+    while (it != _conf->redirect.end())
+    {
+        if (it->redirect1.length() <= _request->get_path().length() && it->redirect1 == _request->get_path().substr(0, it->redirect1.length()))
+        {
+            if (it->permanent == true)
+                _stat_rd = 301;
+            else
+                _stat_rd = 302;
+            transfer = it->redirect2;
+            return -1;
+        }
+        it++;
+    }
+    if (_filepath != "" && is_directory(_conf->root + _request->get_path()) == true
+        && _request->get_path_o().substr(_request->get_path_o().length() - 1) != "/")
+    {
+        _stat_rd = 301;
+        transfer = _request->get_path_o() + "/";
+        return -1;
+    }
+    else if (_filepath != "" && is_directory(_conf->root + _request->get_path()) == false && access(std::string(_conf->root + _request->get_path()).c_str(), F_OK) == 0
+        && _request->get_path_o().substr(_request->get_path_o().length() - 1) == "/")
+    {
+        _stat_rd = 301;
+        transfer = _request->get_path_o().substr(0, _request->get_path_o().length() - 1);
+        return -1;
+    }
+    /* ---- */
+
     get_filepath();
     /* --Url_Decode-- */
 	if (access(_filepath.c_str(), F_OK) != 0)
@@ -148,37 +183,7 @@ int Response::treatRequest()
 	}
     /* ---- */
 
-    /* --Redirections-- */
-    while (it != _conf->redirect.end())
-    {
-        if (it->redirect1.length() <= _filepath.length() && it->redirect1 == _filepath.substr(0, it->redirect1.length()))
-        {
-            if (it->permanent == true)
-                _stat_rd = 301;
-            else
-                _stat_rd = 302;
-            transfer = it->redirect2;
-            return (-1);
-        }
-        it++;
-    }
-    if (_filepath != "" && is_directory(_conf->root + _request->get_path()) == true
-        && _request->get_path_o().substr(_request->get_path_o().length() - 1) != "/")
-    {
-        _stat_rd = 301;
-        transfer = _request->get_path_o() + "/";
-        return (-1);
-    }
-    if (_filepath != "" && is_directory(_conf->root + _request->get_path()) == false && access(std::string(_conf->root + _request->get_path()).c_str(), F_OK) == 0
-        && _request->get_path_o().substr(_request->get_path_o().length() - 1) == "/")
-    {
-        _stat_rd = 301;
-        transfer = _request->get_path_o().substr(0, _request->get_path_o().length() - 1);
-        return (-1);
-    }
-    /* ---- */
-
-    if (is_cgi(_request, _conf) == true)
+    if (is_cgi(_request, _conf) == true && _stat_rd != 301 && _stat_rd != 302)
         return -1;
     if (_filepath == "")
     {
@@ -253,12 +258,10 @@ void Response::makeResponse()
         }
         else
             get_content_type();
-        _filecontent += transfer;
     }
+    _filecontent += transfer;
     if ((_request->get_method() == "GET" || _request->get_method() == "POST") && _stat_rd == 200 && _filecontent == "")
-    {
         _stat_rd = 204;
-    }
     _response = getHeader(set_cookie) + _filecontent;
     return;
 }

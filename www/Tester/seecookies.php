@@ -1,10 +1,3 @@
-<?php
-// reset cookies
-unset($_COOKIE['cookie1']);
-unset($_COOKIE['cookie2']);
-setcookie('cookie1', $_GET["fname"]);
-setcookie('cookie2', $_GET["lname"]);
-?>
 <body>
     <section class="notFound">
     <link rel="stylesheet" href="/style/style.css">
@@ -18,12 +11,13 @@ setcookie('cookie2', $_GET["lname"]);
             <br><br>
             
             <h3>Here is the cookies you've just enter :</h3>
-            <?php
-echo "Cookie1: " . $_GET["fname"] . "<br>";
-echo "Cookie2: " . $_GET["lname"] . "<br><br><br>";
+<?php
+$cookie1 = htmlspecialchars($_COOKIE['cookie1']);
+$cookie2 = htmlspecialchars($_COOKIE['cookie2']);
+echo "Cookie1: " . $cookie1 . "<br>";
+echo "Cookie2: " . $cookie2 . "<br><br><br>";
 ?>
 <br><br><br>
-<h3>Click <a href="seecookies.php">here</a>to see your cookies.</h3>
 </div>
 </section>
 </body>

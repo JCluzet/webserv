@@ -110,8 +110,6 @@ div.text a:hover {
             <br><br>
             
             <?php
-echo "Cookie1: " . $_COOKIE["cookie1"] . "<br>";
-echo "Cookie2: " . $_COOKIE["cookie2"] . "<br><br><br>";
 echo "Hello " . $_GET["lname"] . " " . $_GET["fname"] . " !";
 ?>
 </div>
