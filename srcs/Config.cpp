@@ -625,16 +625,16 @@ bool    Config::get_conf(const std::string s)
             return 1;
         if (vp.empty())
         {
-            for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
-            {
-                if (server[j].port == DEFAULT_PORT)
-                {
-                    std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip:port (" << DEFAULT_IP << ":" << DEFAULT_PORT << ")." << std::endl;
-                    e_ipport = 1;
-                }
-                if (e_ipport)
-                    return 1;
-            }
+            // for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+            // {
+            //     if (server[j].port == DEFAULT_PORT)
+            //     {
+            //         std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the default ip:port (" << DEFAULT_IP << ":" << DEFAULT_PORT << ")." << std::endl;
+            //         e_ipport = 1;
+            //     }
+            //     if (e_ipport)
+            //         return 1;
+            // }
             serv_tmp.ip = DEFAULT_IP;
             serv_tmp.port = DEFAULT_PORT;
             server.push_back(serv_tmp);
@@ -643,17 +643,17 @@ bool    Config::get_conf(const std::string s)
         {
             for (std::vector<std::pair<std::string, std::string> >::size_type i = 0; i < vp.size(); i++)
             {
-                for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
-                {
-                    if ((server[j].ip == vp[i].first && server[j].port == vp[i].second)
-                        || (server[j].port == vp[i].second && (server[j].ip == DEFAULT_IP || vp[i].first == DEFAULT_IP)))
-                    {
-                        std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip:port(" << vp[i].first << ":" << (server[j].ip == DEFAULT_IP || vp[i].second == DEFAULT_IP ? DEFAULT_IP : vp[i].second) << ")." << std::endl;
-                        e_ipport = 1;
-                    }
-                    if (e_ipport)
-                        return 1;
-                }
+                // for (std::vector<Server>::size_type j = 0; j < server.size(); j++)
+                // {
+                //     if ((server[j].ip == vp[i].first && server[j].port == vp[i].second)
+                //         || (server[j].port == vp[i].second && (server[j].ip == DEFAULT_IP || vp[i].first == DEFAULT_IP)))
+                //     {
+                //         std::cerr << "Error: config file: server " << j + 1 << " and " << i_serv << " share the same ip:port(" << vp[i].first << ":" << (server[j].ip == DEFAULT_IP || vp[i].second == DEFAULT_IP ? DEFAULT_IP : vp[i].second) << ")." << std::endl;
+                //         e_ipport = 1;
+                //     }
+                //     if (e_ipport)
+                //         return 1;
+                // }
                 serv_tmp.ip = vp[i].first;
                 serv_tmp.port = vp[i].second;
                 server.push_back(serv_tmp);
@@ -710,18 +710,20 @@ bool    Config::check_server(Server* s, std::vector<std::pair<std::string, std::
             r = 1;
         }
     }
-    for (std::vector<std::string>::const_iterator it = s->server_name.begin(); it != s->server_name.end();it++)
-        if (*it == "localhost")
-        {
-            a = 1;
-            break;
-        }
-    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = vp.begin(); it != vp.end(); it++)
-        if ((it->first == "127.0.0.1" || it->first == "0.0.0.0") && !a)
-        {
-            s->server_name.push_back("localhost");
-            break;
-        }
+    // for (std::vector<std::string>::const_iterator it = s->server_name.begin(); it != s->server_name.end();it++)
+    //     if (*it == "localhost")
+    //     {
+    //         a = 1;
+    //         break;
+    //     }
+    if (s->server_name.empty())
+        s->server_name.push_back(DEFAULT_HOSTNAME);
+    // for (std::vector<std::pair<std::string, std::string> >::const_iterator it = vp.begin(); it != vp.end(); it++)
+    //     if ((it->first == "127.0.0.1" || it->first == "0.0.0.0") && !a)
+    //     {
+    //         s->server_name.push_back("localhost");
+    //         break;
+    //     }
     if (!s->upload.length())
         s->upload = s->root;
     if (!is_directory(s->upload))
