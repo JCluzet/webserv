@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/30 22:52:14 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/30 23:45:48 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,15 +135,15 @@ int Response::treatRequest()
         }
         it++;
     }
-    if (is_directory(_conf->root + _request->get_path_o()) == true
-        && _request->get_path_o().substr(_request->get_path_o().length() - 1) != "/")
+    if (is_directory(_filepath) == true
+        && _request->get_path_o()[_request->get_path_o().length() - 1] != '/')
     {
         _stat_rd = 301;
         transfer = _request->get_path_o() + "/";
         return -1;
     }
-    else if (_filepath != "" && is_directory(_conf->root + _request->get_path_o()) == false && access(std::string(_conf->root + _request->get_path_o()).c_str(), F_OK) == 0
-        && _request->get_path_o().substr(_request->get_path_o().length() - 1) == "/")
+    else if (is_directory(_filepath) == false && access(std::string(_filepath).c_str(), F_OK) == 0
+        && _request->get_path_o()[_request->get_path_o().length() - 1] == '/')
     {
         _stat_rd = 301;
         transfer = _request->get_path_o().substr(0, _request->get_path_o().length() - 1);
