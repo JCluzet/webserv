@@ -21,7 +21,7 @@ Then run ./webserv without arguments to use default.conf config. (or specified a
 
 ## How to launch ?
 
-`make re && ./configure && ./webserv`
+`make re && ./configure -y && ./webserv`
 
 then go to localhost:80 by default
 
