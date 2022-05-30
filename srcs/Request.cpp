@@ -188,9 +188,9 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
 	std::string	location;
 
     _path_o = _path;
-    client->response->setConf(conf_o);
     if (checkHost(conf_o->ip, conf_o->port, conf_o->server_name) == 400)
        return 400;
+    client->response->setConf(conf_o);
     location = apply_location(_path, conf_o, &conf_local);
     client->response->setConf(conf_local);
     if (conf_o->root != conf_local->root)
