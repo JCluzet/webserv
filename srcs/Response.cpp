@@ -329,7 +329,7 @@ int Response::method_delete(void)
     {
         if (remove(_filepath.c_str()) < 0)
             return (500);
-        return (200);
+        return (204);
     }
     return (403);
 }
