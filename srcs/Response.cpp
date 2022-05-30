@@ -6,7 +6,7 @@
 /*   By: jcluzet <jcluzet@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/29 18:40:00 by jcluzet           #+#    #+#             */
-/*   Updated: 2022/05/30 23:45:48 by jcluzet          ###   ########.fr       */
+/*   Updated: 2022/05/31 00:27:39 by jcluzet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ int Response::treatRequest()
     std::vector<Redirect>::iterator it = _conf->redirect.begin();
     while (it != _conf->redirect.end())
     {
-        if (it->redirect1.length() <= _request->get_path_o().length() && it->redirect1 == _request->get_path_o().substr(0, it->redirect1.length()))
+        if (it->redirect1.length() <= _request->get_path_o().length() && it->redirect1 == _request->get_path_o().substr(0, it->redirect1.length()) && (_request->get_path_o().length() == it->redirect1.length() || _request->get_path_o()[it->redirect1.length()] == '/'))
         {
             if (it->permanent == true)
                 _stat_rd = 301;
@@ -143,7 +143,7 @@ int Response::treatRequest()
         transfer = _request->get_path_o() + "/";
         return -1;
     }
-    else if (is_directory(_filepath) == false && access(std::string(_filepath).c_str(), F_OK) == 0
+    else if (is_directory(_conf->root + _request->get_path_o()) == false && access(std::string(_conf->root + _request->get_path_o()).c_str(), F_OK) == 0
         && _request->get_path_o()[_request->get_path_o().length() - 1] == '/' && _request->get_path_o() != "/")
     {
         _stat_rd = 301;
