@@ -1,5 +1,10 @@
 #!/bin/bash
-read -p "Do you want to replace default.conf? (y/n) " -n 1 -r
+if [[ "$1" != "-y" ]]
+then
+	read -p "Do you want to replace default.conf? (y/n) " -n 1 -r
+else
+REPLY="Y";
+fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo ""
