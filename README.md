@@ -1,5 +1,5 @@
 # WebServ with BONUS
-#### Made by AMANCHON (Antoine Manchon) & Alebross (Alexandre Brossette) & JCluzet
+#### Made by AMANCHON (Antoine Manchon) & ALEBROSS (Alexandre Brossette) & JCLUZET
 ## Compatible LINUX & MacOS 125% ✅
 ### This project teaches how to recreate a HTTP Server 1.1 
 
