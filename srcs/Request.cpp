@@ -100,7 +100,7 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
     if (_request == "" && r == "\r\n")
         return 0;
     if (_line == "" && _request.find("\r\n\r\n") == std::string::npos && (r == "" || r.substr(0, 1) == " "))
-        return 399;
+        return 400;
     r = _line + r;
     _line = "";
     while ((nl = r.find(NL)) != std::string::npos)
@@ -108,7 +108,7 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         if (_request.empty() == true)
         {
             if (!get_request_first_line(r.substr(0, nl + NLSIZE)))
-                return 399;
+                return 400;
         }
         else if (r[0] == '\r' && r[1] == '\n' && _request.substr(_request.length() - 2) == "\r\n"
             && _request.find("\r\n\r\n") == std::string::npos)
@@ -156,7 +156,10 @@ int Request::addp(Client* client, Server* conf_o, std::string r)
         else
         {
             if (!get_request_line(r.substr(0, nl + NLSIZE)))
+            {
+                checkHeader(client, conf_o, r);
                 return 400;
+            }
         }
         if (_chunked == -2)
             _request += r.substr(0, nl + NLSIZE);
@@ -186,8 +189,8 @@ int Request::checkHeader(Client* client, Server* conf_o, std::string r)
 
     _path_o = _path;
     client->response->setConf(conf_o);
-    if (checkHost(conf_o->ip, conf_o->port, conf_o->server_name) == 399)
-       return 399;
+    if (checkHost(conf_o->ip, conf_o->port, conf_o->server_name) == 400)
+       return 400;
     location = apply_location(_path, conf_o, &conf_local);
     client->response->setConf(conf_local);
     if (conf_o->root != conf_local->root)
@@ -234,7 +237,7 @@ int	Request::checkHost(std::string ip, std::string port, std::vector<std::string
     			if ((_m["Host"] == ip && port == "80") || (_m["Host"].find(":") != std::string::npos && _m["Host"].find(":") == _m["Host"].rfind(":")
     				&& (ip == "0.0.0.0" || ip == _m["Host"].substr(0, _m["Host"].find(":"))) && _m["Host"].substr(_m["Host"].find(":") + 1) == port))
     				break ;
-    			return 399;
+    			return 400;
     		}
     	}
     }
@@ -247,7 +250,7 @@ bool Request::get_request_line(std::string r)
     std::string::size_type pos;
     if ((pos = r.find(": ")) == std::string::npos)
     {
-        return (false);
+        return (true);
     }
     ctn = r.substr(0, pos);
     if (ctn.find(" ") != std::string::npos)

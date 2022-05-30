@@ -94,12 +94,8 @@ int Response::openFile()
     }
     if (_stat_rd != 200 && _stat_rd != 201 && _stat_rd != 301 && _stat_rd != 302 && _stat_rd != 401)
     {
-        if (_stat_rd == 399 || !_conf->error_page.count(_stat_rd))
-        {
-            if (_stat_rd == 399)
-                _stat_rd = 400;
+        if (_conf->error_page.find(_stat_rd) == _conf->error_page.end())
             _filecontent = "\n<!DOCTYPE html>\n\n<html>\n\n<body>\n  \n  <h1>ERROR " + intToStr(_stat_rd) + "</h1>\n    <p>" + error_page_message(_stat_rd) + "</p>\n</body>\n\n</html>";
-        }
         else
         {
             _filepath = _conf->root + _conf->error_page[_stat_rd];
