@@ -66,10 +66,10 @@ void Request::add(Client* client, Server* conf_o, std::string new_request)
     }
     if (_valid == 0 && _end == true && _method == "POST")
     {
-        if (_m["Content-Type"] == "")
-        {
-            _m["Content-Type"] = "text/plain";
-        }
+      //  if (_m["Content-Type"] == "")
+        //{
+         //   _m["Content-Type"] = "text/plain";
+       // }
         if (_m["Content-Type"] != "text/plain" && (_m["Content-Type"].find(";") == std::string::npos || _m["Content-Type"].substr(0, _m["Content-Type"].find(";")) != "multipart/form-data") && _m["Content-Type"] != "application/x-www-form-urlencoded")
         {
             _valid = 400;
@@ -250,7 +250,7 @@ bool Request::get_request_line(std::string r)
     std::string::size_type pos;
     if ((pos = r.find(": ")) == std::string::npos)
     {
-        return (true);
+        return (false);
     }
     ctn = r.substr(0, pos);
     if (ctn.find(" ") != std::string::npos)
