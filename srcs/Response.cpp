@@ -120,6 +120,7 @@ int Response::treatRequest()
         return (fd_file);
     }
 
+    get_filepath();
     /* --Redirections-- */
     std::vector<Redirect>::iterator it = _conf->redirect.begin();
     while (it != _conf->redirect.end())
@@ -143,7 +144,7 @@ int Response::treatRequest()
         return -1;
     }
     else if (is_directory(_filepath) == false && access(std::string(_filepath).c_str(), F_OK) == 0
-        && _request->get_path_o()[_request->get_path_o().length() - 1] == '/')
+        && _request->get_path_o()[_request->get_path_o().length() - 1] == '/' && _request->get_path_o() != "/")
     {
         _stat_rd = 301;
         transfer = _request->get_path_o().substr(0, _request->get_path_o().length() - 1);
@@ -151,7 +152,6 @@ int Response::treatRequest()
     }
     /* ---- */
 
-    get_filepath();
     /* --Url_Decode-- */
 	if (access(_filepath.c_str(), F_OK) != 0)
 	{
