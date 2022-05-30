@@ -3,6 +3,8 @@
 bool is_cgi(Request* request, Server* conf)
 {
     std::string str;
+    if (conf == NULL)
+        return(false);
     if (request->get_path().find("/") == std::string::npos || request->get_path() == "")
         return false;
     for (size_t i = 0; i < conf->cgi.size(); i++)
